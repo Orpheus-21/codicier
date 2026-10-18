@@ -22,5 +22,6 @@ find build-cov -name '*.gcda' -delete
 ctest --test-dir build-cov > /dev/null
 python3 tools/coverage_diff.py build-cov --base "$base" --min 80
 
-clang-tidy --quiet -p build src/*.cpp spike/*.cpp tests/*.cpp
+# One clang-tidy per file, all cores at once. xargs fails if one file fails.
+printf '%s\n' src/*.cpp spike/*.cpp tests/*.cpp | xargs -P "$(nproc)" -n 1 clang-tidy --quiet -p build
 echo "check: all $mode checks passed"
