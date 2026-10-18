@@ -9,6 +9,9 @@ ListView {
 
     required property ProjectSession session
 
+    // Enter opened an item. The view moves the focus to the page.
+    signal activated
+
     model: session.binder
     clip: true
     spacing: 2
@@ -25,7 +28,11 @@ ListView {
 
     Keys.onLeftPressed: binder.session.binder.setExpanded(currentIndex, false)
     Keys.onRightPressed: binder.session.binder.setExpanded(currentIndex, true)
-    Keys.onReturnPressed: open(currentIndex)
+    Keys.onReturnPressed: {
+        open(currentIndex);
+        if (session.document.file !== "")
+            activated();
+    }
 
     // The model resets on each open or close. Keep the current row on the
     // same item or section.

@@ -1,11 +1,15 @@
 #pragma once
 
 #include "BinderModel.h"
+#include "Document.h"
 #include "Project.h"
+#include "Watcher.h"
 
 #include <QObject>
 #include <QString>
+
 #include <QtQml/qqmlregistration.h>
+#include <memory>
 
 // The open project. Set folder, and the session loads the project and fills
 // the binder.
@@ -20,11 +24,16 @@ class ProjectSession : public QObject
     // The first load error, or "" when the project loaded.
     Q_PROPERTY(QString error READ error NOTIFY loaded)
     Q_PROPERTY(BinderModel *binder READ binder CONSTANT)
+    // The text of the selected item, if it has one.
+    Q_PROPERTY(Document *document READ document CONSTANT)
     // The id of the selected binder item, or "".
     Q_PROPERTY(QString currentId READ currentId WRITE setCurrentId NOTIFY currentIdChanged)
 
 public:
     explicit ProjectSession(QObject *parent = nullptr);
+    ~ProjectSession() override;
+    ProjectSession(const ProjectSession &) = delete;
+    ProjectSession &operator=(const ProjectSession &) = delete;
 
     QString folder() const { return project.folder; }
     void setFolder(const QString &folder);
@@ -33,6 +42,7 @@ public:
     bool readOnly() const { return project.readOnly; }
     QString error() const { return loadError; }
     BinderModel *binder() { return &binderModel; }
+    Document *document() { return &text; }
     QString currentId() const { return current; }
     void setCurrentId(const QString &id);
 
@@ -48,4 +58,8 @@ private:
     QString loadError;
     BinderModel binderModel;
     QString current;
+    Document text;
+    std::unique_ptr<Watcher> watcher;
+
+    void watch();
 };

@@ -20,9 +20,15 @@ Item {
     // The author asked to go back to the workspace home.
     signal closeRequested
 
+    // Saves the open text, then asks to go back to the workspace.
+    function close() {
+        view.session.document.save();
+        view.closeRequested();
+    }
+
     Shortcut {
         sequence: "Ctrl+W"
-        onActivated: view.closeRequested()
+        onActivated: view.close()
     }
 
     // A project that did not load: the error and the way back.
@@ -50,7 +56,7 @@ Item {
 
         Button {
             text: "Back to " + view.workspaceName
-            onClicked: view.closeRequested()
+            onClicked: view.close()
         }
     }
 
@@ -83,11 +89,13 @@ Item {
 
                 T.Action {
                     text: "Back to " + view.workspaceName
-                    onTriggered: view.closeRequested()
+                    onTriggered: view.close()
                 }
             }
 
             Binder {
+                // Enter on a text item moves the focus to the page.
+                onActivated: editor.focusText()
                 anchors.top: projectButton.bottom
                 anchors.topMargin: Theme.space.s
                 anchors.bottom: parent.bottom
@@ -99,6 +107,15 @@ Item {
         // The editor area: a quiet path line, then the page.
         Item {
             T.SplitView.fillWidth: true
+
+            Editor {
+                id: editor
+
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                document: view.session.document
+            }
 
             Item {
                 id: editorBar

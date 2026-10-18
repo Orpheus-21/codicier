@@ -1,0 +1,203 @@
+#include "Document.h"
+
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QGuiApplication>
+#include <QQuickTextDocument>
+#include <QSaveFile>
+
+namespace {
+
+// A text file ends with one line feed. The editor shows the text without it.
+QString fromFile(QString text)
+{
+    if (text.endsWith(u'\n'))
+        text.chop(1);
+    return text;
+}
+
+QByteArray toFile(QString text)
+{
+    if (!text.isEmpty() && !text.endsWith(u'\n'))
+        text += u'\n';
+    return text.toUtf8();
+}
+
+QString writeAtomically(const QString &path, const QByteArray &bytes)
+{
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit())
+        return file.errorString();
+    return { };
+}
+
+} // namespace
+
+Document::Document(QObject *parent) : QObject(parent)
+{
+    timer.setSingleShot(true);
+    timer.setInterval(saveDelayMs);
+    connect(&timer, &QTimer::timeout, this, &Document::save);
+    // A normal quit saves the last edits.
+    if (QCoreApplication::instance() != nullptr)
+        connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this,
+                &Document::save);
+}
+
+void Document::setTextDocument(QQuickTextDocument *value)
+{
+    if (value == quickDocument)
+        return;
+    quickDocument = value;
+    attach(value != nullptr ? value->textDocument() : nullptr);
+    emit textDocumentChanged();
+}
+
+void Document::attach(QTextDocument *value)
+{
+    if (document != nullptr)
+        disconnect(document, nullptr, this, nullptr);
+    document = value;
+    if (document == nullptr)
+        return;
+    connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
+    showText();
+}
+
+QString Document::text() const
+{
+    return document != nullptr ? document->toPlainText() : loadedText;
+}
+
+void Document::open(const QString &projectFolder, const QString &file)
+{
+    if (unsaved)
+        save();
+    timer.stop();
+    folder = projectFolder;
+    path = file;
+    inConflict = false;
+    setDirty(false);
+    readFile();
+    showText();
+    emit fileChanged();
+    emit conflictChanged();
+}
+
+void Document::readFile()
+{
+    loadedText.clear();
+    setError(QString());
+    if (path.isEmpty())
+        return;
+    QFile in(QDir(folder).filePath(path));
+    if (!in.open(QIODevice::ReadOnly)) {
+        setError(QStringLiteral("Cannot read %1.").arg(path));
+        return;
+    }
+    loadedText = fromFile(QString::fromUtf8(in.readAll()));
+}
+
+void Document::showText()
+{
+    if (document == nullptr)
+        return;
+    loading = true;
+    document->setPlainText(loadedText);
+    loading = false;
+}
+
+void Document::edited()
+{
+    if (loading || path.isEmpty())
+        return;
+    setDirty(true);
+    timer.start();
+}
+
+bool Document::save()
+{
+    timer.stop();
+    if (path.isEmpty() || !unsaved)
+        return true;
+    // During a conflict the author decides first. The text stays in memory.
+    if (inConflict)
+        return false;
+    const QString error = writeAtomically(QDir(folder).filePath(path), toFile(text()));
+    if (!error.isEmpty()) {
+        setError(QStringLiteral("Cannot save %1: %2").arg(path, error));
+        return false;
+    }
+    setError(QString());
+    setDirty(false);
+    emit saved(path);
+    return true;
+}
+
+void Document::reloadIfClean()
+{
+    if (unsaved || path.isEmpty())
+        return;
+    readFile();
+    showText();
+}
+
+void Document::markConflict()
+{
+    if (inConflict)
+        return;
+    inConflict = true;
+    timer.stop();
+    emit conflictChanged();
+}
+
+void Document::keepMine()
+{
+    if (!inConflict)
+        return;
+    inConflict = false;
+    emit conflictChanged();
+    setDirty(true);
+    save();
+}
+
+void Document::useFile()
+{
+    if (!inConflict)
+        return;
+    // Keep the text of the app before the file replaces it.
+    const QDir dir(folder);
+    const QString name
+        = QStringLiteral(".codicier/recovered/%1-%2.md")
+              .arg(QFileInfo(path).completeBaseName(),
+                   QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")));
+    if (!dir.mkpath(QStringLiteral(".codicier/recovered"))
+        || !writeAtomically(dir.filePath(name), toFile(text())).isEmpty()) {
+        setError(QStringLiteral("Cannot keep a copy of the text, so the file did not replace it."));
+        return;
+    }
+    inConflict = false;
+    emit conflictChanged();
+    setDirty(false);
+    readFile();
+    showText();
+    emit saved(path);
+}
+
+void Document::setDirty(bool value)
+{
+    if (value == unsaved)
+        return;
+    unsaved = value;
+    emit dirtyChanged();
+}
+
+void Document::setError(const QString &text)
+{
+    if (text == lastError)
+        return;
+    lastError = text;
+    emit errorChanged();
+}
