@@ -8,6 +8,8 @@
 #include <QSaveFile>
 #include <QSet>
 
+#include <functional>
+
 ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 {
     connect(&text, &Document::saved, this, [this](const QString &file) {
@@ -402,6 +404,10 @@ bool ProjectSession::moveBy(const QString &id, int delta)
 
 int ProjectSession::chapterWords() const
 {
+    // A selected chapter counts itself.
+    const int index = indexOf(current);
+    if (index >= 0 && project.items.at(index).kind == QLatin1String("chapter"))
+        return binderModel.wordsOf(current);
     const QString chapter = binderModel.chapterOf(current);
     return chapter.isEmpty() ? -1 : binderModel.wordsOf(chapter);
 }
@@ -646,4 +652,24 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
         return false;
     }
     return commit({ });
+}
+
+QVariantList ProjectSession::textsUnder(const QString &id) const
+{
+    QVariantList list;
+    const int index = indexOf(id);
+    if (index < 0)
+        return list;
+    const std::function<void(int)> walk = [&](int at) {
+        for (const int child : project.items.at(at).children) {
+            const ProjectItem &item = project.items.at(child);
+            if (!item.file.isEmpty() && item.kind != QLatin1String("file") && !item.missingFile)
+                list.append(QVariantMap { { QStringLiteral("id"), item.id },
+                                          { QStringLiteral("title"), item.title },
+                                          { QStringLiteral("file"), item.file } });
+            walk(child);
+        }
+    };
+    walk(index);
+    return list;
 }

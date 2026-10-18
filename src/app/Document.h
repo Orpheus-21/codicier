@@ -12,12 +12,13 @@
 #include <QtQml/qqmlregistration.h>
 
 // The open text file: it loads the file into the editor and saves it one
-// second after the last edit. Each save replaces the file in one step.
+// second after the last edit. Each save replaces the file in one step. The
+// session has one for the editor, and the composite view makes one for each
+// scene.
 class Document : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_UNCREATABLE("A Document comes from a ProjectSession.")
     // QML sets this to the textDocument of its TextEdit.
     Q_PROPERTY(QQuickTextDocument *textDocument READ textDocument WRITE setTextDocument NOTIFY
                    textDocumentChanged)
@@ -62,7 +63,7 @@ public:
     void setLineDistance(qreal value);
 
     // Saves the open file if needed, then opens file. An empty file closes.
-    void open(const QString &projectFolder, const QString &file);
+    Q_INVOKABLE void open(const QString &projectFolder, const QString &file);
     // Writes the text now. Returns false on an error or during a conflict.
     Q_INVOKABLE bool save();
     // Reads the file again, if there are no unsaved edits.

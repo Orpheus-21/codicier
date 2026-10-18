@@ -185,8 +185,31 @@ Item {
         Item {
             T.SplitView.fillWidth: true
 
+            // A chapter, a part, or a folder: all its scenes as one scroll.
+            Loader {
+                id: compositeLoader
+
+                readonly property bool show: view.session.currentId !== ""
+                                             && view.session.document.file === ""
+                                             && view.session.textsUnder(view.session.currentId).length > 0
+
+                active: show
+                visible: show
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 1
+
+                sourceComponent: Composite {
+                    session: view.session
+                    itemId: view.session.currentId
+                }
+            }
+
             Editor {
                 id: editor
+
+                visible: !compositeLoader.show
 
                 anchors.top: editorBar.bottom
                 anchors.bottom: parent.bottom

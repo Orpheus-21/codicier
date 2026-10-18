@@ -92,6 +92,9 @@ public:
     // Sets one field and saves the binder. An empty value removes the key.
     // Returns false for an unknown key or a value that is not valid.
     Q_INVOKABLE bool setField(const QString &id, const QString &key, const QVariant &value);
+    // The text items below the item, in binder order, as maps with id,
+    // title, and file. For the composite view.
+    Q_INVOKABLE QVariantList textsUnder(const QString &id) const;
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }

@@ -121,6 +121,23 @@ TestCase {
         verify(!inspector.save("status", "final"));
     }
 
+    function test_aChapterShowsAllItsScenesReadOnly() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Harbour", "novella", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/harbour" }) as ProjectView;
+        const model = view.session.binder;
+        const chapter = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = model.data(model.index(2, 0), BinderModel.IdRole);
+        view.session.add("scene");
+        view.session.currentId = chapter;
+        waitForRendering(view);
+        const composite = findChild(view, "composite") as Composite;
+        verify(composite);
+        tryCompare(composite, "count", 2);
+        verify(composite.readOnly);
+    }
+
     function test_themeChangeIsNotAnEdit() {
         const view = makeView();
         const model = view.session.binder;

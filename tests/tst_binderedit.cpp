@@ -445,6 +445,25 @@ private slots:
                  std::string("revised"));
     }
 
+    void textsUnderAChapterOrAPart()
+    {
+        const QVariantList chapter = session->textsUnder("f6g7h8j9k0");
+        QCOMPARE(chapter.size(), 2);
+        QCOMPARE(chapter.at(0).toMap().value("id").toString(), QStringLiteral("m1n2p3q4r5"));
+        QCOMPARE(chapter.at(1).toMap().value("file").toString(),
+                 QStringLiteral("manuscript/a-date-she-did-not-know.md"));
+        QCOMPARE(session->textsUnder("a1b2c3d4e5").size(), 2);
+        QCOMPARE(session->textsUnder("k3m9q2x7ab").size(), 0);
+        QCOMPARE(session->textsUnder("t6v4h9r2mz").size(), 0);
+        QCOMPARE(session->textsUnder("nothing").size(), 0);
+    }
+
+    void aSelectedChapterCountsItself()
+    {
+        session->setCurrentId("f6g7h8j9k0");
+        QCOMPARE(session->chapterWords(), 28);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
