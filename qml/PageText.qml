@@ -23,6 +23,8 @@ TextEdit {
     selectByMouse: true
     persistentSelection: true
     Component.onCompleted: pageText.document.textDocument = pageText.textDocument
+    // Save while the text still exists: the text goes before the document.
+    Component.onDestruction: pageText.document.save()
 
     FontMetrics {
         id: metrics

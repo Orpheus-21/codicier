@@ -55,6 +55,12 @@ Document::Document(QObject *parent) : QObject(parent)
                 &Document::save);
 }
 
+Document::~Document()
+{
+    if (unsaved && document != nullptr)
+        save();
+}
+
 void Document::setTextDocument(QQuickTextDocument *value)
 {
     if (value == quickDocument)
@@ -71,6 +77,7 @@ void Document::attach(QTextDocument *value)
     document = value;
     if (document == nullptr)
         return;
+    attachedOnce = true;
     // The document owns the highlighter.
     highlighter = new MarkdownHighlighter(document);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
@@ -200,12 +207,19 @@ bool Document::save()
     // During a conflict the author decides first. The text stays in memory.
     if (inConflict)
         return false;
-    const QString error = writeAtomically(QDir(folder).filePath(path), toFile(text()));
+    // The editor text is gone, so no text is left that is newer than the
+    // file. Writing the text of the last load could undo a later save.
+    if (attachedOnce && document == nullptr)
+        return false;
+    const QString current = text();
+    const QString error = writeAtomically(QDir(folder).filePath(path), toFile(current));
     if (!error.isEmpty()) {
         setError(QStringLiteral("Cannot save %1: %2").arg(path, error));
         return false;
     }
     setError(QString());
+    // The saved text is now the text of the file.
+    loadedText = current;
     setDirty(false);
     if (document != nullptr)
         document->setModified(false);

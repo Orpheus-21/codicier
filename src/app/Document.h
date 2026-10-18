@@ -41,6 +41,10 @@ public:
     static constexpr int countDelayMs = 250;
 
     explicit Document(QObject *parent = nullptr);
+    // Saves unsaved edits while the text still exists.
+    ~Document() override;
+    Document(const Document &) = delete;
+    Document &operator=(const Document &) = delete;
 
     QQuickTextDocument *textDocument() const { return quickDocument; }
     void setTextDocument(QQuickTextDocument *document);
@@ -98,6 +102,8 @@ private:
     // The text of the file, kept until an editor is attached.
     QString loadedText;
     bool unsaved = false;
+    // An editor was attached once. If its text is gone, a save writes nothing.
+    bool attachedOnce = false;
     bool inConflict = false;
     bool loading = false;
     QString lastError;

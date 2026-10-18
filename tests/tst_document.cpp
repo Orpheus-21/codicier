@@ -313,6 +313,36 @@ private slots:
         QCOMPARE(session.sceneWords(), 0);
     }
 
+    void goneEditorNeverWritesOldText()
+    {
+        Document document;
+        {
+            QTextDocument text;
+            document.attach(&text);
+            document.open(dir.path(), scene);
+            type(text, " Saved once.");
+            QVERIFY(document.save());
+            type(text, " Then more.");
+        }
+        // The editor text is gone with unsaved edits. A save must not write the
+        // text of the first load over the newer file.
+        QVERIFY(!document.save());
+        QVERIFY(readFile(path(scene)).endsWith("Saved once.\n"));
+        QVERIFY(document.text().endsWith("Saved once."));
+    }
+
+    void deletedDocumentSavesItsEdits()
+    {
+        QTextDocument text;
+        {
+            Document document;
+            document.attach(&text);
+            document.open(dir.path(), scene);
+            type(text, " Kept on delete.");
+        }
+        QVERIFY(readFile(path(scene)).endsWith("Kept on delete.\n"));
+    }
+
     void sessionOpensTheSelectedText()
     {
         ProjectSession session;
