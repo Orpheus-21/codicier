@@ -83,6 +83,10 @@ TestCase {
         compare(Theme.type.ui, "Inter");
     }
 
+    function test_readingLineIsInPixels() {
+        compare(Theme.type.readingLine, Math.round(Theme.type.readingSize * Theme.type.readingLineHeight));
+    }
+
     function test_reducedMotionStopsMotion() {
         Theme.motion.reduced = true;
         compare(Theme.motion.fast, 0);

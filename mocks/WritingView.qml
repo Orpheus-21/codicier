@@ -30,7 +30,7 @@ Rectangle {
     // comes from CSS here and not from Text.lineHeight.
     // In the real editor an empty line splits two paragraphs, so the gap
     // after each paragraph is one line.
-    readonly property int lineGap: Math.round(Theme.type.readingSize * Theme.type.readingLineHeight)
+    readonly property int lineGap: Theme.type.readingLine
     readonly property string manuscript: `<div style="line-height:${Theme.type.readingLineHeight * 100}%">` + [
         `<p style="font-size:30px; margin-bottom:${root.lineGap}px">${mark("## ")}<b>A Date She Did Not Know</b></p>`,
         `<p style="margin-bottom:${root.lineGap}px">The letter said ${em("the fourth of March")}, and nothing else on the first line. Mara read it twice, then held the paper to the window, as if the light could find the year that the ink had left out.</p>`,

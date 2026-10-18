@@ -275,7 +275,8 @@ Rectangle {
                 font.family: Theme.type.reading
                 font.italic: true
                 font.pixelSize: Theme.type.readingSize
-                lineHeight: Theme.type.readingLineHeight
+                lineHeightMode: Text.FixedHeight
+            lineHeight: Theme.type.readingLine
                 color: Theme.color.inkMuted
             }
 
