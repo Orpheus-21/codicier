@@ -1,6 +1,6 @@
 # Design brief
 
-Status: proposed. The author approves this brief before the theme and the screens.
+Status: accepted on 2026-10-18.
 
 This brief sets the look of Codicier. The theme tokens, the fonts, the icons, and each screen mock follow from it. If a later design choice does not fit the brief, change the brief first.
 
@@ -63,7 +63,7 @@ The spike in `spike/` already uses these values. Task T13 turns them into theme 
 | Reading font | Crimson Pro, 21 px |
 | Line width | 66 characters |
 
-The colour of the Markdown marks has a contrast ratio of 2.18 on the paper. The ink has 14.13, and the accent has 5.06. Task T13 must make it darker, or the author must accept an exception for the marks.
+The colour of the Markdown marks has a contrast ratio of 2.18 on the paper. The ink has 14.13, and the accent has 5.06. Task T13 must make the colour of the marks darker, to a contrast ratio of 4.5 or more.
 
 ## Fonts
 
@@ -74,9 +74,9 @@ Task T14 picks the fonts. Each font must have an open licence, and the app bundl
 | Reading | Crimson Pro, Literata, Source Serif 4, EB Garamond |
 | Interface | iA Writer Quattro, Inter, IBM Plex Sans |
 
-## Decisions for the author
+## Decisions
 
-1. Approve the mood: a study at night, warm paper and ink.
-2. Pick the default theme on the first start: light, dark, or the system setting.
-3. Pick the rule for the Markdown marks: the full contrast of 4.5, or a lower contrast as a recorded exception.
-4. Add or remove a reference.
+1. The mood is a study at night, with warm paper and ink.
+2. On the first start, the app uses the light or dark setting of the system. The author can change the theme, and sepia is one of the choices.
+3. The Markdown marks have a contrast ratio of 4.5 or more, with no exception. They stay quieter than the ink.
+4. The references are Vellum, iA Writer, Scrivener, and a printed novel.
