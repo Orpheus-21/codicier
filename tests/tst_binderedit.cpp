@@ -526,6 +526,58 @@ private slots:
         QCOMPARE(session->currentId(), QString());
     }
 
+    void searchFollowsTheProject()
+    {
+        const auto ids = [this](const QString &query) {
+            QStringList list;
+            for (const QVariant &hit : session->search(query))
+                list.append(hit.toMap().value("id").toString());
+            return list;
+        };
+        const QVariantList hits = session->search("fourth");
+        QCOMPARE(hits.size(), 1);
+        const QVariantMap hit = hits.first().toMap();
+        QCOMPARE(hit.value("id").toString(), QStringLiteral("t6v4h9r2mz"));
+        QVERIFY2(hit.value("snippet").toString().contains(
+                     "The letter said the <b>fourth</b> of March, and nothing else"),
+                 qPrintable(hit.value("snippet").toString()));
+        // A footnote mark is not part of a snippet.
+        const QString missing
+            = session->search("missing").first().toMap().value("snippet").toString();
+        QVERIFY2(!missing.contains("[^") && missing.contains("The year is <b>missing</b>."),
+                 qPrintable(missing));
+        QCOMPARE(session->firstMatch("t6v4h9r2mz", "FOURTH"), 21);
+        QCOMPARE(session->firstMatch("t6v4h9r2mz", "lantern"), -1);
+        QCOMPARE(session->firstMatch("nothere", "fourth"), -1);
+
+        // Typing that is not saved yet is found.
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor cursor(&editor);
+        cursor.insertText("A <lantern> burned. ");
+        QCOMPARE(ids("lantern"), QStringList { "t6v4h9r2mz" });
+        QVERIFY(session->search("lantern").first().toMap().value("snippet").toString().contains(
+            "&lt;<b>lantern</b>&gt;"));
+
+        // A rename changes the title that the search reads.
+        QVERIFY(session->rename("f6g7h8j9k0", "Quarantine"));
+        QCOMPARE(ids("quarantine"), QStringList { "f6g7h8j9k0" });
+
+        // An item in the trash is not found.
+        QVERIFY(session->moveToTrash("t6v4h9r2mz"));
+        QVERIFY(ids("lantern").isEmpty());
+
+        // An outside edit is found after the watcher sees it.
+        const QString file = onDisk(dir.path(), "m1n2p3q4r5").file;
+        QFile out(QDir(dir.path()).filePath(file));
+        QVERIFY(out.open(QIODevice::WriteOnly));
+        out.write("A heron stood still.\n");
+        out.close();
+        QTRY_COMPARE(ids("heron"), QStringList { "m1n2p3q4r5" });
+        QVERIFY(session->search("   ").isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

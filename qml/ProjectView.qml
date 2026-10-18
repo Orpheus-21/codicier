@@ -36,6 +36,18 @@ Item {
         }
     }
 
+    // The search panel takes the place of the binder list.
+    property bool searchOpen: false
+
+    Shortcut {
+        sequence: "Ctrl+Shift+F"
+        onActivated: {
+            view.setFocusMode(false);
+            view.searchOpen = true;
+            search.start();
+        }
+    }
+
     Shortcut {
         sequence: "Ctrl+I"
         onActivated: view.inspectorOpen = !view.inspectorOpen
@@ -187,9 +199,30 @@ Item {
                 }
             }
 
+            SearchPanel {
+                id: search
+
+                visible: view.searchOpen
+                anchors.top: projectButton.bottom
+                anchors.topMargin: Theme.space.s
+                anchors.bottom: parent.bottom
+                width: parent.width
+                session: view.session
+                onCloseRequested: {
+                    view.searchOpen = false;
+                    binder.forceActiveFocus();
+                }
+                onOpened: (id, query) => {
+                    view.session.currentId = id;
+                    editor.selectRange(view.session.firstMatch(id, query),
+                                       query.trim().split(" ")[0].length);
+                }
+            }
+
             Binder {
                 id: binder
 
+                visible: !view.searchOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()
                 anchors.top: projectButton.bottom

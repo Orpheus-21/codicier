@@ -129,6 +129,45 @@ private slots:
         QCOMPARE(index.search("CAFÉ").size(), 1);
     }
 
+    void updateReadsOneItem()
+    {
+        QTemporaryDir parent;
+        const QString folder = parent.filePath("essay");
+        QVERIFY(Templates::create(folder, "essay", "Notes", QString()).isEmpty());
+        LoadResult result = ProjectStore::load(folder);
+        const ProjectItem item = result.project.items.first();
+        Index index(folder);
+        QVERIFY(index.update(result.project, item.id) == QStringLiteral("the index is not open"));
+        QVERIFY(index.open().isEmpty());
+        QVERIFY(index.rebuild(result.project).isEmpty());
+        QVERIFY(index.search("lighthouse").isEmpty());
+
+        QFile file(QDir(folder).filePath(item.file));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("The lighthouse keeper slept.\n");
+        file.close();
+        QVERIFY(index.update(result.project, item.id).isEmpty());
+        const QList<SearchHit> hits = index.search("lighthouse", "<", ">");
+        QCOMPARE(hits.size(), 1);
+        QVERIFY2(hits.first().snippet.contains("<lighthouse>"), qPrintable(hits.first().snippet));
+        // One row for each item, also after an update.
+        QCOMPARE(index.dump().size(), result.project.items.size());
+
+        // An item that left the project leaves the index.
+        result.project.items.removeFirst();
+        QVERIFY(index.update(result.project, item.id).isEmpty());
+        QVERIFY(index.search("lighthouse").isEmpty());
+    }
+
+    void firstMatchFindsWholeWords()
+    {
+        QCOMPARE(Index::firstMatch("Start the art class.", "art"), 10);
+        QCOMPARE(Index::firstMatch("A Café, then a cafe.", "CAFE other"), 2);
+        QCOMPARE(Index::firstMatch("Nothing here.", "art"), -1);
+        QCOMPARE(Index::firstMatch("Any text.", "  "), -1);
+        QCOMPARE(Index::firstMatch("art", "art"), 0);
+    }
+
     void oldSchemaIsBuiltAgain()
     {
         QTemporaryDir dir;

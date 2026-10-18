@@ -104,6 +104,34 @@ TestCase {
         compare(text.text, "Two");
     }
 
+    function test_searchOpensTheMatch() {
+        const view = makeView();
+        const model = view.session.binder;
+        const first = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = first;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "The tide came in. A gull cried over the Harbour wall.";
+        view.session.currentId = "";
+        waitForRendering(view);
+
+        view.forceActiveFocus();
+        keyClick(Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier);
+        verify(view.searchOpen);
+        for (const c of "GULL")
+            keyClick(c);
+        const results = findChild(view, "searchResults") as ListView;
+        tryCompare(results, "count", 1);
+        keyClick(Qt.Key_Return);
+        compare(view.session.currentId, first);
+        compare(text.selectedText, "gull");
+        verify(text.activeFocus);
+
+        // Escape in the panel shows the binder again.
+        keyClick(Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier);
+        keyClick(Qt.Key_Escape);
+        verify(!view.searchOpen);
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;

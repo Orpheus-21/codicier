@@ -7,11 +7,14 @@
 
 #include <QObject>
 #include <QPointer>
+#include <QSet>
 #include <QString>
 #include <QVariantMap>
 
 #include <QtQml/qqmlregistration.h>
 #include <memory>
+
+class Index;
 
 // The open project. Set folder, and the session loads the project and fills
 // the binder.
@@ -126,6 +129,12 @@ public:
     // the trash and removes the items from the binder. Returns the number of
     // items deleted, or -1 on an error.
     Q_INVOKABLE int emptyTrash();
+    // Full text search over the titles and the texts outside the trash, best
+    // match first. Each result has an id, a title, and a snippet in rich text
+    // with the match in bold.
+    Q_INVOKABLE QVariantList search(const QString &query);
+    // Where the first word of the query is in the text of an item, or -1.
+    Q_INVOKABLE int firstMatch(const QString &id, const QString &query) const;
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }
@@ -156,8 +165,15 @@ private:
     int backupsToKeep = 10;
     // A file changed since the project opened or since the last backup.
     bool changedSinceBackup = false;
+    // The search index builds at the first search after a load or a binder
+    // edit. Between those, only the files that changed are read again.
+    std::unique_ptr<Index> index;
+    bool indexStale = true;
+    QSet<QString> staleFiles;
 
     void watch();
+    // A file was written by the app.
+    void noteSaved(const QString &file);
     int indexOf(const QString &id) const;
     void place(int index, int parent, int position, const QString &section);
     void detach(int index);

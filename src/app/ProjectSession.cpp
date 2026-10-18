@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QFile>
 #include <QLocale>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QSet>
 
@@ -20,8 +21,7 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 {
     connect(&text, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
-        if (watcher)
-            watcher->noteSaved(file);
+        noteSaved(file);
     });
     connect(this, &ProjectSession::snapshotsChanged, this, [this] { changedSinceBackup = true; });
     // The live count of the open text goes into the binder, so the counts of
@@ -43,6 +43,13 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 ProjectSession::~ProjectSession()
 {
     backup();
+}
+
+void ProjectSession::noteSaved(const QString &file)
+{
+    staleFiles.insert(file);
+    if (watcher)
+        watcher->noteSaved(file);
 }
 
 QString ProjectSession::backup()
@@ -86,6 +93,7 @@ void ProjectSession::reload()
         loadError.clear();
         binderModel.setProject(project);
         watcher.reset();
+        index.reset();
         emit loaded();
         return;
     }
@@ -97,6 +105,9 @@ void ProjectSession::reload()
     project.folder = folder;
     binderModel.setProject(project);
     watch();
+    index.reset();
+    indexStale = true;
+    staleFiles.clear();
     emit loaded();
     // After a reload the same item stays selected, if it is still there.
     setCurrentId(previous);
@@ -110,6 +121,7 @@ void ProjectSession::watch()
         return;
     watcher = std::make_unique<Watcher>(project);
     connect(watcher.get(), &Watcher::textChanged, this, [this](const QString &file) {
+        staleFiles.insert(file);
         if (file == text.file())
             text.reloadIfClean();
         for (const QPointer<Document> &document : std::as_const(tracked)) {
@@ -245,6 +257,7 @@ bool ProjectSession::commit(const QStringList &newFiles)
     // files include the latest typing.
     text.save();
     changedSinceBackup = true;
+    indexStale = true;
     const QList<LoadError> errors = ProjectStore::save(project);
     editError = errors.isEmpty() ? QString() : errors.first().text();
     if (watcher) {
@@ -605,8 +618,7 @@ bool ProjectSession::mergeWithNext(const QString &id)
         const QString notes = notesA.isEmpty() ? notesB : notesA + QStringLiteral("\n\n") + notesB;
         project.items[first].data.insert_or_assign("notes", notes.toStdString());
     }
-    if (watcher)
-        watcher->noteSaved(project.items.at(first).file);
+    noteSaved(project.items.at(first).file);
     // The second scene keeps its file in the trash, so its old text stays.
     moveToTrash(next);
     if (current == id || current.isEmpty())
@@ -734,8 +746,7 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
     tracked.append(document);
     connect(document, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
-        if (watcher)
-            watcher->noteSaved(file);
+        noteSaved(file);
     });
     connect(document, &Document::dirtyChanged, this, [this, document] {
         if (watcher && !document->file().isEmpty())
@@ -797,8 +808,7 @@ bool ProjectSession::restoreSnapshot(const QString &id, const QString &path)
     }
     if (!Snapshots::restore(project.folder, id, file, path))
         return false;
-    if (watcher)
-        watcher->noteSaved(file);
+    noteSaved(file);
     if (current == id)
         text.open(project.folder, file);
     for (const QPointer<Document> &document : std::as_const(tracked)) {
@@ -907,4 +917,70 @@ int ProjectSession::emptyTrash()
     project.roots = std::move(roots);
     commit({ });
     return count;
+}
+
+QVariantList ProjectSession::search(const QString &query)
+{
+    QVariantList list;
+    if (project.folder.isEmpty() || !loadError.isEmpty())
+        return list;
+    // The index reads the files, so the latest typing goes to disk first.
+    text.save();
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document)
+            document->save();
+    }
+    if (!index) {
+        index = std::make_unique<Index>(project.folder);
+        if (const QString error = index->open(); !error.isEmpty()) {
+            qWarning("Codicier: cannot open the search index: %s", qPrintable(error));
+            index.reset();
+            return list;
+        }
+        indexStale = true;
+    }
+    QString error;
+    if (indexStale) {
+        error = index->rebuild(project);
+    } else {
+        for (const ProjectItem &item : std::as_const(project.items)) {
+            if (error.isEmpty() && !item.file.isEmpty() && staleFiles.contains(item.file))
+                error = index->update(project, item.id);
+        }
+    }
+    if (!error.isEmpty()) {
+        qWarning("Codicier: cannot update the search index: %s", qPrintable(error));
+        return list;
+    }
+    indexStale = false;
+    staleFiles.clear();
+    // Marks that no text holds, so the escape below cannot touch them.
+    const QString open(QChar(0x2));
+    const QString close(QChar(0x3));
+    for (const SearchHit &hit : index->search(query, open, close)) {
+        if (binderModel.isInTrash(hit.id))
+            continue;
+        // The snippet shows the words, not the Markdown marks and footnotes.
+        QString snippet = hit.snippet;
+        snippet.remove(QRegularExpression(QStringLiteral("\\[\\^[^\\]]*\\]|\\*")));
+        snippet = snippet.simplified().toHtmlEscaped();
+        snippet.replace(open, QStringLiteral("<b>")).replace(close, QStringLiteral("</b>"));
+        list.append(QVariantMap {
+            { QStringLiteral("id"), hit.id },
+            { QStringLiteral("title"), hit.title },
+            { QStringLiteral("snippet"), snippet },
+        });
+    }
+    return list;
+}
+
+int ProjectSession::firstMatch(const QString &id, const QString &query) const
+{
+    const int at = indexOf(id);
+    if (at < 0 || project.items.at(at).file.isEmpty())
+        return -1;
+    QFile file(QDir(project.folder).filePath(project.items.at(at).file));
+    if (!file.open(QIODevice::ReadOnly))
+        return -1;
+    return static_cast<int>(Index::firstMatch(QString::fromUtf8(file.readAll()), query));
 }

@@ -132,6 +132,16 @@ Item {
         textEdit.forceActiveFocus();
     }
 
+    // Selects length characters from start and puts the focus on the page.
+    // A start of -1 only puts the focus on the page.
+    function selectRange(start: int, length: int) {
+        textEdit.forceActiveFocus();
+        if (start < 0)
+            return;
+        textEdit.select(start, start + length);
+        placeCursor();
+    }
+
     // Brings the cursor line to its place, as after a change of mode.
     function placeCursor() {
         page.follow(textEdit.cursorRectangle);
