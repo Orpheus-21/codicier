@@ -22,3 +22,4 @@ target_link_libraries(codicier PRIVATE Qt6::Gui Qt6::Qml Qt6::Quick)
 
 enable_testing()
 add_subdirectory(tests)
+add_subdirectory(spike)
