@@ -9,6 +9,8 @@ T.Button {
     // "primary" or "quiet".
     property string kind: "quiet"
     property string iconName: ""
+    // Puts the icon after the text, as for a menu arrow.
+    property bool iconAfterText: false
     readonly property color foreground: kind === "primary" ? Theme.color.paper : Theme.color.ink
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
@@ -26,6 +28,7 @@ T.Button {
 
     contentItem: Row {
         spacing: control.spacing
+        layoutDirection: control.iconAfterText ? Qt.RightToLeft : Qt.LeftToRight
 
         Icon {
             visible: control.iconName !== ""

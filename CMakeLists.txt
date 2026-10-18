@@ -28,12 +28,15 @@ target_compile_definitions(codicier_core PUBLIC TOML_HEADER_ONLY=1)
 # Its files go to build/qml/Codicier, so qmllint and tools find them by import path.
 set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
 qt_add_library(codicier_ui STATIC)
+target_include_directories(codicier_ui PUBLIC src/app)
+target_compile_options(codicier_ui PRIVATE -Wall -Wextra)
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
     QML_FILES qml/Main.qml qml/Theme.qml qml/Icon.qml qml/IconPaths.js
         qml/FocusRing.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
         qml/ListItem.qml qml/Pane.qml qml/Splitter.qml qml/Menu.qml
+    SOURCES src/app/Workspaces.cpp src/app/Workspaces.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

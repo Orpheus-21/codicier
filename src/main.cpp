@@ -9,6 +9,9 @@ Q_IMPORT_QML_PLUGIN(CodicierPlugin)
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    // The settings go to ~/.config/codicier on Linux.
+    QGuiApplication::setApplicationName(QStringLiteral("codicier"));
+    QGuiApplication::setApplicationDisplayName(QStringLiteral("Codicier"));
 
     QQmlApplicationEngine engine;
     OfflineGuard offlineGuard;

@@ -1,8 +1,26 @@
+#include "Workspaces.h"
+
+#include <QFile>
 #include <QQmlExtensionPlugin>
+#include <QStandardPaths>
 #include <QtQuickTest>
 
 // The tests import the same Codicier module as the app.
 Q_IMPORT_QML_PLUGIN(CodicierPlugin)
 
+class Setup : public QObject
+{
+    Q_OBJECT
+
+public slots:
+    // The tests must not read or write the settings of the author.
+    void applicationAvailable()
+    {
+        QStandardPaths::setTestModeEnabled(true);
+        QFile::remove(Workspaces::settingsPath());
+    }
+};
+
 // Runs every tst_*.qml file in QUICK_TEST_SOURCE_DIR.
-QUICK_TEST_MAIN(codicier)
+QUICK_TEST_MAIN_WITH_SETUP(codicier, Setup)
+#include "tst_qml.moc"

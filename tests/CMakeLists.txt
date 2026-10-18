@@ -6,9 +6,7 @@ set(TEST_ENV "QT_QPA_PLATFORM=offscreen")
 
 qt_add_executable(tst_smoke tst_smoke.cpp)
 target_compile_options(tst_smoke PRIVATE -Wall -Wextra)
-target_compile_definitions(tst_smoke PRIVATE
-    MAIN_QML="${PROJECT_SOURCE_DIR}/qml/Main.qml")
-target_link_libraries(tst_smoke PRIVATE Qt6::Qml Qt6::Quick Qt6::Test)
+target_link_libraries(tst_smoke PRIVATE Qt6::Qml Qt6::Quick Qt6::Test codicier_ui codicier_uiplugin)
 add_test(NAME tst_smoke COMMAND tst_smoke)
 set_tests_properties(tst_smoke PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
@@ -16,7 +14,7 @@ qt_add_executable(tst_qml tst_qml.cpp)
 target_compile_options(tst_qml PRIVATE -Wall -Wextra)
 target_compile_definitions(tst_qml PRIVATE
     QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml")
-target_link_libraries(tst_qml PRIVATE Qt6::Qml Qt6::QuickTest codicier_uiplugin)
+target_link_libraries(tst_qml PRIVATE Qt6::Qml Qt6::QuickTest codicier_ui codicier_uiplugin)
 add_test(NAME tst_qml COMMAND tst_qml)
 set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
@@ -67,6 +65,11 @@ target_compile_definitions(tst_watcher PRIVATE
     FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
 target_link_libraries(tst_watcher PRIVATE codicier_core Qt6::Test)
 add_test(NAME tst_watcher COMMAND tst_watcher)
+
+qt_add_executable(tst_workspaces tst_workspaces.cpp)
+target_compile_options(tst_workspaces PRIVATE -Wall -Wextra)
+target_link_libraries(tst_workspaces PRIVATE codicier_ui Qt6::Test)
+add_test(NAME tst_workspaces COMMAND tst_workspaces)
 
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})

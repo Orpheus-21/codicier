@@ -5,7 +5,7 @@ TestCase {
     name: "Smoke"
 
     function test_mainWindowSize() {
-        const component = Qt.createComponent("../../qml/Main.qml")
+        const component = Qt.createComponent("Codicier", "Main")
         compare(component.status, Component.Ready, component.errorString())
 
         const window = component.createObject(null, { visible: false }) as Window
