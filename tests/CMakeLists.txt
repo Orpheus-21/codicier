@@ -113,6 +113,11 @@ target_link_libraries(tst_snapshots PRIVATE codicier_ui Qt6::Test)
 add_test(NAME tst_snapshots COMMAND tst_snapshots)
 set_tests_properties(tst_snapshots PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
+qt_add_executable(tst_diff tst_diff.cpp)
+target_compile_options(tst_diff PRIVATE -Wall -Wextra)
+target_link_libraries(tst_diff PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_diff COMMAND tst_diff)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 

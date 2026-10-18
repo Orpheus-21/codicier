@@ -1,5 +1,7 @@
 #include "ProjectSession.h"
 
+#include "Diff.h"
+#include "Index.h"
 #include "Naming.h"
 #include "ProjectStore.h"
 #include "Snapshots.h"
@@ -776,4 +778,38 @@ bool ProjectSession::restoreSnapshot(const QString &id, const QString &path)
     }
     emit snapshotsChanged();
     return true;
+}
+
+QVariantMap ProjectSession::compare(const QString &id, const QString &snapshotPath) const
+{
+    const int index = indexOf(id);
+    if (index < 0 || !snapshotPath.startsWith(QStringLiteral("snapshots/") + id + u'/')
+        || snapshotPath.contains(QStringLiteral("..")))
+        return { };
+    const QDir dir(project.folder);
+    bool ok = false;
+    const QString before = readTextFile(dir.filePath(snapshotPath), &ok);
+    if (!ok)
+        return { };
+    // The open text is newer than its file while edits wait for the save.
+    const QString after = current == id
+        ? text.text()
+        : readTextFile(dir.filePath(project.items.at(index).file), &ok);
+    QVariantList segments;
+    int added = 0;
+    int removed = 0;
+    for (const Diff::Segment &segment : Diff::words(before, after)) {
+        const char *kind = segment.kind == Diff::Segment::Added ? "added"
+            : segment.kind == Diff::Segment::Removed            ? "removed"
+                                                                : "same";
+        if (segment.kind == Diff::Segment::Added)
+            added += Index::countWords(segment.text);
+        else if (segment.kind == Diff::Segment::Removed)
+            removed += Index::countWords(segment.text);
+        segments.append(QVariantMap { { QStringLiteral("kind"), QString::fromLatin1(kind) },
+                                      { QStringLiteral("text"), segment.text } });
+    }
+    return { { QStringLiteral("segments"), segments },
+             { QStringLiteral("addedWords"), added },
+             { QStringLiteral("removedWords"), removed } };
 }

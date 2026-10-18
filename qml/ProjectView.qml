@@ -22,6 +22,17 @@ Item {
 
     // The inspector pane on the right.
     property bool inspectorOpen: false
+    // The snapshot that the compare view shows, or "".
+    property string comparePath: ""
+    property string compareLabel: ""
+
+    Connections {
+        target: view.session
+
+        function onCurrentIdChanged() {
+            view.comparePath = "";
+        }
+    }
 
     Shortcut {
         sequence: "Ctrl+I"
@@ -212,6 +223,19 @@ Item {
                 }
             }
 
+            CompareView {
+                visible: view.comparePath !== ""
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 2
+                session: view.session
+                itemId: view.session.currentId
+                snapshotPath: view.comparePath
+                snapshotLabel: view.compareLabel
+                onCloseRequested: view.comparePath = ""
+            }
+
             Editor {
                 id: editor
 
@@ -254,6 +278,10 @@ Item {
 
         Inspector {
             visible: view.inspectorOpen && !view.focusMode
+            onCompareRequested: (path, label) => {
+                view.compareLabel = label;
+                view.comparePath = path;
+            }
             T.SplitView.preferredWidth: 340
             T.SplitView.minimumWidth: 260
             session: view.session

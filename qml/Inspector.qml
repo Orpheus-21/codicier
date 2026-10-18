@@ -11,6 +11,9 @@ Pane {
     id: inspector
 
     required property ProjectSession session
+
+    // The author wants to compare the text with a snapshot.
+    signal compareRequested(string path, string label)
     // The fields of the selected item, read again after each change.
     property var fields: ({})
 
@@ -422,46 +425,49 @@ Pane {
                 Repeater {
                     model: snapshotSection.list
 
-                    Item {
+                    Column {
                         id: snapshotRow
 
                         required property var modelData
 
                         width: snapshotSection.width
-                        height: 40
+                        spacing: 2
 
-                        Column {
-                            anchors.left: parent.left
-                            anchors.right: restoreButton.left
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            Text {
-                                width: parent.width
-                                text: snapshotRow.modelData.title !== "" ? snapshotRow.modelData.title
-                                                                         : snapshotRow.modelData.label
-                                elide: Text.ElideRight
-                                font.family: Theme.type.ui
-                                font.pixelSize: Theme.type.body
-                                color: Theme.color.ink
-                            }
-
-                            Text {
-                                visible: snapshotRow.modelData.title !== ""
-                                text: snapshotRow.modelData.label
-                                font.family: Theme.type.ui
-                                font.pixelSize: Theme.type.small
-                                color: Theme.color.inkMuted
-                            }
+                        Text {
+                            width: parent.width
+                            text: snapshotRow.modelData.title !== "" ? snapshotRow.modelData.title
+                                                                     : snapshotRow.modelData.label
+                            elide: Text.ElideRight
+                            font.family: Theme.type.ui
+                            font.pixelSize: Theme.type.body
+                            color: Theme.color.ink
                         }
 
-                        Button {
-                            id: restoreButton
+                        Text {
+                            visible: snapshotRow.modelData.title !== ""
+                            text: snapshotRow.modelData.label
+                            font.family: Theme.type.ui
+                            font.pixelSize: Theme.type.small
+                            color: Theme.color.inkMuted
+                        }
 
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Restore"
-                            onClicked: inspector.session.restoreSnapshot(inspector.session.currentId,
-                                                                         snapshotRow.modelData.path)
+                        Row {
+                            spacing: Theme.space.xs
+                            leftPadding: -Theme.space.l
+
+                            Button {
+                                text: "Compare"
+                                font.pixelSize: Theme.type.small + 1
+                                onClicked: inspector.compareRequested(snapshotRow.modelData.path,
+                                                                      snapshotRow.modelData.label)
+                            }
+
+                            Button {
+                                text: "Restore"
+                                font.pixelSize: Theme.type.small + 1
+                                onClicked: inspector.session.restoreSnapshot(inspector.session.currentId,
+                                                                             snapshotRow.modelData.path)
+                            }
                         }
                     }
                 }

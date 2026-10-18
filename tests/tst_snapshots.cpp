@@ -147,6 +147,31 @@ private slots:
         QCOMPARE(session.takeSnapshot("f6g7h8j9k0", ""), QString());
     }
 
+    void compareShowsTheWordChangesAndUnsavedTyping()
+    {
+        ProjectSession session;
+        session.setFolder(dir.path());
+        session.setCurrentId(sceneId);
+        QTextDocument text;
+        session.document()->attach(&text);
+        const QString old = session.takeSnapshot(sceneId, "Old");
+        text.setPlainText("The letter said the fifth of March, and nothing else.");
+        QTextCursor cursor(&text);
+        cursor.insertText("");
+        const QVariantMap result = session.compare(sceneId, old);
+        QVERIFY(result.value("addedWords").toInt() >= 1);
+        QVERIFY(result.value("removedWords").toInt() >= 1);
+        QString added;
+        for (const QVariant &segment : result.value("segments").toList()) {
+            if (segment.toMap().value("kind") == "added")
+                added += segment.toMap().value("text").toString();
+        }
+        QVERIFY2(added.contains("fifth"), qPrintable(added));
+        QVERIFY(session.compare(sceneId, "snapshots/other/x.md").isEmpty());
+        QVERIFY(session.compare(sceneId, "snapshots/t6v4h9r2mz/missing.md").isEmpty());
+        QVERIFY(session.compare("nothing", old).isEmpty());
+    }
+
     void sessionRestoreReloadsTheEditor()
     {
         ProjectSession session;

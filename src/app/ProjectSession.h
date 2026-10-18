@@ -108,6 +108,10 @@ public:
     // Writes a snapshot back to the item. The current text first becomes a
     // snapshot "Before restore".
     Q_INVOKABLE bool restoreSnapshot(const QString &id, const QString &path);
+    // The word difference from a snapshot to the current text of the item:
+    // a map with segments (each a map with kind "same", "added", or
+    // "removed", and text), addedWords, and removedWords.
+    Q_INVOKABLE QVariantMap compare(const QString &id, const QString &snapshotPath) const;
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }
