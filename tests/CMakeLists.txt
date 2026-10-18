@@ -29,3 +29,17 @@ set_tests_properties(tst_offline PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
+
+# Lint every QML file. One warning fails the test.
+file(GLOB_RECURSE QML_LINT_FILES CONFIGURE_DEPENDS
+    ${PROJECT_SOURCE_DIR}/qml/*.qml ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml)
+add_test(NAME check_qmllint
+    COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0 ${QML_LINT_FILES})
+
+# Check the C++ format against .clang-format.
+find_program(CLANG_FORMAT clang-format REQUIRED)
+file(GLOB_RECURSE FORMAT_FILES CONFIGURE_DEPENDS
+    ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+add_test(NAME check_format
+    COMMAND ${CLANG_FORMAT} --dry-run --Werror ${FORMAT_FILES})

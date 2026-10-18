@@ -3,8 +3,8 @@
 bool OfflineGuard::isLocal(const QUrl &url)
 {
     const QString scheme = url.scheme();
-    return scheme.isEmpty() || scheme == u"file" || scheme == u"qrc"
-        || scheme == u"data" || scheme == u"image";
+    return scheme.isEmpty() || scheme == u"file" || scheme == u"qrc" || scheme == u"data"
+        || scheme == u"image";
 }
 
 QUrl OfflineGuard::intercept(const QUrl &url, DataType)

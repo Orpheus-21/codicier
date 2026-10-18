@@ -1,0 +1,18 @@
+# Qt-like style: 4-space indent, function and class braces on a new line.
+BasedOnStyle: WebKit
+ColumnLimit: 100
+Standard: c++20
+PointerAlignment: Right
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterStruct: true
+  AfterFunction: true
+  SplitEmptyFunction: false
+BreakConstructorInitializers: BeforeColon
+AlignAfterOpenBracket: Align
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: All
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+FixNamespaceComments: true
