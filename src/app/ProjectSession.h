@@ -76,6 +76,9 @@ public:
     Q_INVOKABLE QString add(const QString &kind);
     // Gives the item a new title and saves the binder.
     Q_INVOKABLE bool rename(const QString &id, const QString &title);
+    // Saves a search in the binder, in the searches section. Its title is
+    // the query. Returns the new id, or "" on an error.
+    Q_INVOKABLE QString saveSearch(const QString &query, bool regex);
     // Moves the item and its branch to the trash. No file leaves the disk.
     Q_INVOKABLE bool moveToTrash(const QString &id);
     // Moves an item from the trash back to its old parent, or to the top of
@@ -166,6 +169,8 @@ signals:
     // A snapshot was taken or restored.
     void snapshotsChanged();
     void backupChanged();
+    // A text file changed: the app saved it, or another program changed it.
+    void textsChanged();
 
 private:
     Project project;

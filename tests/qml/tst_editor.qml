@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtCore
 import QtQuick
+import QtQuick.Templates as T
 import QtTest
 import Codicier
 
@@ -181,6 +182,41 @@ TestCase {
         verify(done.text.startsWith("Replaced 2 in 1 scene."), done.text);
         tryCompare(preview, "count", 0);
         verify(!button.enabled);
+    }
+
+    function test_savedSearchOpensItsResults() {
+        const view = makeView();
+        const model = view.session.binder;
+        const first = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = first;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "A heron waited.";
+
+        view.forceActiveFocus();
+        keyClick(Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier);
+        for (const c of "heron")
+            keyClick(c);
+        const save = findChild(view, "saveSearch") as T.Button;
+        verify(save.enabled);
+        mouseClick(save);
+        keyClick(Qt.Key_Escape);
+        verify(!view.searchOpen);
+
+        let row = -1;
+        for (let i = 0; i < model.rowCount(); ++i) {
+            if (model.data(model.index(i, 0), BinderModel.TitleRole) === "heron")
+                row = i;
+        }
+        verify(row >= 0);
+        view.session.currentId = model.data(model.index(row, 0), BinderModel.IdRole);
+        verify(view.searchOpen);
+        const results = findChild(view, "searchResults") as ListView;
+        tryCompare(results, "count", 1);
+
+        // The results follow a change of the text.
+        view.session.currentId = first;
+        text.text = "No bird here.";
+        tryCompare(results, "count", 0, 3000);
     }
 
     function test_inspectorSavesAField() {

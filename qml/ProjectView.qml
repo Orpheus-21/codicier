@@ -33,6 +33,12 @@ Item {
 
         function onCurrentIdChanged() {
             view.comparePath = "";
+            // A saved search opens its results.
+            const fields = view.session.fields(view.session.currentId);
+            if (fields.kind === "search") {
+                view.openSearch(false);
+                search.show(fields.query, fields.regex);
+            }
         }
     }
 

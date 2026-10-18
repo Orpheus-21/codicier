@@ -671,6 +671,44 @@ private slots:
         QCOMPARE(session->replaceAll("", "x", false), 0);
     }
 
+    void savedSearchLivesInTheBinder()
+    {
+        QSignalSpy texts(session.get(), &ProjectSession::textsChanged);
+        const QString id = session->saveSearch("riv(er|ers)", true);
+        QVERIFY(!id.isEmpty());
+        QVERIFY(session->saveSearch("   ", false).isEmpty());
+
+        // The binder file keeps the query, and regex only when it is true.
+        Project project;
+        const ProjectItem item = onDisk(dir.path(), id, &project);
+        QCOMPARE(item.kind, QStringLiteral("search"));
+        QCOMPARE(item.section, QStringLiteral("searches"));
+        QCOMPARE(item.title, QStringLiteral("riv(er|ers)"));
+        QCOMPARE(item.data["regex"].value_or(false), true);
+        const QString plain = session->saveSearch("lantern", false);
+        QVERIFY(!onDisk(dir.path(), plain).data.contains("regex"));
+
+        const QVariantMap fields = session->fields(id);
+        QCOMPARE(fields.value("query").toString(), QStringLiteral("riv(er|ers)"));
+        QCOMPARE(fields.value("regex").toBool(), true);
+        QCOMPARE(session->fields(plain).value("regex").toBool(), false);
+
+        // A saved search is not a result of a search.
+        for (const QVariant &hit : session->search("river"))
+            QVERIFY(hit.toMap().value("id").toString() != id);
+        for (const QVariant &hit : session->search("lantern", true))
+            QVERIFY(hit.toMap().value("id").toString() != plain);
+        QVERIFY(session->search("lantern").isEmpty());
+
+        // A save of a text tells the views that a text changed.
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor(&editor).insertText("A lantern. ");
+        QVERIFY(session->document()->save());
+        QVERIFY(texts.size() > 0);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

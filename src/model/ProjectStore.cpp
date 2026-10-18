@@ -27,8 +27,8 @@ namespace {
 constexpr std::array<std::string_view, 7> projectKinds {
     "short-story", "novella", "novel", "series", "essay", "essay-collection", "non-fiction"
 };
-constexpr std::array<std::string_view, 6> sections { "manuscript", "front",    "back",
-                                                     "notes",      "research", "trash" };
+constexpr std::array<std::string_view, 7> sections { "manuscript", "front",    "back", "notes",
+                                                     "research",   "searches", "trash" };
 constexpr std::array<std::string_view, 3> statuses { "draft", "revised", "final" };
 constexpr std::string_view idAlphabet = "0123456789abcdefghjkmnpqrstvwxyz";
 constexpr std::size_t idLength = 10;
@@ -43,7 +43,7 @@ struct KindRule
     std::string_view otherSection;
 };
 
-constexpr std::array<KindRule, 7> kindRules { {
+constexpr std::array<KindRule, 8> kindRules { {
     { "part", "", "manuscript", "" },
     { "chapter", "", "manuscript", "" },
     { "folder", "", "", "" },
@@ -51,6 +51,7 @@ constexpr std::array<KindRule, 7> kindRules { {
     { "page", "matter/", "front", "back" },
     { "note", "notes/", "notes", "" },
     { "file", "research/", "research", "" },
+    { "search", "", "searches", "" },
 } };
 
 template <std::size_t N>
@@ -278,10 +279,11 @@ private:
         const auto parent = string(entry, "parent", file, line, false);
 
         for (const std::string_view key :
-             { "pov", "place", "time", "synopsis", "notes", "restore" })
+             { "pov", "place", "time", "synopsis", "notes", "restore", "query" })
             checkType(entry, key, toml::node_type::string, file);
         checkType(entry, "target", toml::node_type::integer, file);
         checkType(entry, "include", toml::node_type::boolean, file);
+        checkType(entry, "regex", toml::node_type::boolean, file);
         if (const auto status = string(entry, "status", file, line, false);
             status && !contains(statuses, *status))
             error(file, lineOf(*entry.get("status")),
@@ -400,10 +402,10 @@ constexpr std::array<std::string_view, 7> projectOrder { "format", "title",    "
                                                          "kind",   "language", "created" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 16> itemOrder { "id",    "kind",   "section", "parent",
-                                                       "title", "file",   "status",  "include",
-                                                       "pov",   "place",  "time",    "synopsis",
-                                                       "tags",  "target", "restore", "notes" };
+constexpr std::array<std::string_view, 18> itemOrder {
+    "id",    "kind", "section",  "parent", "title",  "file",  "status", "include", "pov",
+    "place", "time", "synopsis", "tags",   "target", "query", "regex",  "restore", "notes"
+};
 
 TomlWriter::Order orderFor(std::string_view path)
 {

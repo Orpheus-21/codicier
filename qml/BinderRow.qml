@@ -51,6 +51,8 @@ T.ItemDelegate {
             return "bookmark";
         case "folder":
             return "folder";
+        case "search":
+            return "search";
         default:
             return "";
         }

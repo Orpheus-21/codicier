@@ -48,6 +48,7 @@ ProjectSession::~ProjectSession()
 void ProjectSession::noteSaved(const QString &file)
 {
     staleFiles.insert(file);
+    emit textsChanged();
     if (watcher)
         watcher->noteSaved(file);
 }
@@ -118,6 +119,7 @@ void ProjectSession::watch()
     watcher = std::make_unique<Watcher>(project);
     connect(watcher.get(), &Watcher::textChanged, this, [this](const QString &file) {
         staleFiles.insert(file);
+        emit textsChanged();
         if (file == text.file())
             text.reloadIfClean();
         for (const QPointer<Document> &document : std::as_const(tracked)) {
@@ -180,6 +182,8 @@ QString homeSection(const QString &kind)
         return QStringLiteral("front");
     if (kind == QLatin1String("note"))
         return QStringLiteral("notes");
+    if (kind == QLatin1String("search"))
+        return QStringLiteral("searches");
     return QStringLiteral("manuscript");
 }
 
@@ -321,6 +325,29 @@ QString ProjectSession::add(const QString &kind)
     place(static_cast<int>(project.items.size() - 1), parent, position, section);
     commit(newFiles);
     setCurrentId(item.id);
+    return item.id;
+}
+
+QString ProjectSession::saveSearch(const QString &query, bool regex)
+{
+    if (project.readOnly || !loadError.isEmpty() || query.trimmed().isEmpty())
+        return { };
+    QSet<QString> ids;
+    for (const ProjectItem &each : std::as_const(project.items))
+        ids.insert(each.id);
+    ProjectItem item;
+    item.id = Naming::newItemId(ids);
+    item.kind = QStringLiteral("search");
+    item.title = query.trimmed();
+    item.data.insert_or_assign("query", query.toStdString());
+    // The key is written only when it is true, as include only when false.
+    if (regex)
+        item.data.insert_or_assign("regex", true);
+    project.items.append(item);
+    place(static_cast<int>(project.items.size() - 1), -1, static_cast<int>(project.roots.size()),
+          QStringLiteral("searches"));
+    if (!commit({ }))
+        return { };
     return item.id;
 }
 
@@ -651,6 +678,8 @@ QVariantMap ProjectSession::fields(const QString &id) const
                static_cast<int>(item.data["target"].value_or(std::int64_t { 0 })));
     map.insert(QStringLiteral("words"), binderModel.wordsOf(id));
     map.insert(QStringLiteral("include"), item.data["include"].value_or(true));
+    map.insert(QStringLiteral("query"), string("query"));
+    map.insert(QStringLiteral("regex"), item.data["regex"].value_or(false));
     return map;
 }
 
@@ -991,7 +1020,7 @@ QVariantList ProjectSession::search(const QString &query, bool regex)
         if (query.isEmpty() || !pattern.isValid())
             return list;
         for (const ProjectItem &item : std::as_const(project.items)) {
-            if (binderModel.isInTrash(item.id))
+            if (binderModel.isInTrash(item.id) || item.kind == QLatin1String("search"))
                 continue;
             const bool isText = !item.file.isEmpty() && item.kind != QLatin1String("file");
             const QString body
@@ -1037,7 +1066,10 @@ QVariantList ProjectSession::search(const QString &query, bool regex)
     indexStale = false;
     staleFiles.clear();
     for (const SearchHit &hit : index->search(query, openMark, closeMark)) {
-        if (!binderModel.isInTrash(hit.id))
+        // A saved search is not a result: its title is only a query.
+        const int at = indexOf(hit.id);
+        if (at >= 0 && !binderModel.isInTrash(hit.id)
+            && project.items.at(at).kind != QLatin1String("search"))
             append(hit.id, hit.title, hit.snippet);
     }
     return list;

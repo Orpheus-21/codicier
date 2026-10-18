@@ -36,6 +36,14 @@ Item {
         field.selectAll();
     }
 
+    // Shows the results of a query, as for a saved search.
+    function show(query: string, isRegex: bool) {
+        replacing = false;
+        regex = isRegex;
+        field.text = query;
+        searchTimer.restart();
+    }
+
     function replaceAll() {
         const scenes = preview.length;
         const count = session.replaceAll(field.text, replaceField.text, regex);
@@ -51,6 +59,21 @@ Item {
     }
 
     Keys.onEscapePressed: closeRequested()
+
+    // The results follow the files while the panel is open.
+    Connections {
+        target: panel.session
+
+        function onTextsChanged() {
+            if (panel.visible && !panel.replacing)
+                searchTimer.restart();
+        }
+
+        function onEdited() {
+            if (panel.visible)
+                searchTimer.restart();
+        }
+    }
 
     // A short wait, so a fast typist does not search at each key.
     Timer {
@@ -80,7 +103,7 @@ Item {
             width: parent.width
             iconName: "search"
             placeholderText: panel.regex ? "Regular expression" : "Search the project"
-            rightPadding: Theme.space.s + regexButton.width
+            rightPadding: Theme.space.s + regexButton.width + saveButton.width
             onTextChanged: {
                 panel.doneText = "";
                 searchTimer.restart();
@@ -142,6 +165,36 @@ Item {
             font.family: Theme.type.ui
             font.pixelSize: Theme.type.small
             color: Theme.color.inkMuted
+        }
+    }
+
+    // Saves the query in the binder.
+    T.Button {
+        id: saveButton
+
+        objectName: "saveSearch"
+        x: regexButton.x - width - 2
+        y: regexButton.y
+        implicitWidth: 28
+        implicitHeight: 26
+        enabled: !panel.replacing && field.text.trim() !== "" && panel.error === ""
+        opacity: enabled ? 1 : 0
+        focusPolicy: Qt.NoFocus
+        Accessible.name: "Save the search in the binder"
+        onClicked: panel.session.saveSearch(field.text, panel.regex)
+
+        contentItem: Item {
+            Icon {
+                anchors.centerIn: parent
+                name: "bookmark"
+                size: 15
+                color: saveButton.hovered ? Theme.color.ink : Theme.color.inkMuted
+            }
+        }
+
+        background: Rectangle {
+            radius: Theme.radius.small
+            color: saveButton.hovered || saveButton.down ? Theme.color.selection : "transparent"
         }
     }
 
