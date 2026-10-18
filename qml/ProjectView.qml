@@ -20,6 +20,36 @@ Item {
     // The author asked to go back to the workspace home.
     signal closeRequested
 
+    // Focus mode: full screen with only the page, and typewriter scroll.
+    property bool focusMode: false
+    // The window state before focus mode, to restore it after.
+    property int windowVisibility: Window.Windowed
+
+    function setFocusMode(on: bool) {
+        if (on === focusMode)
+            return;
+        const window = view.Window.window;
+        if (on && window) {
+            windowVisibility = window.visibility;
+            window.visibility = Window.FullScreen;
+        } else if (window) {
+            window.visibility = windowVisibility;
+        }
+        focusMode = on;
+        editor.focusText();
+    }
+
+    Shortcut {
+        sequence: "F11"
+        onActivated: view.setFocusMode(!view.focusMode)
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        enabled: view.focusMode
+        onActivated: view.setFocusMode(false)
+    }
+
     // Saves the open text, then asks to go back to the workspace.
     function close() {
         view.session.document.save();
@@ -73,6 +103,7 @@ Item {
 
         // The binder.
         Pane {
+            visible: !view.focusMode
             T.SplitView.preferredWidth: 320
             T.SplitView.minimumWidth: 220
             padding: Theme.space.m
@@ -142,13 +173,15 @@ Item {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 document: view.session.document
+                typewriter: view.focusMode
             }
 
             Item {
                 id: editorBar
 
+                visible: !view.focusMode
                 width: parent.width
-                height: 48
+                height: visible ? 48 : 0
 
                 Row {
                     anchors.right: parent.right
@@ -159,7 +192,7 @@ Item {
                     IconButton {
                         iconName: "maximize-2"
                         label: "Focus mode"
-                        enabled: false
+                        onClicked: view.setFocusMode(true)
                     }
 
                     IconButton {
@@ -180,9 +213,10 @@ Item {
             return Number(n).toLocaleString(Qt.locale("en_GB"), "f", 0);
         }
 
+        visible: !view.focusMode
         anchors.bottom: parent.bottom
         width: parent.width
-        height: 36
+        height: visible ? 36 : 0
 
         Rectangle {
             width: parent.width

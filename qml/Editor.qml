@@ -8,6 +8,10 @@ Item {
     id: editorArea
 
     required property Document document
+    // Typewriter scroll: the line with the cursor stays at one height.
+    property bool typewriter: false
+    // That height, as a part of the page height.
+    readonly property real typewriterLine: 0.45
 
     // A conflict: another program changed the file while the text was not
     // saved. The author chooses, and autosave waits.
@@ -81,6 +85,8 @@ Item {
     Flickable {
         id: page
 
+        objectName: "page"
+
         anchors.top: conflictBar.bottom
         anchors.bottom: parent.bottom
         width: parent.width
@@ -90,9 +96,24 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
 
         // Keeps the cursor line in view while the author types.
+        // In typewriter mode, space above and below the text lets the first and
+        // the last lines reach the typewriter line.
+        topMargin: editorArea.typewriter ? height * editorArea.typewriterLine : 0
+        bottomMargin: editorArea.typewriter ? height * (1 - editorArea.typewriterLine) : 0
+
+        Behavior on contentY {
+            enabled: editorArea.typewriter
+            NumberAnimation {
+                duration: Theme.motion.fast
+                easing.type: Theme.motion.easing
+            }
+        }
+
         function follow(rect: rect) {
             const top = rect.y + Theme.space.xxxl;
-            if (top < contentY)
+            if (editorArea.typewriter)
+                contentY = top - height * editorArea.typewriterLine;
+            else if (top < contentY)
                 contentY = top;
             else if (top + rect.height > contentY + height)
                 contentY = top + rect.height - height;
@@ -146,4 +167,11 @@ Item {
     function focusText() {
         textEdit.forceActiveFocus();
     }
+
+    // Brings the cursor line to its place, as after a change of mode.
+    function placeCursor() {
+        page.follow(textEdit.cursorRectangle);
+    }
+
+    onTypewriterChanged: Qt.callLater(placeCursor)
 }
