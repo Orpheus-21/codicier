@@ -61,7 +61,6 @@ class TestWatcher : public QObject
 {
     Q_OBJECT
 
-private:
     QTemporaryDir dir;
     LoadResult loaded;
 
