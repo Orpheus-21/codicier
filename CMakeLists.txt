@@ -7,17 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # clang-tidy and editors read build/compile_commands.json.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick Sql)
 # toml++ reads the project files (docs/format.md).
 find_package(tomlplusplus 3 REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
 
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
-    src/model/Naming.cpp src/model/Templates.cpp)
-target_include_directories(codicier_core PUBLIC src/model)
+    src/model/Naming.cpp src/model/Templates.cpp src/index/Index.cpp)
+target_include_directories(codicier_core PUBLIC src/model src/index)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
-target_link_libraries(codicier_core PUBLIC Qt6::Core)
+target_link_libraries(codicier_core PUBLIC Qt6::Core Qt6::Sql)
 # Arch builds toml++ as a shared library. Use only its headers, in header-only
 # mode, so the app needs no toml++ library at run time.
 get_target_property(TOML_INCLUDE tomlplusplus::tomlplusplus INTERFACE_INCLUDE_DIRECTORIES)
