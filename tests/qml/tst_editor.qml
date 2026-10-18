@@ -149,6 +149,40 @@ TestCase {
         verify(!view.searchOpen);
     }
 
+    function test_replaceShowsEveryMatchFirst() {
+        const view = makeView();
+        const model = view.session.binder;
+        const first = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = first;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "A gull, then another gull.";
+        waitForRendering(view);
+
+        view.forceActiveFocus();
+        keyClick(Qt.Key_H, Qt.ControlModifier);
+        verify(view.searchOpen);
+        for (const c of "gull")
+            keyClick(c);
+        keyClick(Qt.Key_Tab);
+        for (const c of "tern")
+            keyClick(c);
+        const preview = findChild(view, "replacePreview") as ListView;
+        const button = findChild(view, "replaceButton") as Button;
+        tryCompare(button, "text", "Replace 2 in 1 scene");
+        compare(preview.count, 1);
+        // Nothing changes before the click.
+        compare(view.session.snapshots(first).length, 0);
+        compare(text.text, "A gull, then another gull.");
+
+        mouseClick(button);
+        compare(text.text, "A tern, then another tern.");
+        compare(view.session.snapshots(first).length, 1);
+        const done = findChild(view, "replaceDone") as Text;
+        verify(done.text.startsWith("Replaced 2 in 1 scene."), done.text);
+        tryCompare(preview, "count", 0);
+        verify(!button.enabled);
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;

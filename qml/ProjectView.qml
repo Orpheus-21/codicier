@@ -39,13 +39,22 @@ Item {
     // The search panel takes the place of the binder list.
     property bool searchOpen: false
 
+    // Opens the search panel, or with replace the replace mode of it.
+    function openSearch(replace: bool) {
+        setFocusMode(false);
+        searchOpen = true;
+        search.replacing = replace;
+        search.start();
+    }
+
     Shortcut {
         sequence: "Ctrl+Shift+F"
-        onActivated: {
-            view.setFocusMode(false);
-            view.searchOpen = true;
-            search.start();
-        }
+        onActivated: view.openSearch(false)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+H"
+        onActivated: view.openSearch(true)
     }
 
     Shortcut {
@@ -192,6 +201,16 @@ Item {
 
             Menu {
                 id: projectMenu
+
+                T.Action {
+                    text: "Search"
+                    onTriggered: view.openSearch(false)
+                }
+
+                T.Action {
+                    text: "Replace in the manuscript"
+                    onTriggered: view.openSearch(true)
+                }
 
                 T.Action {
                     text: "Back to " + view.workspaceName

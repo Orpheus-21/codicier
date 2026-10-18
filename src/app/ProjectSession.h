@@ -138,6 +138,15 @@ public:
     Q_INVOKABLE QString patternError(const QString &pattern) const;
     // Where the first word of the query is in the text of an item, or -1.
     Q_INVOKABLE int firstMatch(const QString &id, const QString &query) const;
+    // Every match of a replace in the manuscript, before the change: for
+    // each scene the id, the title, the count, and the lines in rich text
+    // with the old words struck through and the new words in bold. A plain
+    // query matches as written, as a whole word.
+    Q_INVOKABLE QVariantList replacePreview(const QString &query, const QString &replacement,
+                                            bool regex);
+    // Takes a snapshot of each scene with a match, then replaces. Returns
+    // the number of replacements, or -1 on an error.
+    Q_INVOKABLE int replaceAll(const QString &query, const QString &replacement, bool regex);
     // The first match of a search in the text of an item: a start and a
     // length. The start is -1 if there is no match.
     Q_INVOKABLE QVariantMap matchIn(const QString &id, const QString &query, bool regex) const;
@@ -178,6 +187,8 @@ private:
     QSet<QString> staleFiles;
 
     void watch();
+    // Saves the open text and the texts of the composite view.
+    void saveAll();
     // A file was written by the app.
     void noteSaved(const QString &file);
     int indexOf(const QString &id) const;

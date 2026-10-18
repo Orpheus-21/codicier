@@ -626,6 +626,51 @@ private slots:
         QVERIFY(session->search("", true).isEmpty());
     }
 
+    void replaceShowsThenChangesTheManuscript()
+    {
+        // The open text has typing that is not saved yet.
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor cursor(&editor);
+        cursor.insertText("The river ran. The rivers met. ");
+        const QVariantList preview = session->replacePreview("river", "canal", false);
+        QCOMPARE(preview.size(), 1);
+        const QVariantMap scene = preview.first().toMap();
+        QCOMPARE(scene.value("id").toString(), QStringLiteral("m1n2p3q4r5"));
+        // "rivers" is another word, and "River" has another case.
+        QCOMPARE(scene.value("count").toInt(), 2);
+        const QStringList lines = scene.value("lines").toStringList();
+        QCOMPARE(lines.size(), 2);
+        QVERIFY2(lines.first().startsWith("The <s>river</s> <b>canal</b> ran."),
+                 qPrintable(lines.first()));
+        QCOMPARE(session->snapshots("m1n2p3q4r5").size(), 0);
+
+        QCOMPARE(session->replaceAll("river", "canal", false), 2);
+        const QString after = QString::fromUtf8(readFile(onDisk(dir.path(), "m1n2p3q4r5").file));
+        QVERIFY2(after.startsWith("The canal ran. The rivers met. The canal office"),
+                 qPrintable(after));
+        QCOMPARE(editor.toPlainText(), after.trimmed());
+        // One snapshot holds the text before the change.
+        const QVariantList snapshots = session->snapshots("m1n2p3q4r5");
+        QCOMPARE(snapshots.size(), 1);
+        QCOMPARE(snapshots.first().toMap().value("title").toString(),
+                 QStringLiteral("Before replace"));
+        QFile snapshot(
+            QDir(dir.path()).filePath(snapshots.first().toMap().value("path").toString()));
+        QVERIFY(snapshot.open(QIODevice::ReadOnly));
+        QVERIFY(snapshot.readAll().startsWith("The river ran. The rivers met. The river office"));
+        QVERIFY(session->replacePreview("river", "canal", false).isEmpty());
+
+        // A pattern with groups. Notes are not in the manuscript.
+        QCOMPARE(session->replaceAll("(f)ourth", "\\1ifth (\\0)", true), 1);
+        QVERIFY(readFile("manuscript/a-date-she-did-not-know.md")
+                    .startsWith("The letter said *the fifth (fourth) of March*"));
+        QCOMPARE(session->snapshots("t6v4h9r2mz").size(), 1);
+        QCOMPARE(session->replaceAll("(unclosed", "x", true), 0);
+        QCOMPARE(session->replaceAll("", "x", false), 0);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

@@ -54,11 +54,7 @@ void ProjectSession::noteSaved(const QString &file)
 
 QString ProjectSession::backup()
 {
-    text.save();
-    for (const QPointer<Document> &document : std::as_const(tracked)) {
-        if (document)
-            document->save();
-    }
+    saveAll();
     if (!changedSinceBackup || project.folder.isEmpty() || !loadError.isEmpty()
         || backupFolder.isEmpty())
         return { };
@@ -980,11 +976,7 @@ QVariantList ProjectSession::search(const QString &query, bool regex)
     if (project.folder.isEmpty() || !loadError.isEmpty())
         return list;
     // The search reads the files, so the latest typing goes to disk first.
-    text.save();
-    for (const QPointer<Document> &document : std::as_const(tracked)) {
-        if (document)
-            document->save();
-    }
+    saveAll();
     const auto append = [&list](const QString &id, const QString &title, const QString &snippet) {
         list.append(QVariantMap {
             { QStringLiteral("id"), id },
@@ -1049,6 +1041,162 @@ QVariantList ProjectSession::search(const QString &query, bool regex)
             append(hit.id, hit.title, hit.snippet);
     }
     return list;
+}
+
+namespace {
+
+// The text of one manuscript item and the matches in it.
+struct ReplaceTarget
+{
+    QString id;
+    QString title;
+    QString file;
+    QString text;
+    QList<QRegularExpressionMatch> matches;
+};
+
+// A plain query matches as it is written, as a whole word. A pattern
+// ignores case, as in the search.
+QRegularExpression replacePattern(const QString &query, bool regex)
+{
+    if (regex)
+        return searchPattern(query);
+    return QRegularExpression(QStringLiteral("(?<!\\w)") + QRegularExpression::escape(query)
+                                  + QStringLiteral("(?!\\w)"),
+                              QRegularExpression::UseUnicodePropertiesOption);
+}
+
+// The replacement for one match. In a pattern, \1 to \9 are the groups and
+// \0 is the whole match.
+QString expand(const QString &replacement, const QRegularExpressionMatch &match, bool regex)
+{
+    if (!regex)
+        return replacement;
+    QString out;
+    for (qsizetype i = 0; i < replacement.size(); ++i) {
+        const QChar c = replacement.at(i);
+        if (c == u'\\' && i + 1 < replacement.size() && replacement.at(i + 1).isDigit()) {
+            out += match.captured(replacement.at(i + 1).digitValue());
+            ++i;
+        } else {
+            out += c;
+        }
+    }
+    return out;
+}
+
+// The text items of the manuscript outside the trash, with their matches.
+QList<ReplaceTarget> replaceTargets(const Project &project, const BinderModel &binder,
+                                    const QRegularExpression &pattern)
+{
+    QList<ReplaceTarget> targets;
+    if (!pattern.isValid() || pattern.pattern().isEmpty())
+        return targets;
+    for (const ProjectItem &item : project.items) {
+        if (item.section != QLatin1String("manuscript") || item.file.isEmpty()
+            || item.kind == QLatin1String("file") || binder.isInTrash(item.id))
+            continue;
+        ReplaceTarget target {
+            item.id, item.title, item.file, readFile(QDir(project.folder).filePath(item.file)), { }
+        };
+        QRegularExpressionMatchIterator it = pattern.globalMatch(target.text);
+        while (it.hasNext()) {
+            const QRegularExpressionMatch match = it.next();
+            if (match.capturedLength() > 0)
+                target.matches.append(match);
+        }
+        if (!target.matches.isEmpty())
+            targets.append(target);
+    }
+    return targets;
+}
+
+} // namespace
+
+QVariantList ProjectSession::replacePreview(const QString &query, const QString &replacement,
+                                            bool regex)
+{
+    QVariantList list;
+    saveAll();
+    // Marks that no text holds, for the old and the new words.
+    const QChar newOpen(0x4);
+    const QChar newClose(0x5);
+    for (const ReplaceTarget &target :
+         replaceTargets(project, binderModel, replacePattern(query, regex))) {
+        QStringList lines;
+        for (const QRegularExpressionMatch &match : target.matches) {
+            const qsizetype start = match.capturedStart();
+            const qsizetype end = match.capturedEnd();
+            const qsizetype from = std::max<qsizetype>(0, start - 40);
+            const qsizetype to = std::min(target.text.size(), end + 40);
+            QString line = (from > 0 ? QStringLiteral("...") : QString())
+                + target.text.mid(from, start - from) + openMark + match.captured() + closeMark
+                + u' ' + newOpen + expand(replacement, match, regex) + newClose
+                + target.text.mid(end, to - end)
+                + (to < target.text.size() ? QStringLiteral("...") : QString());
+            line = line.simplified().toHtmlEscaped();
+            line.replace(openMark, QStringLiteral("<s>"))
+                .replace(closeMark, QStringLiteral("</s>"))
+                .replace(newOpen, QStringLiteral("<b>"))
+                .replace(newClose, QStringLiteral("</b>"));
+            lines.append(line);
+        }
+        list.append(QVariantMap {
+            { QStringLiteral("id"), target.id },
+            { QStringLiteral("title"), target.title },
+            { QStringLiteral("count"), static_cast<int>(target.matches.size()) },
+            { QStringLiteral("lines"), lines },
+        });
+    }
+    return list;
+}
+
+int ProjectSession::replaceAll(const QString &query, const QString &replacement, bool regex)
+{
+    if (project.readOnly || !loadError.isEmpty())
+        return -1;
+    saveAll();
+    int count = 0;
+    for (const ReplaceTarget &target :
+         replaceTargets(project, binderModel, replacePattern(query, regex))) {
+        // The snapshot holds the text before the change, so the author can
+        // go back. With no snapshot, the scene does not change.
+        if (takeSnapshot(target.id, QStringLiteral("Before replace")).isEmpty())
+            return -1;
+        QString out;
+        qsizetype at = 0;
+        for (const QRegularExpressionMatch &match : target.matches) {
+            out += target.text.mid(at, match.capturedStart() - at);
+            out += expand(replacement, match, regex);
+            at = match.capturedEnd();
+        }
+        out += target.text.mid(at);
+        QSaveFile file(QDir(project.folder).filePath(target.file));
+        const QByteArray bytes = out.toUtf8();
+        if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit())
+            return -1;
+        changedSinceBackup = true;
+        noteSaved(target.file);
+        binderModel.setItemWords(target.id, Index::countWords(out));
+        if (text.file() == target.file)
+            text.reloadIfClean();
+        for (const QPointer<Document> &document : std::as_const(tracked)) {
+            if (document && document->file() == target.file)
+                document->reloadIfClean();
+        }
+        count += static_cast<int>(target.matches.size());
+    }
+    emit wordsChanged();
+    return count;
+}
+
+void ProjectSession::saveAll()
+{
+    text.save();
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document)
+            document->save();
+    }
 }
 
 QVariantMap ProjectSession::matchIn(const QString &id, const QString &query, bool regex) const
