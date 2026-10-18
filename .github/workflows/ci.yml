@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    # Arch Linux has Qt 6.8 or later. Ubuntu packages are too old.
+    container: archlinux:latest
+    steps:
+      - name: Install build tools and Qt
+        run: >
+          pacman -Syu --noconfirm --needed
+          gcc make cmake clang qt6-base qt6-declarative
+
+      - uses: actions/checkout@v5
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build build -j "$(nproc)"
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
