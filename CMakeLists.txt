@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick)
 qt_standard_project_setup(REQUIRES 6.8)
 
-qt_add_executable(codicier src/main.cpp)
+qt_add_executable(codicier src/main.cpp src/OfflineGuard.cpp)
 
 qt_add_qml_module(codicier
     URI Codicier
