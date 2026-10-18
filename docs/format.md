@@ -10,6 +10,7 @@ A Codicier project is a normal folder of text files. You can read, edit, copy, b
 - Lines end with a line feed (LF), and each file ends with one line feed.
 - The two TOML files follow TOML 1.0.
 - The app writes each file to a temporary file in the same folder, then renames the temporary file over the old file. A crash during a save cannot leave a half-written file.
+- The app writes a file only when its content changes.
 - The app never writes over a file that it could not read. It shows the error and the line number.
 
 ## The folder
@@ -139,6 +140,17 @@ A move to the trash changes only `binder.toml`. The item goes to the top level w
 The app keeps every key that it does not know when it saves a file. A newer version of the app, or an author, can add keys with no data loss.
 
 The app does not keep TOML comments when it saves `project.toml` or `binder.toml`. Put notes in the `notes` key, not in comments.
+
+### The layout of a saved file
+
+The app writes `project.toml` and `binder.toml` in one fixed layout:
+
+1. The keys in the order of the tables in this document.
+2. The other keys, in alphabetical order.
+3. The tables and the lists of tables, each with its own header, such as `[goals]` or `[[item]]`.
+4. One empty line before each header.
+
+The items of the binder come in tree order: each item, then its children. A string with a line break is a multi-line string. A file in this layout does not change when the app loads it and saves it again. A file that an author edits by hand takes this layout at the next save.
 
 ## Item ids
 
