@@ -49,7 +49,8 @@ file(GLOB_RECURSE QML_LINT_FILES CONFIGURE_DEPENDS
     ${PROJECT_SOURCE_DIR}/qml/*.qml ${PROJECT_SOURCE_DIR}/spike/*.qml
     ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml)
 add_test(NAME check_qmllint
-    COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0 ${QML_LINT_FILES})
+    COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0 -I ${CMAKE_BINARY_DIR}/qml
+    ${QML_LINT_FILES})
 
 # Check the C++ format against .clang-format.
 find_program(CLANG_FORMAT clang-format REQUIRED)

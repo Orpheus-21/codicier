@@ -14,9 +14,10 @@ qt_standard_project_setup(REQUIRES 6.8)
 # Its files go to build/qml/Codicier, so qmllint and tools find them by import path.
 set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
 qt_add_library(codicier_ui STATIC)
+set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
-    QML_FILES qml/Main.qml
+    QML_FILES qml/Main.qml qml/Theme.qml
 )
 
 qt_add_executable(codicier src/main.cpp src/OfflineGuard.cpp)
