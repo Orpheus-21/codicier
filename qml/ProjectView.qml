@@ -58,6 +58,12 @@ Item {
         }
     }
 
+    // Takes a snapshot of the open text.
+    Shortcut {
+        sequence: "Ctrl+Shift+S"
+        onActivated: view.session.takeSnapshot(view.session.currentId, "")
+    }
+
     Shortcut {
         sequence: "F11"
         onActivated: view.setFocusMode(!view.focusMode)

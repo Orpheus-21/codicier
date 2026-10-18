@@ -364,6 +364,113 @@ Pane {
                 width: parent.width
             }
 
+            // Snapshots: copies of the text at a moment, newest first.
+            Column {
+                id: snapshotSection
+
+                property var list: []
+
+                function refresh() {
+                    snapshotSection.list = inspector.session.snapshots(inspector.session.currentId);
+                }
+
+                visible: inspector.fields.kind === "scene" || inspector.fields.kind === "page"
+                         || inspector.fields.kind === "note"
+                width: parent.width
+                spacing: Theme.space.s
+                Component.onCompleted: refresh()
+
+                Connections {
+                    target: inspector.session
+
+                    function onSnapshotsChanged() {
+                        snapshotSection.refresh();
+                    }
+
+                    function onCurrentIdChanged() {
+                        snapshotSection.refresh();
+                    }
+                }
+
+                Caps {
+                    text: "Snapshots"
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: Theme.space.s
+
+                    TextField {
+                        id: snapshotTitle
+
+                        width: parent.width - takeButton.width - parent.spacing
+                        placeholderText: "Title (optional)"
+                        onAccepted: takeButton.clicked()
+                    }
+
+                    Button {
+                        id: takeButton
+
+                        text: "Take"
+                        onClicked: {
+                            inspector.session.takeSnapshot(inspector.session.currentId, snapshotTitle.text);
+                            snapshotTitle.text = "";
+                        }
+                    }
+                }
+
+                Repeater {
+                    model: snapshotSection.list
+
+                    Item {
+                        id: snapshotRow
+
+                        required property var modelData
+
+                        width: snapshotSection.width
+                        height: 40
+
+                        Column {
+                            anchors.left: parent.left
+                            anchors.right: restoreButton.left
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Text {
+                                width: parent.width
+                                text: snapshotRow.modelData.title !== "" ? snapshotRow.modelData.title
+                                                                         : snapshotRow.modelData.label
+                                elide: Text.ElideRight
+                                font.family: Theme.type.ui
+                                font.pixelSize: Theme.type.body
+                                color: Theme.color.ink
+                            }
+
+                            Text {
+                                visible: snapshotRow.modelData.title !== ""
+                                text: snapshotRow.modelData.label
+                                font.family: Theme.type.ui
+                                font.pixelSize: Theme.type.small
+                                color: Theme.color.inkMuted
+                            }
+                        }
+
+                        Button {
+                            id: restoreButton
+
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Restore"
+                            onClicked: inspector.session.restoreSnapshot(inspector.session.currentId,
+                                                                         snapshotRow.modelData.path)
+                        }
+                    }
+                }
+            }
+
+            Rule {
+                width: parent.width
+            }
+
             Column {
                 width: parent.width
                 spacing: Theme.space.xs

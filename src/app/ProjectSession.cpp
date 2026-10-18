@@ -2,9 +2,11 @@
 
 #include "Naming.h"
 #include "ProjectStore.h"
+#include "Snapshots.h"
 
 #include <QDir>
 #include <QFile>
+#include <QLocale>
 #include <QSaveFile>
 #include <QSet>
 
@@ -712,4 +714,66 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
         binderModel.setItemWords(id, document->words());
         emit wordsChanged();
     });
+}
+
+QString ProjectSession::takeSnapshot(const QString &id, const QString &title)
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.items.at(index).file.isEmpty()
+        || project.items.at(index).kind == QLatin1String("file"))
+        return { };
+    // The snapshot holds the latest typing.
+    if (current == id)
+        text.save();
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document && document->file() == project.items.at(index).file)
+            document->save();
+    }
+    const QString path = Snapshots::take(project.folder, id, project.items.at(index).file, title);
+    if (!path.isEmpty())
+        emit snapshotsChanged();
+    return path;
+}
+
+QVariantList ProjectSession::snapshots(const QString &id) const
+{
+    QVariantList list;
+    const QLocale english(QLocale::English, QLocale::UnitedKingdom);
+    for (const Snapshots::Snapshot &snapshot : Snapshots::list(project.folder, id)) {
+        list.append(QVariantMap {
+            { QStringLiteral("path"), snapshot.path },
+            { QStringLiteral("time"), snapshot.time },
+            { QStringLiteral("title"), snapshot.title },
+            { QStringLiteral("label"),
+              english.toString(snapshot.time, QStringLiteral("d MMMM yyyy, HH:mm")) },
+        });
+    }
+    return list;
+}
+
+bool ProjectSession::restoreSnapshot(const QString &id, const QString &path)
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.readOnly)
+        return false;
+    const QString file = project.items.at(index).file;
+    // The text to replace must be on disk, so "Before restore" holds it.
+    if (current == id && !text.save())
+        return false;
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document && document->file() == file)
+            document->save();
+    }
+    if (!Snapshots::restore(project.folder, id, file, path))
+        return false;
+    if (watcher)
+        watcher->noteSaved(file);
+    if (current == id)
+        text.open(project.folder, file);
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document && document->file() == file)
+            document->reloadIfClean();
+    }
+    emit snapshotsChanged();
+    return true;
 }

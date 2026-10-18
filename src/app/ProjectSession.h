@@ -99,6 +99,15 @@ public:
     // Connects a document of the composite view, for the item id, to the
     // watcher and to the live word counts, as the editor document is.
     Q_INVOKABLE void trackDocument(Document *document, const QString &id);
+    // Saves the text of the item and copies it to snapshots/. Returns the
+    // path of the snapshot, or "".
+    Q_INVOKABLE QString takeSnapshot(const QString &id, const QString &title);
+    // The snapshots of the item, newest first, as maps with path, time,
+    // title, and label.
+    Q_INVOKABLE QVariantList snapshots(const QString &id) const;
+    // Writes a snapshot back to the item. The current text first becomes a
+    // snapshot "Before restore".
+    Q_INVOKABLE bool restoreSnapshot(const QString &id, const QString &path);
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }
@@ -112,6 +121,8 @@ signals:
     // The binder changed through an add, a rename, or a move.
     void edited();
     void wordsChanged();
+    // A snapshot was taken or restored.
+    void snapshotsChanged();
 
 private:
     Project project;
