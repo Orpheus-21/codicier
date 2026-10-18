@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
 
     QQuickView view;
     view.setTitle(QStringLiteral("codicier-typecheck"));
+    view.setResizeMode(QQuickView::SizeRootObjectToView);
     view.setInitialProperties({ { "fixture", QString() } });
     view.setSource(QUrl::fromLocalFile(QStringLiteral(PROBE_QML)));
     QQuickItem *root = view.rootObject();
