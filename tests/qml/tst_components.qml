@@ -229,6 +229,31 @@ TestCase {
         verify(Qt.colorEqual(pixelAt(splitter, first.width, 50), Theme.color.rule));
     }
 
+    function test_splitterHandleGrabsBesideTheRule() {
+        const splitter = make(splitterComponent);
+        const first = splitter.itemAt(0);
+        const before = first.width;
+        waitForRendering(splitter);
+        // Press 3 pixels right of the rule, then drag 40 pixels.
+        mousePress(splitter, before + 3, 50);
+        mouseMove(splitter, before + 23, 50);
+        mouseMove(splitter, before + 43, 50);
+        mouseRelease(splitter, before + 43, 50);
+        verify(first.width > before + 30, `${before} -> ${first.width}`);
+    }
+
+    function test_splitterRuleFacesTheOuterPane() {
+        Theme.choice = "light";
+        const splitter = make(splitterComponent);
+        splitter.itemAt(0).T.SplitView.preferredWidth = 220;
+        waitForRendering(splitter);
+        const first = splitter.itemAt(0);
+        verify(first.width > 150);
+        // A handle in the right half has its rule at its end.
+        verify(Qt.colorEqual(pixelAt(splitter, first.width + 6, 50), Theme.color.rule));
+        verify(!Qt.colorEqual(pixelAt(splitter, first.width, 50), Theme.color.rule));
+    }
+
     function test_menuOpensAndTriggers() {
         const menu = createTemporaryObject(menuComponent, testCase) as Menu;
         verify(menu);
