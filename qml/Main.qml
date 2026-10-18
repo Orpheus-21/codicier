@@ -9,11 +9,15 @@ Window {
 
     // The last error from opening a folder, shown under the button.
     property string error: ""
+    // The folder of the open project, or "" for the workspace home.
+    property string projectFolder: ""
+    // The title of the open project, for the window title.
+    property string projectTitle: ""
 
     width: 1200
     height: 800
     visible: true
-    title: "Codicier"
+    title: projectTitle !== "" ? projectTitle : "Codicier"
     color: Theme.color.paper
 
     FolderDialog {
@@ -25,7 +29,28 @@ Window {
 
     Loader {
         anchors.fill: parent
-        sourceComponent: Workspaces.current === "" ? welcome : home
+        sourceComponent: Workspaces.current === "" ? welcome : window.projectFolder !== "" ? project : home
+    }
+
+    // A new workspace closes the open project.
+    Connections {
+        target: Workspaces
+
+        function onChanged() {
+            window.projectFolder = "";
+        }
+    }
+
+    Component {
+        id: project
+
+        ProjectView {
+            folder: window.projectFolder
+            workspaceName: Workspaces.currentName
+            onCloseRequested: window.projectFolder = ""
+            Component.onCompleted: window.projectTitle = Qt.binding(() => session.title)
+            Component.onDestruction: window.projectTitle = ""
+        }
     }
 
     // The first start: no workspace yet.
@@ -132,6 +157,7 @@ Window {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 folder: Workspaces.current
+                onProjectActivated: folder => window.projectFolder = folder
             }
 
             Row {

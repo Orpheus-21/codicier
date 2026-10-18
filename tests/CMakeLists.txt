@@ -76,6 +76,13 @@ target_compile_options(tst_projectlist PRIVATE -Wall -Wextra)
 target_link_libraries(tst_projectlist PRIVATE codicier_ui Qt6::Test)
 add_test(NAME tst_projectlist COMMAND tst_projectlist)
 
+qt_add_executable(tst_projectsession tst_projectsession.cpp)
+target_compile_options(tst_projectsession PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_projectsession PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_projectsession PRIVATE codicier_ui Qt6::Test)
+add_test(NAME tst_projectsession COMMAND tst_projectsession)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 
