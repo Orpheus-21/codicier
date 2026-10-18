@@ -14,7 +14,7 @@ jobs:
       - name: Install build tools and Qt
         run: >
           pacman -Syu --noconfirm --needed
-          gcc make cmake clang git python qt6-base qt6-declarative
+          gcc make cmake clang git python qt6-base qt6-declarative tomlplusplus
 
       # The full history lets the floor guard and the coverage check find the base commit.
       - uses: actions/checkout@v5

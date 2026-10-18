@@ -23,5 +23,5 @@ ctest --test-dir build-cov > /dev/null
 python3 tools/coverage_diff.py build-cov --base "$base" --min 80
 
 # One clang-tidy per file, all cores at once. xargs fails if one file fails.
-printf '%s\n' src/*.cpp spike/*.cpp mocks/*.cpp tests/*.cpp | xargs -P "$(nproc)" -n 1 clang-tidy --quiet -p build
+find src spike mocks tests -name '*.cpp' | xargs -P "$(nproc)" -n 1 clang-tidy --quiet -p build
 echo "check: all $mode checks passed"

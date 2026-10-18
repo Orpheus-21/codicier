@@ -35,6 +35,13 @@ target_link_libraries(tst_highlighter PRIVATE Qt6::Gui Qt6::Test)
 add_test(NAME tst_highlighter COMMAND tst_highlighter)
 set_tests_properties(tst_highlighter PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
+qt_add_executable(tst_projectstore tst_projectstore.cpp)
+target_compile_options(tst_projectstore PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_projectstore PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_projectstore PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_projectstore COMMAND tst_projectstore)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 

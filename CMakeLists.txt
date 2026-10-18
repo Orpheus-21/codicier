@@ -8,7 +8,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick)
+# toml++ reads and writes the project files (docs/format.md). Header only.
+find_package(tomlplusplus 3 REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
+
+# The project model: plain C++ and Qt Core, with no UI.
+add_library(codicier_core STATIC src/model/ProjectStore.cpp)
+target_include_directories(codicier_core PUBLIC src/model)
+target_compile_options(codicier_core PRIVATE -Wall -Wextra)
+target_link_libraries(codicier_core PUBLIC Qt6::Core tomlplusplus::tomlplusplus)
 
 # The QML module is a static library, so the app and the tests link the same module.
 # Its files go to build/qml/Codicier, so qmllint and tools find them by import path.

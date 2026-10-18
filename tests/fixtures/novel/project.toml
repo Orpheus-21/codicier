@@ -1,0 +1,11 @@
+format = 1
+title = "The Salt Ledger"
+author = "A. Writer"
+kind = "novel"
+language = "en-GB"
+created = 2026-10-18T07:40:00Z
+
+[goals]
+words = 90000
+daily = 1000
+deadline = 2027-03-01
