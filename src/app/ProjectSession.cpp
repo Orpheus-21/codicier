@@ -13,6 +13,16 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
         if (watcher)
             watcher->noteSaved(file);
     });
+    // The live count of the open text goes into the binder, so the counts of
+    // the chapter and the book follow it.
+    connect(&text, &Document::wordsChanged, this, [this] {
+        if (!text.file().isEmpty())
+            binderModel.setItemWords(current, text.words());
+        emit wordsChanged();
+    });
+    connect(this, &ProjectSession::currentIdChanged, this, &ProjectSession::wordsChanged);
+    connect(this, &ProjectSession::edited, this, &ProjectSession::wordsChanged);
+    connect(this, &ProjectSession::loaded, this, &ProjectSession::wordsChanged);
     connect(&text, &Document::dirtyChanged, this, [this] {
         if (watcher && !text.file().isEmpty())
             watcher->setUnsaved(text.file(), text.dirty());
@@ -387,4 +397,15 @@ bool ProjectSession::moveBy(const QString &id, int delta)
         return false;
     return move(id, project.items.at(siblings.at(at)).id,
                 delta < 0 ? QStringLiteral("before") : QStringLiteral("after"));
+}
+
+int ProjectSession::chapterWords() const
+{
+    const QString chapter = binderModel.chapterOf(current);
+    return chapter.isEmpty() ? -1 : binderModel.wordsOf(chapter);
+}
+
+int ProjectSession::goalWords() const
+{
+    return static_cast<int>(project.data["goals"]["words"].value_or(std::int64_t { 0 }));
 }

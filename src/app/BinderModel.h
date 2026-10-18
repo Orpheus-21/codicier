@@ -49,6 +49,15 @@ public:
     Q_INVOKABLE int rowOf(const QString &id) const;
     // True if the item with id is in the trash section.
     Q_INVOKABLE bool isInTrash(const QString &id) const;
+    // Sets the words of a text item and adds the difference to each container
+    // above it.
+    void setItemWords(const QString &id, int words);
+    // The words of the item with id, or 0.
+    Q_INVOKABLE int wordsOf(const QString &id) const;
+    // The words of all items in the manuscript section.
+    int manuscriptWords() const;
+    // The id of the nearest chapter above the item, or "".
+    QString chapterOf(const QString &id) const;
     // The section label for a section key, such as "Front matter".
     static QString sectionLabel(const QString &section);
 
@@ -80,6 +89,8 @@ private:
     QString folder;
 
     QString keyOf(const Row &row) const;
+    int nodeOf(const QString &id) const;
+    QList<int> parents;
     int sumWords(int node);
     void appendBranch(int node, int depth);
     void rebuild();

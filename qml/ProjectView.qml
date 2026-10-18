@@ -172,9 +172,13 @@ Item {
         }
     }
 
-    // The status bar. T34 adds the word counts.
+    // The status bar: the words of the scene, the chapter, and the book.
     Item {
         id: statusBar
+
+        function number(n: int): string {
+            return Number(n).toLocaleString(Qt.locale("en_GB"), "f", 0);
+        }
 
         anchors.bottom: parent.bottom
         width: parent.width
@@ -186,15 +190,38 @@ Item {
             color: Theme.color.rule
         }
 
-        Text {
+        Row {
             anchors.left: parent.left
             anchors.leftMargin: Theme.space.xl
             anchors.verticalCenter: parent.verticalCenter
-            visible: view.session.readOnly
-            text: "Read only: this project uses a newer format."
-            font.family: Theme.type.ui
-            font.pixelSize: Theme.type.small
-            color: Theme.color.inkMuted
+            spacing: Theme.space.l
+
+            component Count: Text {
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.small
+                color: Theme.color.inkMuted
+            }
+
+            Count {
+                visible: view.session.document.file !== ""
+                text: "Scene " + statusBar.number(view.session.sceneWords) + " words"
+            }
+
+            Count {
+                visible: view.session.chapterWords >= 0
+                text: "Chapter " + statusBar.number(view.session.chapterWords)
+            }
+
+            Count {
+                visible: view.session.error === ""
+                text: "Book " + statusBar.number(view.session.manuscriptWords)
+                      + (view.session.goalWords > 0 ? " of " + statusBar.number(view.session.goalWords) : "")
+            }
+
+            Count {
+                visible: view.session.readOnly
+                text: "Read only: this project uses a newer format."
+            }
         }
     }
 }

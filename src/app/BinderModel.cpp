@@ -47,6 +47,9 @@ void BinderModel::setProject(const Project &project)
         nodes.append(node);
     }
     roots = project.roots;
+    parents.clear();
+    for (const ProjectItem &item : project.items)
+        parents.append(item.parent);
     for (const int root : std::as_const(roots))
         sumWords(root);
     // In a new project the trash starts closed, and the rest starts open.
@@ -219,6 +222,59 @@ bool BinderModel::isInTrash(const QString &id) const
             return node.section == QLatin1String("trash");
     }
     return false;
+}
+
+int BinderModel::nodeOf(const QString &id) const
+{
+    for (qsizetype i = 0; i < nodes.size(); ++i) {
+        if (nodes.at(i).id == id)
+            return static_cast<int>(i);
+    }
+    return -1;
+}
+
+void BinderModel::setItemWords(const QString &id, int words)
+{
+    const int node = nodeOf(id);
+    if (node < 0 || nodes.at(node).words == words || !nodes.at(node).children.isEmpty())
+        return;
+    const int delta = words - nodes.at(node).words;
+    QSet<int> changed;
+    for (int up = node; up >= 0; up = parents.at(up)) {
+        nodes[up].words += delta;
+        changed.insert(up);
+    }
+    for (qsizetype row = 0; row < rows.size(); ++row) {
+        if (changed.contains(rows.at(row).node))
+            emit dataChanged(index(static_cast<int>(row)), index(static_cast<int>(row)),
+                             { WordsRole });
+    }
+}
+
+int BinderModel::wordsOf(const QString &id) const
+{
+    const int node = nodeOf(id);
+    return node < 0 ? 0 : nodes.at(node).words;
+}
+
+int BinderModel::manuscriptWords() const
+{
+    int total = 0;
+    for (const int root : roots) {
+        if (nodes.at(root).section == QLatin1String("manuscript"))
+            total += nodes.at(root).words;
+    }
+    return total;
+}
+
+QString BinderModel::chapterOf(const QString &id) const
+{
+    const int node = nodeOf(id);
+    for (int up = node < 0 ? -1 : parents.at(node); up >= 0; up = parents.at(up)) {
+        if (nodes.at(up).kind == QLatin1String("chapter"))
+            return nodes.at(up).id;
+    }
+    return { };
 }
 
 QString BinderModel::sectionLabel(const QString &section)

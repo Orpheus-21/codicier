@@ -32,9 +32,12 @@ class Document : public QObject
     Q_PROPERTY(QColor accentColor READ accentColor WRITE setAccentColor NOTIFY styleChanged)
     // The space in pixels that the editor adds between two lines.
     Q_PROPERTY(qreal lineDistance READ lineDistance WRITE setLineDistance NOTIFY styleChanged)
+    // The words of the open text. It updates 250 ms after the last edit.
+    Q_PROPERTY(int words READ words NOTIFY wordsChanged)
 
 public:
     static constexpr int saveDelayMs = 1000;
+    static constexpr int countDelayMs = 250;
 
     explicit Document(QObject *parent = nullptr);
 
@@ -55,6 +58,7 @@ public:
     QColor accentColor() const { return accent; }
     void setAccentColor(const QColor &color);
     qreal lineDistance() const { return distance; }
+    int words() const { return wordCount; }
     void setLineDistance(qreal value);
 
     // Saves the open file if needed, then opens file. An empty file closes.
@@ -77,6 +81,7 @@ signals:
     void conflictChanged();
     void errorChanged();
     void styleChanged();
+    void wordsChanged();
     // The app wrote file, so its new content is not an outside edit.
     void saved(const QString &file);
 
@@ -96,11 +101,14 @@ private:
     bool loading = false;
     QString lastError;
     QTimer timer;
+    QTimer countTimer;
+    int wordCount = 0;
 
     void edited();
     void readFile();
     void showText();
     void setDirty(bool value);
     void applyStyle();
+    void countWords();
     void setError(const QString &text);
 };

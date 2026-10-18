@@ -119,6 +119,24 @@ private slots:
         QCOMPARE(model.rowOf("t6v4h9r2mz"), -1);
     }
 
+    void itemWordsReachEachContainer()
+    {
+        QCOMPARE(model.manuscriptWords(), 28);
+        QCOMPARE(model.chapterOf("t6v4h9r2mz"), QStringLiteral("f6g7h8j9k0"));
+        QCOMPARE(model.chapterOf("f6g7h8j9k0"), QString());
+        QCOMPARE(model.chapterOf("nothing"), QString());
+        model.setItemWords("t6v4h9r2mz", 30);
+        QCOMPARE(model.wordsOf("t6v4h9r2mz"), 30);
+        QCOMPARE(model.wordsOf("f6g7h8j9k0"), 40);
+        QCOMPARE(model.wordsOf("a1b2c3d4e5"), 40);
+        QCOMPARE(model.manuscriptWords(), 40);
+        // A container has no words of its own, and an unknown id is ignored.
+        model.setItemWords("f6g7h8j9k0", 5);
+        model.setItemWords("nothing", 5);
+        QCOMPARE(model.wordsOf("f6g7h8j9k0"), 40);
+        QCOMPARE(model.wordsOf("nothing"), 0);
+    }
+
     void sectionLabels()
     {
         QCOMPARE(BinderModel::sectionLabel("back"), QStringLiteral("Back matter"));

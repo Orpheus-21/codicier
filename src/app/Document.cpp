@@ -1,5 +1,7 @@
 #include "Document.h"
 
+#include "Index.h"
+
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -42,6 +44,11 @@ Document::Document(QObject *parent) : QObject(parent)
     timer.setSingleShot(true);
     timer.setInterval(saveDelayMs);
     connect(&timer, &QTimer::timeout, this, &Document::save);
+    // ponytail: counts the whole text 250 ms after the last edit; count only
+    // the changed paragraph if a very long scene makes this slow.
+    countTimer.setSingleShot(true);
+    countTimer.setInterval(countDelayMs);
+    connect(&countTimer, &QTimer::timeout, this, &Document::countWords);
     // A normal quit saves the last edits.
     if (QCoreApplication::instance() != nullptr)
         connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this,
@@ -132,6 +139,7 @@ void Document::open(const QString &projectFolder, const QString &file)
     setDirty(false);
     readFile();
     showText();
+    countWords();
     emit fileChanged();
     emit conflictChanged();
 }
@@ -158,6 +166,7 @@ void Document::showText()
     document->setPlainText(loadedText);
     loading = false;
     applyStyle();
+    countWords();
     // The loaded text is the start: no undo goes back past it.
     document->clearUndoRedoStacks();
     document->setModified(false);
@@ -171,6 +180,16 @@ void Document::edited()
         return;
     setDirty(true);
     timer.start();
+    countTimer.start();
+}
+
+void Document::countWords()
+{
+    const int count = path.isEmpty() ? 0 : Index::countWords(text());
+    if (count == wordCount)
+        return;
+    wordCount = count;
+    emit wordsChanged();
 }
 
 bool Document::save()

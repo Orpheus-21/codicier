@@ -29,6 +29,13 @@ class ProjectSession : public QObject
     // The id of the selected binder item, or "".
     Q_PROPERTY(QString currentId READ currentId WRITE setCurrentId NOTIFY currentIdChanged)
     Q_PROPERTY(QString lastError READ lastError NOTIFY edited)
+    // Live word counts for the status bar. chapterWords is -1 when the
+    // selected item is not in a chapter.
+    Q_PROPERTY(int sceneWords READ sceneWords NOTIFY wordsChanged)
+    Q_PROPERTY(int chapterWords READ chapterWords NOTIFY wordsChanged)
+    Q_PROPERTY(int manuscriptWords READ manuscriptWords NOTIFY wordsChanged)
+    // The word goal from project.toml, or 0.
+    Q_PROPERTY(int goalWords READ goalWords NOTIFY loaded)
 
 public:
     explicit ProjectSession(QObject *parent = nullptr);
@@ -72,12 +79,17 @@ public:
     Q_INVOKABLE bool moveBy(const QString &id, int delta);
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
+    int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }
+    int chapterWords() const;
+    int manuscriptWords() const { return binderModel.manuscriptWords(); }
+    int goalWords() const;
 
 signals:
     void loaded();
     void currentIdChanged();
     // The binder changed through an add, a rename, or a move.
     void edited();
+    void wordsChanged();
 
 private:
     Project project;

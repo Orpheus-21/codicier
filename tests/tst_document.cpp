@@ -274,6 +274,45 @@ private slots:
         QVERIFY(!text.isUndoAvailable());
     }
 
+    void wordCountFollowsTheText()
+    {
+        Document document;
+        QTextDocument text;
+        document.attach(&text);
+        document.open(dir.path(), scene);
+        QCOMPARE(document.words(), 18);
+        QSignalSpy counted(&document, &Document::wordsChanged);
+        type(text, " Two more.");
+        QCOMPARE(document.words(), 18);
+        QTRY_COMPARE_WITH_TIMEOUT(document.words(), 20, 1000);
+        QCOMPARE(counted.size(), 1);
+        document.open(dir.path(), QString());
+        QCOMPARE(document.words(), 0);
+    }
+
+    void sessionCountsTheSceneTheChapterAndTheBook()
+    {
+        ProjectSession session;
+        session.setFolder(dir.path());
+        QCOMPARE(session.goalWords(), 90000);
+        QCOMPARE(session.manuscriptWords(), 28);
+        session.setCurrentId("t6v4h9r2mz");
+        QTextDocument text;
+        session.document()->attach(&text);
+        QCOMPARE(session.sceneWords(), 18);
+        QCOMPARE(session.chapterWords(), 28);
+        QSignalSpy changed(&session, &ProjectSession::wordsChanged);
+        type(text, " Two more.");
+        QTRY_COMPARE_WITH_TIMEOUT(session.sceneWords(), 20, 1000);
+        QCOMPARE(session.chapterWords(), 30);
+        QCOMPARE(session.manuscriptWords(), 30);
+        QVERIFY(changed.size() >= 1);
+        // A part is not in a chapter.
+        session.setCurrentId("a1b2c3d4e5");
+        QCOMPARE(session.chapterWords(), -1);
+        QCOMPARE(session.sceneWords(), 0);
+    }
+
     void sessionOpensTheSelectedText()
     {
         ProjectSession session;
