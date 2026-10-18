@@ -12,6 +12,7 @@
 #include <QSet>
 
 #include <algorithm>
+#include <utility>
 
 namespace {
 
@@ -184,7 +185,7 @@ void ProjectList::refresh()
     }
     std::ranges::sort(found, [](const Entry &a, const Entry &b) { return a.edited > b.edited; });
     beginResetModel();
-    entries = found;
+    entries = std::move(found);
     endResetModel();
     emit refreshed();
 }
