@@ -112,6 +112,7 @@ Do not say so yet."""
 | `synopsis` | string | text items | A short summary. |
 | `tags` | array of strings | text items | Tags. |
 | `target` | integer | text items | The word target. |
+| `include` | boolean | text items | False leaves the item out of the manuscript: no total counts its words. The default is true, and the app writes the key only when it is false. |
 | `notes` | string | all | Free notes for the item. |
 | `restore` | string | items in the trash | The id of the parent before the move to the trash. |
 
