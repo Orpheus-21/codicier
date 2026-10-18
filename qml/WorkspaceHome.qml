@@ -10,14 +10,14 @@ Item {
     id: home
 
     // The workspace folder.
-    property alias folder: projects.folder
-    readonly property alias projects: projects
+    property alias folder: projectList.folder
+    readonly property alias projects: projectList
 
     // A click on a project. T28 opens it.
     signal projectActivated(string folder)
 
     ProjectList {
-        id: projects
+        id: projectList
     }
 
     function formatNumber(n: int): string {
@@ -183,7 +183,7 @@ Item {
         // The rows of the other section are hidden, and a hidden row takes no
         // space in a Column.
         Repeater {
-            model: projects
+            model: projectList
 
             ProjectRow {
                 required property bool fiction
@@ -211,9 +211,9 @@ Item {
             Column {
                 id: continueBlock
 
-                readonly property var latest: projects.count > 0 ? projects.get(0) : ({})
+                readonly property var latest: projectList.count > 0 ? projectList.get(0) : ({})
 
-                visible: projects.count > 0 && latest.error === ""
+                visible: projectList.count > 0 && latest.error === ""
                 width: parent.width
                 spacing: Theme.space.m
 
@@ -294,7 +294,7 @@ Item {
 
             // An empty workspace.
             Column {
-                visible: projects.count === 0
+                visible: projectList.count === 0
                 width: parent.width
                 spacing: Theme.space.l
 
@@ -322,13 +322,13 @@ Item {
             Section {
                 heading: "Fiction"
                 fiction: true
-                count: projects.fictionCount
+                count: projectList.fictionCount
             }
 
             Section {
                 heading: "Non-fiction"
                 fiction: false
-                count: projects.nonFictionCount
+                count: projectList.nonFictionCount
             }
         }
     }
@@ -350,8 +350,8 @@ Item {
             anchors.leftMargin: Theme.space.xl
             anchors.verticalCenter: parent.verticalCenter
             font.pixelSize: Theme.type.small
-            text: projects.count + (projects.count === 1 ? " project" : " projects") + "    "
-                  + home.formatNumber(projects.totalWords) + " words in all"
+            text: projectList.count + (projectList.count === 1 ? " project" : " projects") + "    "
+                  + home.formatNumber(projectList.totalWords) + " words in all"
         }
     }
 
@@ -363,6 +363,6 @@ Item {
         id: newProject
 
         anchors.centerIn: parent
-        projects: projects
+        projects: projectList
     }
 }
