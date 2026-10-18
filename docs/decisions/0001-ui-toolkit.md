@@ -1,6 +1,6 @@
 # 1. UI toolkit: Qt 6 Quick
 
-Status: proposed. The decision is go or no-go at Checkpoint B.
+Status: accepted at Checkpoint B on 2026-10-18.
 
 Date: 2026-10-18.
 
