@@ -9,6 +9,33 @@
 #include <atomic>
 #include <memory>
 
+namespace {
+
+struct CountingFactory : QQmlNetworkAccessManagerFactory
+{
+    std::atomic_int count = 0;
+    QNetworkAccessManager *create(QObject *parent) override
+    {
+        ++count;
+        return new QNetworkAccessManager(parent);
+    }
+};
+
+// 192.0.2.1 is a documentation address (RFC 5737). No real server uses it.
+std::unique_ptr<QObject> loadRemoteImage(QQmlEngine &engine)
+{
+    QQmlComponent component(&engine);
+    component.setData("import QtQuick\n"
+                      "Image { source: \"https://192.0.2.1/a.png\" }",
+                      QUrl());
+    std::unique_ptr<QObject> image(component.create());
+    if (!image)
+        qFatal("%s", qPrintable(component.errorString()));
+    return image;
+}
+
+} // namespace
+
 class TestOffline : public QObject
 {
     Q_OBJECT
@@ -72,30 +99,6 @@ private slots:
 
         auto image = loadRemoteImage(engine);
         QTRY_VERIFY(factory.count > 0);
-    }
-
-private:
-    struct CountingFactory : QQmlNetworkAccessManagerFactory
-    {
-        std::atomic_int count = 0;
-        QNetworkAccessManager *create(QObject *parent) override
-        {
-            ++count;
-            return new QNetworkAccessManager(parent);
-        }
-    };
-
-    // 192.0.2.1 is a documentation address (RFC 5737). No real server uses it.
-    static std::unique_ptr<QObject> loadRemoteImage(QQmlEngine &engine)
-    {
-        QQmlComponent component(&engine);
-        component.setData("import QtQuick\n"
-                          "Image { source: \"https://192.0.2.1/a.png\" }",
-                          QUrl());
-        std::unique_ptr<QObject> image(component.create());
-        if (!image)
-            qFatal("%s", qPrintable(component.errorString()));
-        return image;
     }
 };
 
