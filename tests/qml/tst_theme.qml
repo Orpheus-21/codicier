@@ -76,6 +76,13 @@ TestCase {
         compare(Theme.name, dark ? "dark" : "light");
     }
 
+    function test_bundledFontsLoad() {
+        for (const loader of [Theme.readingFont, Theme.readingItalicFont, Theme.uiFont])
+            compare(loader.status, FontLoader.Ready, loader.source);
+        compare(Theme.type.reading, "Literata");
+        compare(Theme.type.ui, "Inter");
+    }
+
     function test_reducedMotionStopsMotion() {
         Theme.motion.reduced = true;
         compare(Theme.motion.fast, 0);

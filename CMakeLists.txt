@@ -18,6 +18,7 @@ set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
     QML_FILES qml/Main.qml qml/Theme.qml
+    RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 
 qt_add_executable(codicier src/main.cpp src/OfflineGuard.cpp)

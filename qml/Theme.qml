@@ -1,4 +1,5 @@
 pragma Singleton
+pragma ComponentBehavior: Bound
 
 import QtQuick
 
@@ -55,11 +56,22 @@ QtObject {
         })
     readonly property var color: palettes[name]
 
+    // The app bundles its fonts, so the text looks the same on each system.
+    // The licences are in fonts/.
+    readonly property FontLoader readingFont: FontLoader {
+        source: "../fonts/Literata.ttf"
+    }
+    readonly property FontLoader readingItalicFont: FontLoader {
+        source: "../fonts/Literata-Italic.ttf"
+    }
+    readonly property FontLoader uiFont: FontLoader {
+        source: "../fonts/Inter.ttf"
+    }
+
     component TypeScale: QtObject {
-        // T14 bundles the fonts and can change these names.
-        readonly property string reading: "Crimson Pro"
-        readonly property string ui: "sans-serif"
-        readonly property int readingSize: 21
+        readonly property string reading: theme.readingFont.font.family
+        readonly property string ui: theme.uiFont.font.family
+        readonly property int readingSize: 19
         readonly property real readingLineHeight: 1.5
         // Characters per line in the writing view.
         readonly property int measure: 66
