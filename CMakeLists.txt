@@ -14,7 +14,7 @@ qt_standard_project_setup(REQUIRES 6.8)
 
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
-    src/model/Naming.cpp src/model/Templates.cpp src/index/Index.cpp)
+    src/model/Naming.cpp src/model/Templates.cpp src/model/Watcher.cpp src/index/Index.cpp)
 target_include_directories(codicier_core PUBLIC src/model src/index)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
 target_link_libraries(codicier_core PUBLIC Qt6::Core Qt6::Sql)

@@ -61,6 +61,13 @@ target_compile_definitions(tst_index PRIVATE
 target_link_libraries(tst_index PRIVATE codicier_core Qt6::Test)
 add_test(NAME tst_index COMMAND tst_index)
 
+qt_add_executable(tst_watcher tst_watcher.cpp)
+target_compile_options(tst_watcher PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_watcher PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_watcher PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_watcher COMMAND tst_watcher)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 
