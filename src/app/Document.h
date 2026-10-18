@@ -1,5 +1,8 @@
 #pragma once
 
+#include "MarkdownHighlighter.h"
+
+#include <QColor>
 #include <QObject>
 #include <QPointer>
 #include <QQuickTextDocument>
@@ -24,6 +27,11 @@ class Document : public QObject
     // Another program changed the file while the app had unsaved text.
     Q_PROPERTY(bool conflict READ conflict NOTIFY conflictChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
+    // The theme colours for the Markdown marks and the footnote marks.
+    Q_PROPERTY(QColor markColor READ markColor WRITE setMarkColor NOTIFY styleChanged)
+    Q_PROPERTY(QColor accentColor READ accentColor WRITE setAccentColor NOTIFY styleChanged)
+    // The space in pixels that the editor adds between two lines.
+    Q_PROPERTY(qreal lineDistance READ lineDistance WRITE setLineDistance NOTIFY styleChanged)
 
 public:
     static constexpr int saveDelayMs = 1000;
@@ -41,6 +49,13 @@ public:
     QString error() const { return lastError; }
     // The text as the app holds it now.
     QString text() const;
+
+    QColor markColor() const { return mark; }
+    void setMarkColor(const QColor &color);
+    QColor accentColor() const { return accent; }
+    void setAccentColor(const QColor &color);
+    qreal lineDistance() const { return distance; }
+    void setLineDistance(qreal value);
 
     // Saves the open file if needed, then opens file. An empty file closes.
     void open(const QString &projectFolder, const QString &file);
@@ -61,12 +76,17 @@ signals:
     void dirtyChanged();
     void conflictChanged();
     void errorChanged();
+    void styleChanged();
     // The app wrote file, so its new content is not an outside edit.
     void saved(const QString &file);
 
 private:
     QPointer<QQuickTextDocument> quickDocument;
     QPointer<QTextDocument> document;
+    QPointer<MarkdownHighlighter> highlighter;
+    QColor mark { 0x70, 0x6b, 0x65 };
+    QColor accent { 0x94, 0x55, 0x2a };
+    qreal distance = 0;
     QString folder;
     QString path;
     // The text of the file, kept until an editor is attached.
@@ -81,5 +101,6 @@ private:
     void readFile();
     void showText();
     void setDirty(bool value);
+    void applyStyle();
     void setError(const QString &text);
 };

@@ -7,6 +7,8 @@
 #include <QGuiApplication>
 #include <QQuickTextDocument>
 #include <QSaveFile>
+#include <QTextBlockFormat>
+#include <QTextCursor>
 
 namespace {
 
@@ -62,8 +64,56 @@ void Document::attach(QTextDocument *value)
     document = value;
     if (document == nullptr)
         return;
+    // The document owns the highlighter.
+    highlighter = new MarkdownHighlighter(document);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
     showText();
+}
+
+void Document::setMarkColor(const QColor &color)
+{
+    if (color == mark)
+        return;
+    mark = color;
+    applyStyle();
+    emit styleChanged();
+}
+
+void Document::setAccentColor(const QColor &color)
+{
+    if (color == accent)
+        return;
+    accent = color;
+    applyStyle();
+    emit styleChanged();
+}
+
+void Document::setLineDistance(qreal value)
+{
+    if (qFuzzyCompare(value, distance))
+        return;
+    distance = value;
+    applyStyle();
+    emit styleChanged();
+}
+
+// Applies the colours and the line distance. A style change is not an edit,
+// so the modified state of the text stays as it was.
+void Document::applyStyle()
+{
+    if (document == nullptr)
+        return;
+    if (highlighter != nullptr)
+        highlighter->setColors(mark, accent);
+    const bool modified = document->isModified();
+    loading = true;
+    QTextCursor all(document);
+    all.select(QTextCursor::Document);
+    QTextBlockFormat format;
+    format.setLineHeight(distance, QTextBlockFormat::LineDistanceHeight);
+    all.mergeBlockFormat(format);
+    loading = false;
+    document->setModified(modified);
 }
 
 QString Document::text() const
@@ -107,11 +157,17 @@ void Document::showText()
     loading = true;
     document->setPlainText(loadedText);
     loading = false;
+    applyStyle();
+    // The loaded text is the start: no undo goes back past it.
+    document->clearUndoRedoStacks();
+    document->setModified(false);
 }
 
 void Document::edited()
 {
-    if (loading || path.isEmpty())
+    // Only a change to the text counts. The highlighter and the block format
+    // change the document too, but they do not set it as modified.
+    if (loading || path.isEmpty() || (document != nullptr && !document->isModified()))
         return;
     setDirty(true);
     timer.start();
@@ -132,6 +188,8 @@ bool Document::save()
     }
     setError(QString());
     setDirty(false);
+    if (document != nullptr)
+        document->setModified(false);
     emit saved(path);
     return true;
 }

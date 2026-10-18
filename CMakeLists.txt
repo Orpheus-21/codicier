@@ -44,6 +44,7 @@ qt_add_qml_module(codicier_ui
         src/app/ProjectSession.cpp src/app/ProjectSession.h
         src/app/BinderModel.cpp src/app/BinderModel.h
         src/app/Document.cpp src/app/Document.h
+        src/app/MarkdownHighlighter.cpp src/app/MarkdownHighlighter.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

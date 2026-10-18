@@ -51,6 +51,26 @@ Item {
         }
     }
 
+    // The theme styles the text, and a theme change applies at once.
+    Binding {
+        target: editorArea.document
+        property: "markColor"
+        value: Theme.color.mark
+    }
+
+    Binding {
+        target: editorArea.document
+        property: "accentColor"
+        value: Theme.color.accent
+    }
+
+    // The reading line height, as space added to the natural line.
+    Binding {
+        target: editorArea.document
+        property: "lineDistance"
+        value: Math.max(0, Theme.type.readingLine - metrics.lineSpacing)
+    }
+
     FontMetrics {
         id: metrics
 
@@ -97,6 +117,7 @@ Item {
             selectByMouse: true
             persistentSelection: true
             Component.onCompleted: editorArea.document.textDocument = textEdit.textDocument
+
             onCursorRectangleChanged: page.follow(cursorRectangle)
         }
     }

@@ -9,6 +9,8 @@
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTextBlock>
+#include <QTextBlockFormat>
 #include <QTextCursor>
 #include <QTextDocument>
 #include <QThread>
@@ -225,6 +227,51 @@ private slots:
         document.open(dir.path(), QString());
         QCOMPARE(document.error(), QString());
         QVERIFY(document.save());
+    }
+
+    void styleChangeIsNotAnEdit()
+    {
+        Document document;
+        QTextDocument text;
+        document.attach(&text);
+        document.open(dir.path(), scene);
+        document.setMarkColor(QColor("#8f8a83"));
+        document.setAccentColor(QColor("#d4935f"));
+        document.setLineDistance(3);
+        QVERIFY(!document.dirty());
+        QTest::qWait(Document::saveDelayMs + 200);
+        QVERIFY(!document.dirty());
+        // A style change during unsaved edits keeps them unsaved.
+        type(text, " Mine.");
+        document.setLineDistance(4);
+        QVERIFY(document.dirty());
+        QVERIFY(text.isModified());
+    }
+
+    void lineDistanceReachesEveryParagraph()
+    {
+        Document document;
+        QTextDocument text;
+        document.attach(&text);
+        document.setLineDistance(3);
+        document.open(dir.path(), scene);
+        type(text, "\nA new paragraph.");
+        for (QTextBlock block = text.firstBlock(); block.isValid(); block = block.next()) {
+            QCOMPARE(block.blockFormat().lineHeightType(),
+                     int(QTextBlockFormat::LineDistanceHeight));
+            QCOMPARE(block.blockFormat().lineHeight(), 3.0);
+        }
+        QCOMPARE(document.lineDistance(), 3.0);
+        QCOMPARE(document.markColor(), QColor(0x70, 0x6b, 0x65));
+    }
+
+    void undoStopsAtTheLoadedText()
+    {
+        Document document;
+        QTextDocument text;
+        document.attach(&text);
+        document.open(dir.path(), scene);
+        QVERIFY(!text.isUndoAvailable());
     }
 
     void sessionOpensTheSelectedText()
