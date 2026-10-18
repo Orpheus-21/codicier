@@ -43,6 +43,11 @@ add_test(NAME tst_floor_guard
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tst_floor_guard.py)
 add_test(NAME tst_coverage_diff
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tst_coverage_diff.py)
+add_test(NAME tst_icons
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tst_icons.py)
+# qml/IconPaths.js must match the SVG files in icons/.
+add_test(NAME check_icons
+    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/icons.py --check)
 
 # Lint every QML file. One warning fails the test.
 # The module files use the arguments that Qt generates for the module. They
