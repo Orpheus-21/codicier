@@ -14,15 +14,14 @@ jobs:
       - name: Install build tools and Qt
         run: >
           pacman -Syu --noconfirm --needed
-          gcc make cmake clang qt6-base qt6-declarative
+          gcc make cmake clang git python qt6-base qt6-declarative
 
+      # The full history lets the floor guard and the coverage check find the base commit.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-
-      - name: Build
-        run: cmake --build build -j "$(nproc)"
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
+      - name: Run all checks
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: sh tools/check.sh task "$BASE"
