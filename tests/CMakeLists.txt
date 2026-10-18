@@ -30,6 +30,10 @@ set_tests_properties(tst_offline PROPERTIES ENVIRONMENT "${TEST_ENV}")
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME tst_floor_guard
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tst_floor_guard.py)
+
 # Lint every QML file. One warning fails the test.
 file(GLOB_RECURSE QML_LINT_FILES CONFIGURE_DEPENDS
     ${PROJECT_SOURCE_DIR}/qml/*.qml ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml)
