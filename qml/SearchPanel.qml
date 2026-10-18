@@ -4,18 +4,23 @@ import QtQuick
 import QtQuick.Templates as T
 
 // Full text search over the project. The results follow the typing. Each
-// result shows the title and a snippet with the match in bold.
+// result shows the title and a snippet with the match in bold. The .* toggle
+// or Alt+R makes the query a regular expression.
 Item {
     id: panel
 
     required property ProjectSession session
 
     // A click or Enter on a result.
-    signal opened(id: string, query: string)
+    signal opened(id: string, query: string, regex: bool)
     // Escape in the panel.
     signal closeRequested
 
     property var results: []
+    property bool regex: false
+    readonly property string error: regex ? session.patternError(field.text) : ""
+
+    onRegexChanged: searchTimer.restart()
 
     function start() {
         field.forceActiveFocus();
@@ -24,7 +29,7 @@ Item {
 
     function openRow(row: int) {
         if (row >= 0 && row < results.length)
-            opened(results[row].id, field.text);
+            opened(results[row].id, field.text, regex);
     }
 
     Keys.onEscapePressed: closeRequested()
@@ -35,7 +40,7 @@ Item {
 
         interval: 120
         onTriggered: {
-            panel.results = panel.session.search(field.text);
+            panel.results = panel.session.search(field.text, panel.regex);
             list.currentIndex = panel.results.length > 0 ? 0 : -1;
         }
     }
@@ -46,8 +51,15 @@ Item {
         objectName: "searchField"
         width: parent.width
         iconName: "search"
-        placeholderText: "Search the project"
+        placeholderText: panel.regex ? "Regular expression" : "Search the project"
+        rightPadding: Theme.space.s + regexButton.width
         onTextChanged: searchTimer.restart()
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_R && event.modifiers === Qt.AltModifier) {
+                panel.regex = !panel.regex;
+                event.accepted = true;
+            }
+        }
         Keys.onReturnPressed: panel.openRow(list.currentIndex)
         Keys.onEnterPressed: panel.openRow(list.currentIndex)
         Keys.onDownPressed: {
@@ -62,8 +74,54 @@ Item {
         }
     }
 
+    T.Button {
+        id: regexButton
+
+        anchors.right: field.right
+        anchors.rightMargin: 4
+        anchors.verticalCenter: field.verticalCenter
+        implicitWidth: 28
+        implicitHeight: 26
+        checkable: true
+        checked: panel.regex
+        focusPolicy: Qt.NoFocus
+        Accessible.name: "Regular expression"
+        onToggled: panel.regex = checked
+
+        contentItem: Text {
+            text: ".*"
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.body
+            font.weight: Font.Medium
+            color: regexButton.checked ? Theme.color.ink
+                   : regexButton.hovered ? Theme.color.ink : Theme.color.inkMuted
+        }
+
+        background: Rectangle {
+            radius: Theme.radius.small
+            color: regexButton.checked || regexButton.hovered ? Theme.color.selection : "transparent"
+        }
+    }
+
+    // A pattern that is not valid: the reason, in place of the results.
+    Text {
+        objectName: "searchError"
+        visible: panel.error !== ""
+        anchors.top: field.bottom
+        anchors.topMargin: Theme.space.s
+        width: parent.width
+        wrapMode: Text.Wrap
+        text: panel.error
+        font.family: Theme.type.ui
+        font.pixelSize: Theme.type.small
+        color: Theme.color.accent
+    }
+
     Text {
         visible: field.text.trim() !== "" && panel.results.length === 0 && !searchTimer.running
+                 && panel.error === ""
         anchors.top: field.bottom
         anchors.topMargin: Theme.space.l
         width: parent.width

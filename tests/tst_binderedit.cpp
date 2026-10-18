@@ -578,6 +578,54 @@ private slots:
         QVERIFY(session->search("   ").isEmpty());
     }
 
+    void regexSearchFindsPatterns()
+    {
+        const QVariantList hits = session->search("f[a-z]+th of", true);
+        QCOMPARE(hits.size(), 1);
+        const QVariantMap hit = hits.first().toMap();
+        QCOMPARE(hit.value("id").toString(), QStringLiteral("t6v4h9r2mz"));
+        QVERIFY2(hit.value("snippet").toString().startsWith(
+                     "The letter said the <b>fourth of</b> March"),
+                 qPrintable(hit.value("snippet").toString()));
+        QVariantMap match = session->matchIn("t6v4h9r2mz", "F[a-z]+TH", true);
+        QCOMPARE(match.value("start").toInt(), 21);
+        QCOMPARE(match.value("length").toInt(), 6);
+        match = session->matchIn("t6v4h9r2mz", "fourth march", false);
+        QCOMPARE(match.value("start").toInt(), 21);
+        QCOMPARE(match.value("length").toInt(), 6);
+        QCOMPARE(session->matchIn("t6v4h9r2mz", "x+", true).value("start").toInt(), -1);
+        QCOMPARE(session->matchIn("t6v4h9r2mz", "x+", true).value("length").toInt(), 0);
+
+        // A title match with no text match has no snippet.
+        bool titleOnly = false;
+        for (const QVariant &each : session->search("^Map of", true)) {
+            if (each.toMap().value("title") == QStringLiteral("Map of the river"))
+                titleOnly = each.toMap().value("snippet").toString().isEmpty();
+        }
+        QVERIFY(titleOnly);
+
+        // A long text gives a short snippet with dots at both ends.
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor cursor(&editor);
+        cursor.insertText(QString("word ").repeated(40) + "needle "
+                          + QString("word ").repeated(40));
+        const QString snippet
+            = session->search("needle", true).first().toMap().value("snippet").toString();
+        QVERIFY2(snippet.startsWith("...") && snippet.endsWith("...") && snippet.size() < 200,
+                 qPrintable(snippet));
+
+        // A pattern that matches only empty text finds nothing.
+        QVERIFY(session->search("x*", true).isEmpty());
+        // A bad pattern gives an error and no results.
+        QCOMPARE(session->patternError("(unclosed"),
+                 QStringLiteral("Missing closing parenthesis."));
+        QCOMPARE(session->patternError("ok+"), QString());
+        QVERIFY(session->search("(unclosed", true).isEmpty());
+        QVERIFY(session->search("", true).isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

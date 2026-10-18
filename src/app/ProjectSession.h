@@ -131,10 +131,16 @@ public:
     Q_INVOKABLE int emptyTrash();
     // Full text search over the titles and the texts outside the trash, best
     // match first. Each result has an id, a title, and a snippet in rich text
-    // with the match in bold.
-    Q_INVOKABLE QVariantList search(const QString &query);
+    // with the match in bold. With regex, the query is a regular expression,
+    // and the results come in binder order.
+    Q_INVOKABLE QVariantList search(const QString &query, bool regex = false);
+    // Why a regular expression is not valid, or "".
+    Q_INVOKABLE QString patternError(const QString &pattern) const;
     // Where the first word of the query is in the text of an item, or -1.
     Q_INVOKABLE int firstMatch(const QString &id, const QString &query) const;
+    // The first match of a search in the text of an item: a start and a
+    // length. The start is -1 if there is no match.
+    Q_INVOKABLE QVariantMap matchIn(const QString &id, const QString &query, bool regex) const;
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }

@@ -212,10 +212,10 @@ Item {
                     view.searchOpen = false;
                     binder.forceActiveFocus();
                 }
-                onOpened: (id, query) => {
+                onOpened: (id, query, regex) => {
                     view.session.currentId = id;
-                    editor.selectRange(view.session.firstMatch(id, query),
-                                       query.trim().split(" ")[0].length);
+                    const match = view.session.matchIn(id, query, regex);
+                    editor.selectRange(match.start, match.length);
                 }
             }
 

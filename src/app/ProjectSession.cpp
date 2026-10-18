@@ -919,16 +919,106 @@ int ProjectSession::emptyTrash()
     return count;
 }
 
-QVariantList ProjectSession::search(const QString &query)
+namespace {
+
+// Marks that no text holds, so the escape of a snippet cannot touch them.
+const QChar openMark(0x2);
+const QChar closeMark(0x3);
+
+// A snippet with marks as rich text: the words with the match in bold, with
+// no Markdown marks and no footnotes.
+QString snippetHtml(QString snippet)
+{
+    snippet.remove(QRegularExpression(QStringLiteral("\\[\\^[^\\]]*\\]|\\*")));
+    snippet = snippet.simplified().toHtmlEscaped();
+    return snippet.replace(openMark, QStringLiteral("<b>"))
+        .replace(closeMark, QStringLiteral("</b>"));
+}
+
+QRegularExpression searchPattern(const QString &pattern)
+{
+    return QRegularExpression(pattern,
+                              QRegularExpression::CaseInsensitiveOption
+                                  | QRegularExpression::UseUnicodePropertiesOption);
+}
+
+// The first match that is not empty, as a start and a length. The start is
+// -1 if there is no such match.
+std::pair<qsizetype, qsizetype> regexMatch(const QRegularExpression &pattern, const QString &text)
+{
+    QRegularExpressionMatchIterator it = pattern.globalMatch(text);
+    while (it.hasNext()) {
+        const QRegularExpressionMatch match = it.next();
+        if (match.capturedLength() > 0)
+            return { match.capturedStart(), match.capturedLength() };
+    }
+    return { -1, 0 };
+}
+
+QString readFile(const QString &path)
+{
+    QFile file(path);
+    return file.open(QIODevice::ReadOnly) ? QString::fromUtf8(file.readAll()) : QString();
+}
+
+} // namespace
+
+QString ProjectSession::patternError(const QString &pattern) const
+{
+    const QRegularExpression expression = searchPattern(pattern);
+    if (expression.isValid())
+        return { };
+    // PCRE writes "missing closing parenthesis": make it a sentence.
+    QString error = expression.errorString();
+    error[0] = error[0].toUpper();
+    return error + u'.';
+}
+
+QVariantList ProjectSession::search(const QString &query, bool regex)
 {
     QVariantList list;
     if (project.folder.isEmpty() || !loadError.isEmpty())
         return list;
-    // The index reads the files, so the latest typing goes to disk first.
+    // The search reads the files, so the latest typing goes to disk first.
     text.save();
     for (const QPointer<Document> &document : std::as_const(tracked)) {
         if (document)
             document->save();
+    }
+    const auto append = [&list](const QString &id, const QString &title, const QString &snippet) {
+        list.append(QVariantMap {
+            { QStringLiteral("id"), id },
+            { QStringLiteral("title"), title },
+            { QStringLiteral("snippet"), snippetHtml(snippet) },
+        });
+    };
+    if (regex) {
+        // A pattern search reads every file in binder order. The index
+        // cannot match a pattern.
+        const QRegularExpression pattern = searchPattern(query);
+        if (query.isEmpty() || !pattern.isValid())
+            return list;
+        for (const ProjectItem &item : std::as_const(project.items)) {
+            if (binderModel.isInTrash(item.id))
+                continue;
+            const bool isText = !item.file.isEmpty() && item.kind != QLatin1String("file");
+            const QString body
+                = isText ? readFile(QDir(project.folder).filePath(item.file)) : QString();
+            const auto [start, length] = regexMatch(pattern, body);
+            if (start >= 0) {
+                // About ten words on each side of the match.
+                const qsizetype from = std::max<qsizetype>(0, start - 60);
+                const qsizetype to = std::min(body.size(), start + length + 80);
+                const QString snippet = (from > 0 ? QStringLiteral("...") : QString())
+                    + body.mid(from, start - from) + openMark + body.mid(start, length) + closeMark
+                    + body.mid(start + length, to - start - length)
+                    + (to < body.size() ? QStringLiteral("...") : QString());
+                append(item.id, item.title, snippet);
+            } else if (regexMatch(pattern, item.title).first >= 0) {
+                append(item.id, item.title, QString());
+            }
+        }
+        return list;
     }
     if (!index) {
         index = std::make_unique<Index>(project.folder);
@@ -954,33 +1044,32 @@ QVariantList ProjectSession::search(const QString &query)
     }
     indexStale = false;
     staleFiles.clear();
-    // Marks that no text holds, so the escape below cannot touch them.
-    const QString open(QChar(0x2));
-    const QString close(QChar(0x3));
-    for (const SearchHit &hit : index->search(query, open, close)) {
-        if (binderModel.isInTrash(hit.id))
-            continue;
-        // The snippet shows the words, not the Markdown marks and footnotes.
-        QString snippet = hit.snippet;
-        snippet.remove(QRegularExpression(QStringLiteral("\\[\\^[^\\]]*\\]|\\*")));
-        snippet = snippet.simplified().toHtmlEscaped();
-        snippet.replace(open, QStringLiteral("<b>")).replace(close, QStringLiteral("</b>"));
-        list.append(QVariantMap {
-            { QStringLiteral("id"), hit.id },
-            { QStringLiteral("title"), hit.title },
-            { QStringLiteral("snippet"), snippet },
-        });
+    for (const SearchHit &hit : index->search(query, openMark, closeMark)) {
+        if (!binderModel.isInTrash(hit.id))
+            append(hit.id, hit.title, hit.snippet);
     }
     return list;
 }
 
+QVariantMap ProjectSession::matchIn(const QString &id, const QString &query, bool regex) const
+{
+    qsizetype start = -1;
+    qsizetype length = 0;
+    const int at = indexOf(id);
+    if (at >= 0 && !project.items.at(at).file.isEmpty()) {
+        const QString body = readFile(QDir(project.folder).filePath(project.items.at(at).file));
+        if (regex) {
+            std::tie(start, length) = regexMatch(searchPattern(query), body);
+        } else {
+            start = Index::firstMatch(body, query);
+            length = query.split(u' ', Qt::SkipEmptyParts).value(0).size();
+        }
+    }
+    return { { QStringLiteral("start"), static_cast<int>(start) },
+             { QStringLiteral("length"), static_cast<int>(start < 0 ? 0 : length) } };
+}
+
 int ProjectSession::firstMatch(const QString &id, const QString &query) const
 {
-    const int at = indexOf(id);
-    if (at < 0 || project.items.at(at).file.isEmpty())
-        return -1;
-    QFile file(QDir(project.folder).filePath(project.items.at(at).file));
-    if (!file.open(QIODevice::ReadOnly))
-        return -1;
-    return static_cast<int>(Index::firstMatch(QString::fromUtf8(file.readAll()), query));
+    return matchIn(id, query, false).value(QStringLiteral("start")).toInt();
 }

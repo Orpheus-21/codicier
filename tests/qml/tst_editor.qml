@@ -126,6 +126,23 @@ TestCase {
         compare(text.selectedText, "gull");
         verify(text.activeFocus);
 
+        // Alt+R makes the query a pattern. A bad pattern shows the reason.
+        keyClick(Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier);
+        keyClick(Qt.Key_R, Qt.AltModifier);
+        for (const c of "g(ul")
+            keyClick(c);
+        const error = findChild(view, "searchError") as Text;
+        verify(error.visible);
+        verify(error.text !== "");
+        for (let i = 0; i < 3; ++i)
+            keyClick(Qt.Key_Backspace);
+        for (const c of "u+l+ c")
+            keyClick(c);
+        verify(!error.visible);
+        tryCompare(results, "count", 1);
+        keyClick(Qt.Key_Return);
+        compare(text.selectedText, "gull c");
+
         // Escape in the panel shows the binder again.
         keyClick(Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier);
         keyClick(Qt.Key_Escape);
