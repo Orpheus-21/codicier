@@ -7,7 +7,7 @@ add_custom_command(OUTPUT ${FIXTURE}
     DEPENDS gen_fixture.py)
 add_custom_target(fixture ALL DEPENDS ${FIXTURE})
 
-qt_add_executable(probe probe.cpp)
+qt_add_executable(probe probe.cpp MarkdownHighlighter.cpp)
 target_compile_options(probe PRIVATE -Wall -Wextra)
 target_compile_definitions(probe PRIVATE
     PROBE_QML="${CMAKE_CURRENT_SOURCE_DIR}/EditorProbe.qml")

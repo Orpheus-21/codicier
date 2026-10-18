@@ -1,13 +1,17 @@
-// Editor speed probe. It opens a chapter in EditorProbe.qml, types keys into
-// the editor, and logs the time from each key press to the next frame.
+// Editor speed probe. It opens a chapter in EditorProbe.qml with the Markdown
+// highlighter, types keys into the editor, and logs the time from each key
+// press to the next frame.
 // Usage: probe FIXTURE.md [BUDGET_MS]
 // Exit 0 if the p95 time is within the budget, 1 if not, 2 if the run failed.
+
+#include "MarkdownHighlighter.h"
 
 #include <QElapsedTimer>
 #include <QFile>
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QQuickItem>
+#include <QQuickTextDocument>
 #include <QQuickView>
 #include <QSurfaceFormat>
 #include <QTimer>
@@ -77,6 +81,9 @@ int main(int argc, char *argv[])
         std::fprintf(stderr, "probe: EditorProbe.qml did not load\n");
         return 2;
     }
+    // The document owns the highlighter.
+    new MarkdownHighlighter(
+        editor->property("textDocument").value<QQuickTextDocument *>()->textDocument());
 
     QTimer::singleShot(deadlineMs, &app, [] {
         std::fprintf(stderr, "probe: no frame within %d ms\n", deadlineMs);
