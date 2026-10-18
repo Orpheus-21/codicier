@@ -7,7 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # clang-tidy and editors read build/compile_commands.json.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick Sql)
+# CorePrivate gives QZipWriter for backups; it ships with qt6-base. The use is
+# on purpose (see src/model/Backup.cpp), so the notice about it is off.
+set(QT_NO_PRIVATE_MODULE_WARNING ON)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick Sql CorePrivate)
 # toml++ reads the project files (docs/format.md).
 find_package(tomlplusplus 3 REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
@@ -15,11 +18,11 @@ qt_standard_project_setup(REQUIRES 6.8)
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
     src/model/Naming.cpp src/model/Templates.cpp src/model/Watcher.cpp src/model/Snapshots.cpp
-    src/model/Diff.cpp
+    src/model/Diff.cpp src/model/Backup.cpp
     src/index/Index.cpp)
 target_include_directories(codicier_core PUBLIC src/model src/index)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
-target_link_libraries(codicier_core PUBLIC Qt6::Core Qt6::Sql)
+target_link_libraries(codicier_core PUBLIC Qt6::Core Qt6::Sql PRIVATE Qt6::CorePrivate)
 # Arch builds toml++ as a shared library. Use only its headers, in header-only
 # mode, so the app needs no toml++ library at run time.
 get_target_property(TOML_INCLUDE tomlplusplus::tomlplusplus INTERFACE_INCLUDE_DIRECTORIES)

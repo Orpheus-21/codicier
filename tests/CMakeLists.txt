@@ -118,6 +118,13 @@ target_compile_options(tst_diff PRIVATE -Wall -Wextra)
 target_link_libraries(tst_diff PRIVATE codicier_core Qt6::Test)
 add_test(NAME tst_diff COMMAND tst_diff)
 
+qt_add_executable(tst_backup tst_backup.cpp)
+target_compile_options(tst_backup PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_backup PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_backup PRIVATE codicier_core Qt6::CorePrivate Qt6::Test)
+add_test(NAME tst_backup COMMAND tst_backup)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 
