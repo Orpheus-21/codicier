@@ -381,6 +381,30 @@ private slots:
         QCOMPARE(text.toPlainText(), QStringLiteral("Edited elsewhere. Mine."));
     }
 
+    void trackedDocumentsGetOutsideEditsAndConflicts()
+    {
+        ProjectSession session;
+        session.setFolder(dir.path());
+        session.trackDocument(nullptr, "t6v4h9r2mz");
+        Document document;
+        QTextDocument text;
+        document.attach(&text);
+        document.open(dir.path(), scene);
+        session.trackDocument(&document, "t6v4h9r2mz");
+
+        QThread::msleep(20);
+        writeFile(path(scene), "Edited elsewhere.\n");
+        QTRY_COMPARE_WITH_TIMEOUT(text.toPlainText(), QStringLiteral("Edited elsewhere."), 5000);
+        QTRY_COMPARE_WITH_TIMEOUT(session.manuscriptWords(), 12, 2000);
+
+        type(text, " Mine.");
+        QThread::msleep(20);
+        writeFile(path(scene), "Edited again.\n");
+        QTRY_VERIFY_WITH_TIMEOUT(document.conflict(), 5000);
+        document.keepMine();
+        QVERIFY(readFile(path(scene)).endsWith("Mine.\n"));
+    }
+
     void sessionReloadsTheBinderAndKeepsTheSelection()
     {
         ProjectSession session;

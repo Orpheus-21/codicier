@@ -6,6 +6,7 @@
 #include "Watcher.h"
 
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <QVariantMap>
 
@@ -95,6 +96,9 @@ public:
     // The text items below the item, in binder order, as maps with id,
     // title, and file. For the composite view.
     Q_INVOKABLE QVariantList textsUnder(const QString &id) const;
+    // Connects a document of the composite view, for the item id, to the
+    // watcher and to the live word counts, as the editor document is.
+    Q_INVOKABLE void trackDocument(Document *document, const QString &id);
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }
@@ -116,6 +120,8 @@ private:
     QString current;
     Document text;
     std::unique_ptr<Watcher> watcher;
+    // The documents of the composite view.
+    QList<QPointer<Document>> tracked;
 
     void watch();
     int indexOf(const QString &id) const;

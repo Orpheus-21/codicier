@@ -10,8 +10,22 @@ ListView {
     required property ProjectSession session
     // The container to show.
     required property string itemId
-    // T39 makes the scenes editable.
-    property bool readOnly: true
+    // Each scene saves to its own file one second after an edit.
+    property bool readOnly: false
+
+    // Moves the keyboard focus into the block at index, at its start or end.
+    // Returns false if there is no block there.
+    function focusBlock(index: int, atStart: bool): bool {
+        if (index < 0 || index >= count)
+            return false;
+        positionViewAtIndex(index, ListView.Contain);
+        const block = itemAtIndex(index) as CompositeBlock;
+        if (!block)
+            return false;
+        block.text.forceActiveFocus();
+        block.text.cursorPosition = atStart ? 0 : block.text.length;
+        return true;
+    }
 
     objectName: "composite"
     model: session.textsUnder(itemId)
@@ -32,33 +46,12 @@ ListView {
         }
     }
 
-    delegate: Column {
-        id: block
-
-        required property var modelData
-
+    delegate: CompositeBlock {
         width: ListView.view.width
-        spacing: Theme.space.m
-
-        Text {
-            x: text_.x
-            text: block.modelData.title
-            font.family: Theme.type.ui
-            font.pixelSize: Theme.type.small
-            font.weight: Font.DemiBold
-            font.letterSpacing: 1.2
-            font.capitalization: Font.AllUppercase
-            color: Theme.color.inkMuted
-        }
-
-        PageText {
-            id: text_
-
-            availableWidth: block.width - 2 * Theme.space.xl
-            x: Math.max(Theme.space.xl, (block.width - width) / 2)
-            readOnly: composite.readOnly
-            document: Document {}
-            Component.onCompleted: document.open(composite.session.folder, block.modelData.file)
-        }
+        session: composite.session
+        readOnly: composite.readOnly
+        // Up on the first line and Down on the last line cross the border.
+        onLeaveUp: composite.focusBlock(index - 1, false)
+        onLeaveDown: composite.focusBlock(index + 1, true)
     }
 }

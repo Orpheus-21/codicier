@@ -81,10 +81,18 @@ void ProjectSession::watch()
     connect(watcher.get(), &Watcher::textChanged, this, [this](const QString &file) {
         if (file == text.file())
             text.reloadIfClean();
+        for (const QPointer<Document> &document : std::as_const(tracked)) {
+            if (document && document->file() == file)
+                document->reloadIfClean();
+        }
     });
     connect(watcher.get(), &Watcher::conflict, this, [this](const QString &file) {
         if (file == text.file())
             text.markConflict();
+        for (const QPointer<Document> &document : std::as_const(tracked)) {
+            if (document && document->file() == file)
+                document->markConflict();
+        }
     });
     // Queued: reload() deletes this watcher, and the watcher must first leave
     // the scan that sent the signal.
@@ -672,4 +680,24 @@ QVariantList ProjectSession::textsUnder(const QString &id) const
     };
     walk(index);
     return list;
+}
+
+void ProjectSession::trackDocument(Document *document, const QString &id)
+{
+    if (document == nullptr)
+        return;
+    tracked.removeAll(nullptr);
+    tracked.append(document);
+    connect(document, &Document::saved, this, [this](const QString &file) {
+        if (watcher)
+            watcher->noteSaved(file);
+    });
+    connect(document, &Document::dirtyChanged, this, [this, document] {
+        if (watcher && !document->file().isEmpty())
+            watcher->setUnsaved(document->file(), document->dirty());
+    });
+    connect(document, &Document::wordsChanged, this, [this, document, id] {
+        binderModel.setItemWords(id, document->words());
+        emit wordsChanged();
+    });
 }

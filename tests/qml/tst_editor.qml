@@ -135,7 +135,46 @@ TestCase {
         const composite = findChild(view, "composite") as Composite;
         verify(composite);
         tryCompare(composite, "count", 2);
-        verify(composite.readOnly);
+        verify(!composite.readOnly);
+    }
+
+    function test_editsAtTheSceneBorderSaveToEachFile() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Harbour", "novella", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/harbour" }) as ProjectView;
+        const model = view.session.binder;
+        const chapter = model.data(model.index(1, 0), BinderModel.IdRole);
+        const first = model.data(model.index(2, 0), BinderModel.IdRole);
+        view.session.currentId = first;
+        const second = view.session.add("scene");
+        view.session.currentId = chapter;
+        waitForRendering(view);
+        const composite = findChild(view, "composite") as Composite;
+        tryCompare(composite, "count", 2);
+
+        // Type at the end of the first scene, cross the border with Down,
+        // and type at the start of the second scene.
+        verify(composite.focusBlock(0, false));
+        for (const c of "End of one.")
+            keyClick(c);
+        keyClick(Qt.Key_Down);
+        for (const c of "Start of two.")
+            keyClick(c);
+        // Up on the first line goes back to the end of the first scene.
+        keyClick(Qt.Key_Home);
+        keyClick(Qt.Key_Up);
+        keyClick(Qt.Key_Space);
+        keyClick(Qt.Key_A);
+        wait(1300);
+
+        // Each file holds only its own text.
+        view.session.currentId = first;
+        const editor = findChild(view, "editor") as TextEdit;
+        tryCompare(editor, "text", "End of one. a");
+        view.session.currentId = second;
+        tryCompare(editor, "text", "Start of two.");
+        compare(view.session.chapterWords, 7);
     }
 
     function test_themeChangeIsNotAnEdit() {

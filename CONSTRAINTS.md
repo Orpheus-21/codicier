@@ -60,6 +60,7 @@ No rule is planned now.
 | ID | Rule | Path | Reason | Owner | Expires |
 |---|---|---|---|---|---|
 | E1 | assertion-removed | tests/qml/tst_components.qml | The splitter rule moved from the centre of the handle to its start, so the checked pixel moved with it. | Orpheus-21 | 2026-10-25 |
+| E2 | assertion-removed | tests/qml/tst_editor.qml | T39 makes the composite view editable, so the check for read only became a check for editable. | Orpheus-21 | 2026-10-25 |
 
 An exception lasts 90 days at most.
 
