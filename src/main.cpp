@@ -2,6 +2,9 @@
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlExtensionPlugin>
+
+Q_IMPORT_QML_PLUGIN(CodicierPlugin)
 
 int main(int argc, char *argv[])
 {

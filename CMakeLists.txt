@@ -10,15 +10,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick)
 qt_standard_project_setup(REQUIRES 6.8)
 
-qt_add_executable(codicier src/main.cpp src/OfflineGuard.cpp)
-
-qt_add_qml_module(codicier
+# The QML module is a static library, so the app and the tests link the same module.
+# Its files go to build/qml/Codicier, so qmllint and tools find them by import path.
+set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
+qt_add_library(codicier_ui STATIC)
+qt_add_qml_module(codicier_ui
     URI Codicier
     QML_FILES qml/Main.qml
 )
 
+qt_add_executable(codicier src/main.cpp src/OfflineGuard.cpp)
 target_compile_options(codicier PRIVATE -Wall -Wextra)
-target_link_libraries(codicier PRIVATE Qt6::Gui Qt6::Qml Qt6::Quick)
+target_link_libraries(codicier PRIVATE Qt6::Gui Qt6::Qml Qt6::Quick codicier_uiplugin)
 
 enable_testing()
 add_subdirectory(tests)

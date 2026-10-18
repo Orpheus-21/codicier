@@ -16,7 +16,7 @@ qt_add_executable(tst_qml tst_qml.cpp)
 target_compile_options(tst_qml PRIVATE -Wall -Wextra)
 target_compile_definitions(tst_qml PRIVATE
     QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml")
-target_link_libraries(tst_qml PRIVATE Qt6::QuickTest)
+target_link_libraries(tst_qml PRIVATE Qt6::Qml Qt6::QuickTest codicier_uiplugin)
 add_test(NAME tst_qml COMMAND tst_qml)
 set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
