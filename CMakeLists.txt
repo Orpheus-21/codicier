@@ -38,9 +38,11 @@ qt_add_qml_module(codicier_ui
         qml/FocusRing.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
         qml/ListItem.qml qml/Pane.qml qml/Splitter.qml qml/Menu.qml
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
+        qml/Binder.qml qml/BinderRow.qml
     SOURCES src/app/Workspaces.cpp src/app/Workspaces.h
         src/app/ProjectList.cpp src/app/ProjectList.h
         src/app/ProjectSession.cpp src/app/ProjectSession.h
+        src/app/BinderModel.cpp src/app/BinderModel.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

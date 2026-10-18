@@ -66,29 +66,33 @@ Item {
             T.SplitView.minimumWidth: 220
             padding: Theme.space.m
 
-            Column {
+            Button {
+                id: projectButton
+
+                text: view.session.title
+                iconName: "chevron-down"
+                iconAfterText: true
+                font.family: Theme.type.reading
+                font.pixelSize: Theme.type.large + 3
+                font.weight: Font.Normal
+                onClicked: projectMenu.popup(projectButton, 0, projectButton.height)
+            }
+
+            Menu {
+                id: projectMenu
+
+                T.Action {
+                    text: "Back to " + view.workspaceName
+                    onTriggered: view.closeRequested()
+                }
+            }
+
+            Binder {
+                anchors.top: projectButton.bottom
+                anchors.topMargin: Theme.space.s
+                anchors.bottom: parent.bottom
                 width: parent.width
-
-                Button {
-                    id: projectButton
-
-                    text: view.session.title
-                    iconName: "chevron-down"
-                    iconAfterText: true
-                    font.family: Theme.type.reading
-                    font.pixelSize: Theme.type.large + 3
-                    font.weight: Font.Normal
-                    onClicked: projectMenu.popup(projectButton, 0, projectButton.height)
-                }
-
-                Menu {
-                    id: projectMenu
-
-                    T.Action {
-                        text: "Back to " + view.workspaceName
-                        onTriggered: view.closeRequested()
-                    }
-                }
+                session: view.session
             }
         }
 

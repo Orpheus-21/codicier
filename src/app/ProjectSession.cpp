@@ -19,6 +19,8 @@ void ProjectSession::reload()
     if (folder.isEmpty()) {
         project = Project();
         loadError.clear();
+        binderModel.setProject(project);
+        setCurrentId(QString());
         emit loaded();
         return;
     }
@@ -26,5 +28,15 @@ void ProjectSession::reload()
     loadError = result.ok() ? QString() : result.errors.first().text();
     project = std::move(result.project);
     project.folder = folder;
+    binderModel.setProject(project);
+    setCurrentId(QString());
     emit loaded();
+}
+
+void ProjectSession::setCurrentId(const QString &id)
+{
+    if (id == current)
+        return;
+    current = id;
+    emit currentIdChanged();
 }
