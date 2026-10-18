@@ -36,11 +36,13 @@ These rules apply to every change. `tools/floor_guard.py` checks them in the dif
 | QML lint | Zero `qmllint` warnings | `check_qmllint` | each edit |
 | Static analysis | Zero `clang-tidy` findings | `clang-tidy -p build src/*.cpp tests/*.cpp` | each commit |
 | Coverage | At least 80% of changed executable lines in `src` have a test | `tools/coverage_diff.py build-cov` | each commit |
+| Editor speed | A key press shows on screen in 16 ms or less at the 95th percentile, in a chapter of 100,000 words | `check_editor_speed` | each edit |
 
 Reasons for the numbers:
 
 - **Zero warnings and zero findings.** The codebase starts clean. A count above zero grows and then nobody reads it.
 - **80% coverage of changed lines.** This number forces a test for each new function. It still allows a line that no test can reach. `src/main.cpp` only starts the app, so the check does not measure it.
+- **16 ms per key press.** A 60 Hz screen shows a new frame every 16.7 ms. A key press that takes longer misses a frame, and the writer can feel the delay. `spike/probe` types 300 keys into a chapter of 100,000 words and times each key to the next frame. It turns off vsync, so the time is the work and not the wait for the screen.
 
 ## Planned
 
@@ -48,9 +50,8 @@ These rules have a number but no check yet. Each one becomes enforced in the tas
 
 | Dimension | Rule | Check added in |
 |---|---|---|
-| Editor speed | A key press shows on screen in 16 ms or less at the 95th percentile, in a chapter of 100,000 words | T7 and T8 |
 
-The reason for 16 ms: a 60 Hz screen shows a new frame every 16.7 ms. A key press that takes longer misses a frame, and the writer can feel the delay.
+No rule is planned now.
 
 ## Exceptions
 
