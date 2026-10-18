@@ -23,6 +23,7 @@ the-salt-ledger/
     matter/             one Markdown file for each page of front or back matter
     notes/              one Markdown file for each note
     research/           any files: images, PDF files, and other documents
+    snapshots/          copies of a text at a moment, one folder for each item
     .codicier/          app data that the app can build again or lose with no harm
 ```
 
@@ -181,6 +182,12 @@ The app makes the file name from the title when it makes the item:
 Letters and digits from any script stay in the name.
 
 The file name does not change when the title changes or when the item moves in the binder. A change of title therefore never moves a file.
+
+## Snapshots
+
+A snapshot is a copy of the file of a text item at one moment. It is in `snapshots/<item id>/`, and its name is the date and time, then an optional title: `snapshots/t6v4h9r2mz/2026-10-18T19-30-00 Before the rewrite.md`. A second snapshot in the same second adds `-2`, `-3`, and so on after the time. The file holds the text as it was, in the same format as the text file.
+
+Snapshots are not in `.codicier/`, because the app cannot build them again. Git can track them, as it tracks the rest of the project.
 
 ## The .codicier folder
 
