@@ -42,6 +42,13 @@ target_compile_definitions(tst_projectstore PRIVATE
 target_link_libraries(tst_projectstore PRIVATE codicier_core Qt6::Test)
 add_test(NAME tst_projectstore COMMAND tst_projectstore)
 
+qt_add_executable(tst_roundtrip tst_roundtrip.cpp)
+target_compile_options(tst_roundtrip PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_roundtrip PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_roundtrip PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_roundtrip COMMAND tst_roundtrip)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 

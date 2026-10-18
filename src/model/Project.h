@@ -34,7 +34,10 @@ struct Project
     QString kind;
     // The format is newer than the app knows, so the app must not save.
     bool readOnly = false;
+    // The keys of project.toml.
     toml::table data;
+    // The keys at the top of binder.toml, without the items.
+    toml::table binderData;
     // In the order of binder.toml.
     QList<ProjectItem> items;
     // The indexes of the top level items, in binder order.

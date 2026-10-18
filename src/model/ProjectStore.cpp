@@ -1,15 +1,19 @@
 #include "ProjectStore.h"
 
+#include "TomlWriter.h"
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QHash>
+#include <QSaveFile>
 
 #include <algorithm>
 #include <array>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 QString LoadError::text() const
 {
@@ -221,6 +225,8 @@ private:
         if (!table)
             return;
         checkFormat(*table, file);
+        result.project.binderData = *table;
+        result.project.binderData.erase("item");
         const toml::node *node = table->get("item");
         if (node == nullptr)
             return;
@@ -386,9 +392,123 @@ private:
     }
 };
 
+// The key order of docs/format.md. Other keys follow in alphabetical order.
+constexpr std::array<std::string_view, 7> projectOrder { "format", "title",    "subtitle", "author",
+                                                         "kind",   "language", "created" };
+constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
+constexpr std::array<std::string_view, 1> binderOrder { "format" };
+constexpr std::array<std::string_view, 15> itemOrder { "id",     "kind",    "section",  "parent",
+                                                       "title",  "file",    "status",   "pov",
+                                                       "place",  "time",    "synopsis", "tags",
+                                                       "target", "restore", "notes" };
+
+TomlWriter::Order orderFor(std::string_view path)
+{
+    if (path.empty())
+        return projectOrder;
+    if (path == "goals")
+        return goalsOrder;
+    if (path == "item")
+        return itemOrder;
+    return { };
+}
+
+TomlWriter::Order binderOrderFor(std::string_view path)
+{
+    return path.empty() ? TomlWriter::Order(binderOrder) : orderFor(path);
+}
+
+std::string utf8(const QString &text)
+{
+    return text.toStdString();
+}
+
+// The items in tree order: each item, then its children, in binder order.
+void appendBranch(const Project &project, int index, toml::array &out)
+{
+    const ProjectItem &item = project.items.at(index);
+    toml::table data = item.data;
+    data.insert_or_assign("id", utf8(item.id));
+    data.insert_or_assign("kind", utf8(item.kind));
+    data.insert_or_assign("title", utf8(item.title));
+    if (item.parent < 0) {
+        data.insert_or_assign("section", utf8(item.section));
+        data.erase("parent");
+    } else {
+        data.insert_or_assign("parent", utf8(project.items.at(item.parent).id));
+        data.erase("section");
+    }
+    if (item.file.isEmpty())
+        data.erase("file");
+    else
+        data.insert_or_assign("file", utf8(item.file));
+    out.push_back(std::move(data));
+    for (const int child : item.children)
+        appendBranch(project, child, out);
+}
+
+QByteArray bytes(const std::string &text)
+{
+    return QByteArray(text.data(), static_cast<qsizetype>(text.size()));
+}
+
+// Writes the file only if its bytes change. Returns an error text or an
+// empty string.
+QString writeIfChanged(const QDir &dir, const QString &name, const QByteArray &content)
+{
+    const QString path = dir.filePath(name);
+    QFile current(path);
+    if (current.open(QIODevice::ReadOnly) && current.readAll() == content)
+        return { };
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly) || file.write(content) != content.size() || !file.commit())
+        return file.errorString();
+    return { };
+}
+
 } // namespace
 
 LoadResult ProjectStore::load(const QString &folder)
 {
     return Loader(folder).run();
+}
+
+QByteArray ProjectStore::projectFile(const Project &project)
+{
+    toml::table data = project.data;
+    data.insert_or_assign("format", formatVersion);
+    data.insert_or_assign("title", utf8(project.title));
+    data.insert_or_assign("kind", utf8(project.kind));
+    return bytes(TomlWriter::document(data, orderFor));
+}
+
+QByteArray ProjectStore::binderFile(const Project &project)
+{
+    toml::table data = project.binderData;
+    data.insert_or_assign("format", formatVersion);
+    toml::array items;
+    for (const int root : project.roots)
+        appendBranch(project, root, items);
+    if (!items.empty())
+        data.insert_or_assign("item", std::move(items));
+    return bytes(TomlWriter::document(data, binderOrderFor));
+}
+
+QList<LoadError> ProjectStore::save(const Project &project)
+{
+    if (project.readOnly)
+        return { { project.folder, 0,
+                   QStringLiteral(
+                       "the project format is newer than this app, so the app cannot save it") } };
+    const QDir dir(project.folder);
+    QList<LoadError> errors;
+    const std::array<std::pair<QString, QByteArray>, 2> files { {
+        { QStringLiteral("project.toml"), projectFile(project) },
+        { QStringLiteral("binder.toml"), binderFile(project) },
+    } };
+    for (const auto &[name, content] : files) {
+        if (const QString error = writeIfChanged(dir, name, content); !error.isEmpty())
+            errors.append({ name, 0, QStringLiteral("cannot save the file: %1").arg(error) });
+    }
+    return errors;
 }

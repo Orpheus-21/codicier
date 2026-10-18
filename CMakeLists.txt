@@ -13,7 +13,7 @@ find_package(tomlplusplus 3 REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
 
 # The project model: plain C++ and Qt Core, with no UI.
-add_library(codicier_core STATIC src/model/ProjectStore.cpp)
+add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp)
 target_include_directories(codicier_core PUBLIC src/model)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
 target_link_libraries(codicier_core PUBLIC Qt6::Core)

@@ -42,7 +42,8 @@ synopsis = "Mara finds a date in her mother's letter."
 tags = ["letter", "mother", "accounts"]
 target = 1500
 notes = """
-The figure in the column is a count of days, not money."""
+The figure in the column is a count of days, not money.
+Do not say so yet."""
 mood = "quiet"
 
 [[item]]

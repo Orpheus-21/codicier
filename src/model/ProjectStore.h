@@ -32,4 +32,13 @@ public:
     static constexpr int formatVersion = 1;
 
     static LoadResult load(const QString &folder);
+
+    // The bytes of project.toml and binder.toml in the canonical layout.
+    static QByteArray projectFile(const Project &project);
+    static QByteArray binderFile(const Project &project);
+
+    // Writes project.toml and binder.toml. Each file goes to a temporary file
+    // that then replaces the old file, so a file is always whole. A file with
+    // no change is not written. Returns the errors, or an empty list.
+    static QList<LoadError> save(const Project &project);
 };
