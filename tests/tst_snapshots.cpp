@@ -172,6 +172,37 @@ private slots:
         QVERIFY(session.compare("nothing", old).isEmpty());
     }
 
+    void sessionBacksUpOnlyAfterAChange()
+    {
+        QTemporaryDir backups;
+        QString zip;
+        {
+            ProjectSession session;
+            session.setProperty("backupFolder", backups.path());
+            session.setProperty("backupsToKeep", 5);
+            session.setFolder(dir.path());
+            // Opened and read, nothing changed: no backup.
+            QCOMPARE(session.backup(), QString());
+            QVERIFY(session.rename("t6v4h9r2mz", "Renamed"));
+            zip = session.backup();
+            QVERIFY(QFile::exists(zip));
+            // Nothing changed since that backup.
+            QCOMPARE(session.backup(), QString());
+            session.takeSnapshot("t6v4h9r2mz", "");
+        }
+        // Closing the project made one more backup, after the snapshot.
+        const QString name = QFileInfo(dir.path()).fileName();
+        QCOMPARE(QDir(backups.filePath(name)).entryList({ "*.zip" }, QDir::Files).size(), 2);
+    }
+
+    void noBackupFolderMeansNoBackup()
+    {
+        ProjectSession session;
+        session.setFolder(dir.path());
+        QVERIFY(session.rename("t6v4h9r2mz", "Renamed"));
+        QCOMPARE(session.backup(), QString());
+    }
+
     void sessionRestoreReloadsTheEditor()
     {
         ProjectSession session;

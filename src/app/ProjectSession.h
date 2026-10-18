@@ -38,6 +38,10 @@ class ProjectSession : public QObject
     Q_PROPERTY(int manuscriptWords READ manuscriptWords NOTIFY wordsChanged)
     // The word goal from project.toml, or 0.
     Q_PROPERTY(int goalWords READ goalWords NOTIFY loaded)
+    // Where a zip backup goes when the project closes, and how many to keep.
+    // An empty folder means no backup.
+    Q_PROPERTY(QString backupFolder MEMBER backupFolder NOTIFY backupChanged)
+    Q_PROPERTY(int backupsToKeep MEMBER backupsToKeep NOTIFY backupChanged)
 
 public:
     explicit ProjectSession(QObject *parent = nullptr);
@@ -58,6 +62,10 @@ public:
 
     // Loads the project from disk again.
     Q_INVOKABLE void reload();
+    // Saves all open text and, if a file changed since the project opened
+    // or since the last backup, writes a zip backup. Returns the path of the
+    // zip, or "". Closing the project does this too.
+    Q_INVOKABLE QString backup();
 
     // Adds a new item of kind ("scene", "chapter", "part", "folder", "page",
     // or "note") near the selected item, saves the binder, and selects the
@@ -127,6 +135,7 @@ signals:
     void wordsChanged();
     // A snapshot was taken or restored.
     void snapshotsChanged();
+    void backupChanged();
 
 private:
     Project project;
@@ -137,6 +146,10 @@ private:
     std::unique_ptr<Watcher> watcher;
     // The documents of the composite view.
     QList<QPointer<Document>> tracked;
+    QString backupFolder;
+    int backupsToKeep = 10;
+    // A file changed since the project opened or since the last backup.
+    bool changedSinceBackup = false;
 
     void watch();
     int indexOf(const QString &id) const;

@@ -20,6 +20,12 @@ Window {
     title: projectTitle !== "" ? projectTitle : "Codicier"
     color: Theme.color.paper
 
+    SettingsDialog {
+        id: settingsDialog
+
+        anchors.centerIn: parent
+    }
+
     FolderDialog {
         id: folderDialog
 
@@ -170,6 +176,13 @@ Window {
                     iconName: "plus"
                     text: "New project"
                     onClicked: workspaceHome.openNewProject()
+                }
+
+                IconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconName: "settings"
+                    label: "Settings"
+                    onClicked: settingsDialog.open()
                 }
             }
 

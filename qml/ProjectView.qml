@@ -13,6 +13,8 @@ Item {
     property string folder: ""
     readonly property ProjectSession session: ProjectSession {
         folder: view.folder
+        backupFolder: Settings.backupFolder
+        backupsToKeep: Settings.backupsToKeep
     }
     // The name of the workspace, for the way back.
     property string workspaceName: ""
@@ -88,7 +90,7 @@ Item {
 
     // Saves the open text, then asks to go back to the workspace.
     function close() {
-        view.session.document.save();
+        view.session.backup();
         view.closeRequested();
     }
 

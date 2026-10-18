@@ -1,5 +1,6 @@
 #include "ProjectSession.h"
 
+#include "Backup.h"
 #include "Diff.h"
 #include "Index.h"
 #include "Naming.h"
@@ -17,9 +18,11 @@
 ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 {
     connect(&text, &Document::saved, this, [this](const QString &file) {
+        changedSinceBackup = true;
         if (watcher)
             watcher->noteSaved(file);
     });
+    connect(this, &ProjectSession::snapshotsChanged, this, [this] { changedSinceBackup = true; });
     // The live count of the open text goes into the binder, so the counts of
     // the chapter and the book follow it.
     connect(&text, &Document::wordsChanged, this, [this] {
@@ -38,15 +41,38 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 
 ProjectSession::~ProjectSession()
 {
+    backup();
+}
+
+QString ProjectSession::backup()
+{
     text.save();
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document)
+            document->save();
+    }
+    if (!changedSinceBackup || project.folder.isEmpty() || !loadError.isEmpty()
+        || backupFolder.isEmpty())
+        return { };
+    QString error;
+    const QString zip = Backup::write(project.folder, backupFolder, backupsToKeep, &error);
+    if (zip.isEmpty())
+        qWarning("Codicier: backup failed: %s", qPrintable(error));
+    else
+        changedSinceBackup = false;
+    return zip;
 }
 
 void ProjectSession::setFolder(const QString &folder)
 {
     if (folder == project.folder && loadError.isEmpty())
         return;
+    // The project that closes gets its backup.
+    if (folder != project.folder)
+        backup();
     project = Project();
     project.folder = folder;
+    changedSinceBackup = false;
     reload();
 }
 
@@ -217,6 +243,7 @@ bool ProjectSession::commit(const QStringList &newFiles)
     // The open text saves first, so the counts that the binder reads from the
     // files include the latest typing.
     text.save();
+    changedSinceBackup = true;
     const QList<LoadError> errors = ProjectStore::save(project);
     editError = errors.isEmpty() ? QString() : errors.first().text();
     if (watcher) {
@@ -705,6 +732,7 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
     tracked.removeAll(nullptr);
     tracked.append(document);
     connect(document, &Document::saved, this, [this](const QString &file) {
+        changedSinceBackup = true;
         if (watcher)
             watcher->noteSaved(file);
     });

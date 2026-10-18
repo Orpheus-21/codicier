@@ -45,13 +45,14 @@ qt_add_qml_module(codicier_ui
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
         qml/Binder.qml qml/BinderRow.qml qml/Editor.qml qml/TextArea.qml qml/Inspector.qml
         qml/PageText.qml qml/Composite.qml qml/CompositeBlock.qml
-        qml/CompareView.qml
+        qml/CompareView.qml qml/SettingsDialog.qml
     SOURCES src/app/Workspaces.cpp src/app/Workspaces.h
         src/app/ProjectList.cpp src/app/ProjectList.h
         src/app/ProjectSession.cpp src/app/ProjectSession.h
         src/app/BinderModel.cpp src/app/BinderModel.h
         src/app/Document.cpp src/app/Document.h
         src/app/MarkdownHighlighter.cpp src/app/MarkdownHighlighter.h
+        src/app/Settings.cpp src/app/Settings.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 
