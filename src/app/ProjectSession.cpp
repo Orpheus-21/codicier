@@ -565,3 +565,85 @@ bool ProjectSession::mergeWithNext(const QString &id)
     setCurrentId(id);
     return true;
 }
+
+QVariantMap ProjectSession::fields(const QString &id) const
+{
+    QVariantMap map;
+    const int index = indexOf(id);
+    if (index < 0)
+        return map;
+    const ProjectItem &item = project.items.at(index);
+    const auto string = [&item](const char *key) {
+        return QString::fromStdString(item.data[key].value_or(std::string()));
+    };
+    map.insert(QStringLiteral("title"), item.title);
+    map.insert(QStringLiteral("kind"), item.kind);
+    const QString status = string("status");
+    map.insert(QStringLiteral("status"),
+               status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
+                                                                       : status);
+    for (const char *key : { "pov", "place", "time", "synopsis", "notes" })
+        map.insert(QString::fromLatin1(key), string(key));
+    QStringList tags;
+    if (const toml::array *list = item.data.get_as<toml::array>("tags")) {
+        for (const toml::node &tag : *list)
+            tags.append(QString::fromStdString(tag.value_or(std::string())));
+    }
+    map.insert(QStringLiteral("tags"), tags);
+    map.insert(QStringLiteral("target"),
+               static_cast<int>(item.data["target"].value_or(std::int64_t { 0 })));
+    map.insert(QStringLiteral("words"), binderModel.wordsOf(id));
+    return map;
+}
+
+bool ProjectSession::setField(const QString &id, const QString &key, const QVariant &value)
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.readOnly)
+        return false;
+    toml::table &data = project.items[index].data;
+    const std::string name = key.toStdString();
+    if (key == QLatin1String("tags")) {
+        // Tags: trimmed, no empty tags, no copies, in the order given.
+        QStringList tags;
+        for (const QString &tag : value.toStringList()) {
+            const QString clean = tag.trimmed();
+            if (!clean.isEmpty() && !tags.contains(clean))
+                tags.append(clean);
+        }
+        if (tags.isEmpty()) {
+            data.erase(name);
+        } else {
+            toml::array list;
+            for (const QString &tag : std::as_const(tags))
+                list.push_back(tag.toStdString());
+            data.insert_or_assign(name, std::move(list));
+        }
+    } else if (key == QLatin1String("target")) {
+        bool ok = false;
+        const int target = value.toInt(&ok);
+        if (!ok || target < 0)
+            return false;
+        if (target == 0)
+            data.erase(name);
+        else
+            data.insert_or_assign(name, target);
+    } else if (key == QLatin1String("status")) {
+        const QString status = value.toString();
+        if (status != QLatin1String("draft") && status != QLatin1String("revised")
+            && status != QLatin1String("final"))
+            return false;
+        data.insert_or_assign(name, status.toStdString());
+    } else if (key == QLatin1String("pov") || key == QLatin1String("place")
+               || key == QLatin1String("time") || key == QLatin1String("synopsis")
+               || key == QLatin1String("notes")) {
+        const QString text = value.toString().trimmed();
+        if (text.isEmpty())
+            data.erase(name);
+        else
+            data.insert_or_assign(name, text.toStdString());
+    } else {
+        return false;
+    }
+    return commit({ });
+}

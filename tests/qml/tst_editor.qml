@@ -104,6 +104,23 @@ TestCase {
         compare(text.text, "Two");
     }
 
+    function test_inspectorSavesAField() {
+        const view = makeView();
+        const model = view.session.binder;
+        const id = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = id;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const inspector = findChild(view, "inspector");
+        verify(inspector);
+        compare(view.session.fields(id).status, "draft");
+        inspector.save("status", "final");
+        compare(view.session.fields(id).status, "final");
+        compare(inspector.fields.status, "final");
+        // The same value again saves nothing.
+        verify(!inspector.save("status", "final"));
+    }
+
     function test_themeChangeIsNotAnEdit() {
         const view = makeView();
         const model = view.session.binder;

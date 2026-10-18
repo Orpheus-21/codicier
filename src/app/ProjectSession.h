@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariantMap>
 
 #include <QtQml/qqmlregistration.h>
 #include <memory>
@@ -85,6 +86,12 @@ public:
     Q_INVOKABLE bool mergeWithNext(const QString &id);
     // The id of the next scene in the same parent, or "".
     Q_INVOKABLE QString nextScene(const QString &id) const;
+    // The inspector fields of an item: title, kind, status, pov, place,
+    // time, synopsis, tags, target, notes, and words.
+    Q_INVOKABLE QVariantMap fields(const QString &id) const;
+    // Sets one field and saves the binder. An empty value removes the key.
+    // Returns false for an unknown key or a value that is not valid.
+    Q_INVOKABLE bool setField(const QString &id, const QString &key, const QVariant &value);
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }

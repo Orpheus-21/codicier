@@ -20,6 +20,14 @@ Item {
     // The author asked to go back to the workspace home.
     signal closeRequested
 
+    // The inspector pane on the right.
+    property bool inspectorOpen: false
+
+    Shortcut {
+        sequence: "Ctrl+I"
+        onActivated: view.inspectorOpen = !view.inspectorOpen
+    }
+
     // Focus mode: full screen with only the page, and typewriter scroll.
     property bool focusMode: false
     // The window state before focus mode, to restore it after.
@@ -209,10 +217,17 @@ Item {
                     IconButton {
                         iconName: "panel-right"
                         label: "Inspector"
-                        enabled: false
+                        onClicked: view.inspectorOpen = !view.inspectorOpen
                     }
                 }
             }
+        }
+
+        Inspector {
+            visible: view.inspectorOpen && !view.focusMode
+            T.SplitView.preferredWidth: 340
+            T.SplitView.minimumWidth: 260
+            session: view.session
         }
     }
 

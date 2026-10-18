@@ -387,6 +387,64 @@ private slots:
         QCOMPARE(session->nextScene("nothing"), QString());
     }
 
+    void fieldsReadTheItem()
+    {
+        const QVariantMap fields = session->fields("t6v4h9r2mz");
+        QCOMPARE(fields.value("title").toString(), QStringLiteral("A Date She Did Not Know"));
+        QCOMPARE(fields.value("status").toString(), QStringLiteral("revised"));
+        QCOMPARE(fields.value("pov").toString(), QStringLiteral("Mara"));
+        QCOMPARE(fields.value("tags").toStringList(),
+                 (QStringList { "letter", "mother", "accounts" }));
+        QCOMPARE(fields.value("target").toInt(), 1500);
+        QCOMPARE(fields.value("words").toInt(), 18);
+        QVERIFY(fields.value("notes").toString().startsWith("The figure"));
+        // A scene with no status is a draft. A part has no status.
+        QCOMPARE(session->fields("m1n2p3q4r5").value("status").toString(), QStringLiteral("final"));
+        QCOMPARE(session->fields("a1b2c3d4e5").value("status").toString(), QString());
+        QVERIFY(session->fields("nothing").isEmpty());
+    }
+
+    void setFieldSavesToBinderToml()
+    {
+        QVERIFY(session->setField("t6v4h9r2mz", "pov", "  Tomas  "));
+        QVERIFY(session->setField("t6v4h9r2mz", "status", "final"));
+        QVERIFY(
+            session->setField("t6v4h9r2mz", "tags", QStringList { " clue ", "clue", "", "river" }));
+        QVERIFY(session->setField("t6v4h9r2mz", "target", 2000));
+        QVERIFY(session->setField("t6v4h9r2mz", "synopsis", "A new line.\nAnd another."));
+        const ProjectItem item = onDisk(dir.path(), "t6v4h9r2mz");
+        QCOMPARE(item.data["pov"].value_or(std::string()), std::string("Tomas"));
+        QCOMPARE(item.data["status"].value_or(std::string()), std::string("final"));
+        QCOMPARE(item.data["tags"].as_array()->size(), std::size_t(2));
+        QCOMPARE(item.data["target"].value_or(0), 2000);
+        QCOMPARE(item.data["synopsis"].value_or(std::string()),
+                 std::string("A new line.\nAnd another."));
+        // An unknown key in the item stays.
+        QCOMPARE(item.data["mood"].value_or(std::string()), std::string("quiet"));
+    }
+
+    void emptyValuesRemoveTheKey()
+    {
+        QVERIFY(session->setField("t6v4h9r2mz", "pov", "   "));
+        QVERIFY(session->setField("t6v4h9r2mz", "tags", QStringList()));
+        QVERIFY(session->setField("t6v4h9r2mz", "target", 0));
+        const ProjectItem item = onDisk(dir.path(), "t6v4h9r2mz");
+        QVERIFY(!item.data.contains("pov"));
+        QVERIFY(!item.data.contains("tags"));
+        QVERIFY(!item.data.contains("target"));
+    }
+
+    void badFieldsAreRefused()
+    {
+        QVERIFY(!session->setField("t6v4h9r2mz", "status", "done"));
+        QVERIFY(!session->setField("t6v4h9r2mz", "target", -5));
+        QVERIFY(!session->setField("t6v4h9r2mz", "target", "many"));
+        QVERIFY(!session->setField("t6v4h9r2mz", "id", "zzzzzzzzzz"));
+        QVERIFY(!session->setField("nothing", "pov", "Mara"));
+        QCOMPARE(onDisk(dir.path(), "t6v4h9r2mz").data["status"].value_or(std::string()),
+                 std::string("revised"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
