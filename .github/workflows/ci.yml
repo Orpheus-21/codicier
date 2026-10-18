@@ -21,6 +21,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The container user does not own the checkout, so git refuses it without this line.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Run all checks
         env:
           BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
