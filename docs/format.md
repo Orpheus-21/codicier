@@ -187,6 +187,7 @@ The file name does not change when the title changes or when the item moves in t
 |---|---|
 | `.codicier/index.db` | The search index. The app builds it again from the files when it is missing. |
 | `.codicier/state.toml` | The state of the window: the open item, the place of the cursor, and the sizes of the panels. |
+| `.codicier/recovered/` | Copies of unsaved text. When another program changes a file while the app has unsaved text, and the author chooses the version on disk, the app first writes its own version here. |
 | `.codicier/.gitignore` | One line, `*`, so git ignores the folder. |
 
 The author can delete `.codicier/` at any time. The app then builds the index again and opens with the default window state.
