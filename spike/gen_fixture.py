@@ -21,6 +21,9 @@ def paragraph(rng, count, note):
     words[0] = words[0].capitalize()
     i = rng.randrange(1, count - 1)
     words[i] = f"*{words[i]}*"
+    j = rng.randrange(1, count - 1)
+    if rng.random() < 0.3 and j != i:
+        words[j] = f"**{words[j]}**"
     words[-1] += f".[^{note}]" if note else "."
     return " ".join(words)
 
