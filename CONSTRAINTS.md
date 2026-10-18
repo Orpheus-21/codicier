@@ -61,3 +61,5 @@ No rule is planned now.
 |---|---|---|---|---|---|
 
 An exception lasts 90 days at most.
+
+The floor guard reads this table. A row allows the findings of one guard rule, such as `assertion-removed`, for the files that match its path, until the end of its expiry date. The rules that a row can name are `silenced-checker`, `unfinished-work`, `test-made-easier`, `test-deleted`, and `assertion-removed`. A secret and a change to a rule in this file can never have an exception. A row with no owner, with no valid date, or with more than 90 days left is itself a violation.

@@ -2,9 +2,13 @@
 """Check a diff for moves that lower the quality bar in CONSTRAINTS.md.
 
 Usage: floor_guard.py [--base REF]   (default base: origin/main)
+An active row in the Exceptions table of CONSTRAINTS.md allows a finding for
+one rule and one path pattern until its expiry date.
 Exit codes: 0 clean, 1 violation found, 2 the guard could not run.
 """
 import argparse
+import datetime
+import fnmatch
 import os
 import re
 import subprocess
@@ -103,11 +107,15 @@ def table_rows(text):
     return rows
 
 
-def promotions(base):
-    """Return the Planned rows that moved to Enforced with the same rule text.
+# The findings that an exception row can allow. A secret or a weaker rule
+# can never be allowed.
+EXCEPTABLE = {"silenced-checker", "unfinished-work", "test-made-easier", "test-deleted",
+              "assertion-removed"}
+MAX_EXCEPTION_DAYS = 90
 
-    A promotion makes the bar stricter, so its removed row is not a finding.
-    """
+
+def read_constraints(base):
+    """Return CONSTRAINTS.md at the merge base and in the work tree."""
     merge_base = git("merge-base", base, "HEAD")
     if merge_base is None:
         bail(f"no merge base against {base}")
@@ -115,11 +123,59 @@ def promotions(base):
     try:
         new = open("CONSTRAINTS.md", encoding="utf-8").read()
     except FileNotFoundError:
-        return set()
+        new = ""
+    return old, new
+
+
+def allowed_removals(old, new):
+    """Return the removed rule rows that make the bar stricter, not weaker.
+
+    A Planned row that moved to Enforced with the same rule text is a
+    promotion. A removed Exceptions row ends an exception.
+    """
     enforced = {tuple(cells[:2]) for section, cells in table_rows(new).values()
                 if section.startswith("Enforced")}
-    return {line for line, (section, cells) in table_rows(old).items()
-            if section == "Planned" and tuple(cells[:2]) in enforced}
+    allowed = set()
+    for line, (section, cells) in table_rows(old).items():
+        if section == "Planned" and tuple(cells[:2]) in enforced:
+            allowed.add(line)
+        elif section == "Exceptions" and cells and cells[0] not in ("ID", "") \
+                and not set(cells[0]) <= {"-"}:
+            allowed.add(line)
+    return allowed
+
+
+def exceptions(new, today):
+    """Return the active exception rows as (rule, path pattern), and the
+    findings for rows that break the rules for exceptions."""
+    active, problems = [], []
+    for line, (section, cells) in table_rows(new).items():
+        if section != "Exceptions" or not cells or cells[0] == "ID" or set(cells[0]) <= {"-"}:
+            continue
+        if len(cells) != 6:
+            problems.append(("bad-exception", "CONSTRAINTS.md", line))
+            continue
+        _, rule, path, _, owner, expires = cells
+        rule, path = rule.strip("`"), path.strip("`")
+        try:
+            end = datetime.date.fromisoformat(expires)
+        except ValueError:
+            problems.append(("bad-exception", "CONSTRAINTS.md", f"{line} (expiry is not a date)"))
+            continue
+        if rule not in EXCEPTABLE:
+            problems.append(("bad-exception", "CONSTRAINTS.md", f"{line} (rule cannot be excepted)"))
+        elif not owner:
+            problems.append(("bad-exception", "CONSTRAINTS.md", f"{line} (no owner)"))
+        elif (end - today).days > MAX_EXCEPTION_DAYS:
+            problems.append(("bad-exception", "CONSTRAINTS.md", f"{line} (longer than 90 days)"))
+        elif end >= today:
+            active.append((rule, path))
+    return active, problems
+
+
+def excepted(finding, active):
+    rule, path, _ = finding
+    return any(rule == r and fnmatch.fnmatch(path, p) for r, p in active)
 
 
 def check(added, removed, deleted, promoted=frozenset()):
@@ -151,6 +207,8 @@ def check(added, removed, deleted, promoted=frozenset()):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="origin/main")
+    # For tests: the date that decides if an exception is still active.
+    parser.add_argument("--today")
     args = parser.parse_args()
 
     top = git("rev-parse", "--show-toplevel")
@@ -158,7 +216,11 @@ def main():
         bail("not inside a git work tree")
     os.chdir(top.strip())
 
-    findings = check(*parse(collect_diff(args.base)), promotions(args.base))
+    today = datetime.date.fromisoformat(args.today) if args.today else datetime.date.today()
+    old, new = read_constraints(args.base)
+    active, problems = exceptions(new, today)
+    findings = check(*parse(collect_diff(args.base)), allowed_removals(old, new))
+    findings = [f for f in findings if not excepted(f, active)] + problems
     if not findings:
         print("floor-guard: clean")
         return 0

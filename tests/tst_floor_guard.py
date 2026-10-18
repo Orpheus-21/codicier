@@ -16,7 +16,9 @@ BASE_FILES = {
         "## Enforced with numbers\n\n"
         "| Dimension | Rule | Checked by |\n|---|---|---|\n| Tests | All pass | ctest |\n\n"
         "## Planned\n\n"
-        "| Dimension | Rule | Check added in |\n|---|---|---|\n| Speed | 16 ms | T7 |\n"),
+        "| Dimension | Rule | Check added in |\n|---|---|---|\n| Speed | 16 ms | T7 |\n\n"
+        "## Exceptions\n\n| ID | Rule | Path | Reason | Owner | Expires |\n|---|---|---|---|---|---|\n"
+        "| E0 | test-deleted | tests/old.cpp | Old | someone | 2026-11-01 |\n"),
 }
 PLANNED_ROW = "| Speed | 16 ms | T7 |\n"
 ENFORCED_ROW = "| Tests | All pass | ctest |\n"
@@ -45,8 +47,23 @@ def make_repo(root):
     run("git", "commit", "-q", "-m", "base", cwd=root)
 
 
+# A fixed date, so the expiry checks give the same result on every day.
+TODAY = "2026-10-18"
+
+
 def guard(root):
-    return run(sys.executable, str(GUARD), "--base", "main", cwd=root)
+    return run(sys.executable, str(GUARD), "--base", "main", "--today", TODAY, cwd=root)
+
+
+EXCEPTION_ROW = "| E0 | test-deleted | tests/old.cpp | Old | someone | 2026-11-01 |\n"
+
+
+def with_exception(row):
+    """Removes an assertion and adds an exception row."""
+    def change(root):
+        replace("tests/tst_a.cpp", "QVERIFY(true);\n", "")(root)
+        append("CONSTRAINTS.md", row)(root)
+    return change
 
 
 def case(name, change, expected_code, expected_rule=None):
@@ -88,6 +105,32 @@ case("constraint changed", replace("CONSTRAINTS.md", "80%", "50%"), 1, "constrai
 case("planned rule enforced", promote("16 ms"), 0)
 case("planned rule dropped", replace("CONSTRAINTS.md", PLANNED_ROW, ""), 1, "constraint-changed")
 case("planned rule weakened as it moves", promote("32 ms"), 1, "constraint-changed")
+case("exception allows the finding",
+     with_exception("| E1 | assertion-removed | tests/tst_a.cpp | Moved | someone | 2026-10-25 |\n"), 0)
+case("exception with a glob path",
+     with_exception("| E1 | `assertion-removed` | `tests/*.cpp` | Moved | someone | 2026-10-25 |\n"), 0)
+case("exception for another path",
+     with_exception("| E1 | assertion-removed | tests/other.cpp | Moved | someone | 2026-10-25 |\n"), 1,
+     "assertion-removed")
+case("expired exception",
+     with_exception("| E1 | assertion-removed | tests/tst_a.cpp | Moved | someone | 2026-10-17 |\n"), 1,
+     "assertion-removed")
+case("exception longer than 90 days",
+     with_exception("| E1 | assertion-removed | tests/tst_a.cpp | Moved | someone | 2027-03-01 |\n"), 1,
+     "bad-exception")
+case("exception without owner",
+     with_exception("| E1 | assertion-removed | tests/tst_a.cpp | Moved |  | 2026-10-25 |\n"), 1,
+     "bad-exception")
+case("exception with a bad date",
+     with_exception("| E1 | assertion-removed | tests/tst_a.cpp | Moved | someone | soon |\n"), 1,
+     "bad-exception")
+case("exception with too few cells",
+     with_exception("| E1 | assertion-removed | tests/tst_a.cpp |\n"), 1, "bad-exception")
+case("secret cannot be excepted",
+     lambda r: (append("src/a.cpp", f'auto t = "{FAKE_TOKEN}";\n')(r),
+                append("CONSTRAINTS.md", "| E1 | secret | src/a.cpp | No | someone | 2026-10-25 |\n")(r)),
+     1, "secret")
+case("ending an exception is allowed", replace("CONSTRAINTS.md", EXCEPTION_ROW, ""), 0)
 case("secret redacted", append("src/a.cpp", f'auto t = "{FAKE_TOKEN}";\n'), 1, "secret")
 
 with tempfile.TemporaryDirectory() as tmp:
