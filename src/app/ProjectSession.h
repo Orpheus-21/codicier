@@ -61,6 +61,15 @@ public:
     // Moves an item from the trash back to its old parent, or to the top of
     // its section if the old parent is gone.
     Q_INVOKABLE bool restore(const QString &id);
+    // Moves the item before or after target, or inside target as its last
+    // child ("before", "after", or "inside"). Returns false, and changes
+    // nothing, for a move that the format does not allow.
+    Q_INVOKABLE bool move(const QString &id, const QString &target, const QString &position);
+    // True if move() with the same values would succeed.
+    Q_INVOKABLE bool canMove(const QString &id, const QString &target,
+                             const QString &position) const;
+    // Moves the item one place up (-1) or down (+1) among its siblings.
+    Q_INVOKABLE bool moveBy(const QString &id, int delta);
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
 
@@ -82,6 +91,10 @@ private:
     int indexOf(const QString &id) const;
     void place(int index, int parent, int position, const QString &section);
     void detach(int index);
+    // Where a move would put the item: the parent (-1 for the top level),
+    // the position, and the section. Returns false if the move is not valid.
+    bool resolveMove(int index, int target, const QString &position, int *parent, int *at,
+                     QString *section) const;
     void setSection(int index, const QString &section);
     bool commit(const QStringList &newFiles);
     QString editError;

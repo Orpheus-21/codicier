@@ -308,3 +308,83 @@ bool ProjectSession::restore(const QString &id)
         place(index, -1, static_cast<int>(project.roots.size()), homeSection(item.kind));
     return commit({ });
 }
+
+bool ProjectSession::resolveMove(int index, int target, const QString &position, int *parent,
+                                 int *at, QString *section) const
+{
+    if (index < 0 || target < 0 || index == target || project.readOnly)
+        return false;
+    const QString trash = QStringLiteral("trash");
+    if (project.items.at(index).section == trash || project.items.at(target).section == trash)
+        return false;
+    // An item cannot go into its own branch.
+    for (int up = target; up >= 0; up = project.items.at(up).parent) {
+        if (up == index)
+            return false;
+    }
+    const QString &kind = project.items.at(index).kind;
+    const ProjectItem &other = project.items.at(target);
+    if (position == QLatin1String("inside")) {
+        if (!canHold(other.kind, kind))
+            return false;
+        *parent = target;
+        *at = static_cast<int>(other.children.size());
+        *section = other.section;
+        return true;
+    }
+    if (position != QLatin1String("before") && position != QLatin1String("after"))
+        return false;
+    *parent = other.parent;
+    *section = other.section;
+    if (*parent >= 0 ? !canHold(project.items.at(*parent).kind, kind)
+                     : !fitsSection(kind, *section))
+        return false;
+    const QList<int> &siblings = *parent >= 0 ? project.items.at(*parent).children : project.roots;
+    *at = static_cast<int>(siblings.indexOf(target)) + (position == QLatin1String("after") ? 1 : 0);
+    // The item leaves its old place first, so a later place moves up by one.
+    const qsizetype old = siblings.indexOf(index);
+    if (old >= 0 && old < *at)
+        --*at;
+    return true;
+}
+
+bool ProjectSession::canMove(const QString &id, const QString &target,
+                             const QString &position) const
+{
+    int parent = -1;
+    int at = 0;
+    QString section;
+    return resolveMove(indexOf(id), indexOf(target), position, &parent, &at, &section);
+}
+
+bool ProjectSession::move(const QString &id, const QString &target, const QString &position)
+{
+    const int index = indexOf(id);
+    int parent = -1;
+    int at = 0;
+    QString section;
+    if (!resolveMove(index, indexOf(target), position, &parent, &at, &section))
+        return false;
+    detach(index);
+    place(index, parent, at, section);
+    return commit({ });
+}
+
+bool ProjectSession::moveBy(const QString &id, int delta)
+{
+    const int index = indexOf(id);
+    if (index < 0 || (delta != -1 && delta != 1))
+        return false;
+    const ProjectItem &item = project.items.at(index);
+    const QList<int> &siblings
+        = item.parent >= 0 ? project.items.at(item.parent).children : project.roots;
+    // Among the top level items, only the items of the same section count.
+    qsizetype at = siblings.indexOf(index) + delta;
+    while (at >= 0 && at < siblings.size()
+           && project.items.at(siblings.at(at)).section != item.section)
+        at += delta;
+    if (at < 0 || at >= siblings.size())
+        return false;
+    return move(id, project.items.at(siblings.at(at)).id,
+                delta < 0 ? QStringLiteral("before") : QStringLiteral("after"));
+}

@@ -200,6 +200,102 @@ private slots:
         QCOMPARE(loaded.size(), 0);
     }
 
+    void moveBeforeASiblingIsInBinderToml()
+    {
+        QVERIFY(session->move("t6v4h9r2mz", "m1n2p3q4r5", "before"));
+        Project project;
+        const ProjectItem chapter = onDisk(dir.path(), "f6g7h8j9k0", &project);
+        QCOMPARE(project.items.at(chapter.children.at(0)).id, QStringLiteral("t6v4h9r2mz"));
+        QCOMPARE(project.items.at(chapter.children.at(1)).id, QStringLiteral("m1n2p3q4r5"));
+    }
+
+    void moveAfterTheNextSibling()
+    {
+        QVERIFY(session->move("m1n2p3q4r5", "t6v4h9r2mz", "after"));
+        Project project;
+        const ProjectItem chapter = onDisk(dir.path(), "f6g7h8j9k0", &project);
+        QCOMPARE(project.items.at(chapter.children.at(1)).id, QStringLiteral("m1n2p3q4r5"));
+    }
+
+    void moveInsideAnotherPart()
+    {
+        QVERIFY(session->canMove("m1n2p3q4r5", "k3m9q2x7ab", "inside"));
+        QVERIFY(session->move("m1n2p3q4r5", "k3m9q2x7ab", "inside"));
+        Project project;
+        const ProjectItem scene = onDisk(dir.path(), "m1n2p3q4r5", &project);
+        QCOMPARE(titleOf(project, scene.parent), QStringLiteral("Part Two"));
+        QCOMPARE(scene.section, QStringLiteral("manuscript"));
+    }
+
+    void moveANewPageAfterAnotherPage()
+    {
+        session->setCurrentId(QString());
+        const QString page = session->add("page");
+        QVERIFY(session->move(page, "d4f7k2m9pq", "after"));
+        Project project;
+        onDisk(dir.path(), page, &project);
+        QStringList front;
+        for (const int root : project.roots) {
+            if (project.items.at(root).section == "front")
+                front.append(project.items.at(root).id);
+        }
+        QCOMPARE(front, (QStringList { "d4f7k2m9pq", page }));
+    }
+
+    void invalidMovesChangeNothing_data()
+    {
+        QTest::addColumn<QString>("id");
+        QTest::addColumn<QString>("target");
+        QTest::addColumn<QString>("position");
+        QTest::newRow("into its own branch") << "a1b2c3d4e5" << "f6g7h8j9k0" << "inside";
+        QTest::newRow("onto itself") << "a1b2c3d4e5" << "a1b2c3d4e5" << "after";
+        QTest::newRow("part into a chapter") << "k3m9q2x7ab" << "f6g7h8j9k0" << "inside";
+        QTest::newRow("into a scene") << "m1n2p3q4r5" << "t6v4h9r2mz" << "inside";
+        QTest::newRow("scene beside a note") << "m1n2p3q4r5" << "s5t6v7w8x9" << "after";
+        QTest::newRow("out of the trash") << "e5f6g7h8j9" << "t6v4h9r2mz" << "after";
+        QTest::newRow("into the trash") << "m1n2p3q4r5" << "e5f6g7h8j9" << "after";
+        QTest::newRow("unknown position") << "m1n2p3q4r5" << "t6v4h9r2mz" << "under";
+        QTest::newRow("unknown id") << "nothing" << "t6v4h9r2mz" << "after";
+    }
+
+    void invalidMovesChangeNothing()
+    {
+        QFETCH(QString, id);
+        QFETCH(QString, target);
+        QFETCH(QString, position);
+        QFile file(dir.filePath("binder.toml"));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        const QByteArray before = file.readAll();
+        file.close();
+        QVERIFY(!session->canMove(id, target, position));
+        QVERIFY(!session->move(id, target, position));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        QCOMPARE(file.readAll(), before);
+    }
+
+    void moveByStepsAmongSiblings()
+    {
+        QVERIFY(session->moveBy("t6v4h9r2mz", -1));
+        Project project;
+        ProjectItem chapter = onDisk(dir.path(), "f6g7h8j9k0", &project);
+        QCOMPARE(project.items.at(chapter.children.first()).id, QStringLiteral("t6v4h9r2mz"));
+        QVERIFY(!session->moveBy("t6v4h9r2mz", -1));
+        QVERIFY(session->moveBy("t6v4h9r2mz", 1));
+        chapter = onDisk(dir.path(), "f6g7h8j9k0", &project);
+        QCOMPARE(project.items.at(chapter.children.last()).id, QStringLiteral("t6v4h9r2mz"));
+        QVERIFY(!session->moveBy("t6v4h9r2mz", 2));
+        // Part One and Part Two swap, and the other sections do not count.
+        QVERIFY(session->moveBy("k3m9q2x7ab", -1));
+        onDisk(dir.path(), "k3m9q2x7ab", &project);
+        QStringList manuscript;
+        for (const int root : project.roots) {
+            if (project.items.at(root).section == "manuscript")
+                manuscript.append(project.items.at(root).title);
+        }
+        QCOMPARE(manuscript, (QStringList { "Part Two", "Part One" }));
+        QVERIFY(!session->moveBy("k3m9q2x7ab", -1));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

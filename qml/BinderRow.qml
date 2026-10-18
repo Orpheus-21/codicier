@@ -24,8 +24,15 @@ T.ItemDelegate {
     // The view sets this while the author renames this row.
     property bool renaming: false
 
+    // True while the author drags this row.
+    property bool dragged: false
+
     // A right-click on the row.
     signal menuRequested(point position)
+    // A drag of the row. y is in the coordinates of the row.
+    signal dragStarted
+    signal dragMoved(real y)
+    signal dragEnded
     signal renameAccepted(string title)
     signal renameCancelled
 
@@ -175,6 +182,21 @@ T.ItemDelegate {
             font.family: Theme.type.ui
             font.pixelSize: Theme.type.small
             color: Theme.color.inkMuted
+        }
+    }
+
+    opacity: dragged ? 0.45 : 1
+
+    // A section heading and an item in the trash do not move by drag.
+    DragHandler {
+        id: drag
+
+        enabled: !row.isSection && !row.renaming
+        target: null
+        onActiveChanged: active ? row.dragStarted() : row.dragEnded()
+        onCentroidChanged: {
+            if (active)
+                row.dragMoved(centroid.position.y);
         }
     }
 

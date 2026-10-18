@@ -39,13 +39,74 @@ ListView {
 
     Keys.onPressed: event => {
         const id = idAt(currentIndex);
-        if (event.key === Qt.Key_F2) {
+        if ((event.key === Qt.Key_Up || event.key === Qt.Key_Down)
+                && (event.modifiers & Qt.AltModifier)) {
+            if (session.moveBy(id, event.key === Qt.Key_Up ? -1 : 1))
+                Qt.callLater(() => binder.currentIndex = session.binder.rowOf(id));
+            event.accepted = true;
+        } else if (event.key === Qt.Key_F2) {
             startRename(id);
             event.accepted = true;
         } else if (event.key === Qt.Key_Delete && id !== "" && !id.startsWith("section:")) {
             session.moveToTrash(id);
             event.accepted = true;
         }
+    }
+
+    WheelHandler {
+        onWheel: event => {
+            const end = Math.max(0, binder.contentHeight - binder.height);
+            binder.contentY = Math.min(end, Math.max(0, binder.contentY - event.angleDelta.y / 2));
+        }
+    }
+
+    // Drag and drop: the dragged item, the row under the pointer, and where
+    // the item goes there ("before", "after", or "inside").
+    property string dragId: ""
+    property int dropRow: -1
+    property string dropPosition: ""
+
+    function dragTo(y: real) {
+        const row = indexAt(0, y + contentY);
+        const target = idAt(row);
+        let position = "";
+        if (row >= 0 && !target.startsWith("section:")) {
+            const item = itemAtIndex(row);
+            const part = (y + contentY - item.y) / item.height;
+            if (part > 0.25 && part < 0.75 && session.canMove(dragId, target, "inside"))
+                position = "inside";
+            else if (part <= 0.5 && session.canMove(dragId, target, "before"))
+                position = "before";
+            else if (session.canMove(dragId, target, "after"))
+                position = "after";
+        }
+        dropRow = position === "" ? -1 : row;
+        dropPosition = position;
+    }
+
+    function drop() {
+        if (dragId !== "" && dropRow >= 0)
+            session.move(dragId, idAt(dropRow), dropPosition);
+        dragId = "";
+        dropRow = -1;
+        dropPosition = "";
+    }
+
+    // The accent line where the item lands, or a frame for "inside".
+    Rectangle {
+        readonly property BinderRow target: binder.dropRow >= 0 ? binder.itemAtIndex(binder.dropRow) as BinderRow : null
+
+        visible: target !== null
+        z: 2
+        x: target ? target.leftPadding + (binder.dropPosition === "inside" ? 0 : 14) : 0
+        y: !target ? 0 : binder.dropPosition === "after" ? target.y + target.height - binder.contentY
+                     : target.y - binder.contentY - (binder.dropPosition === "before" ? 1 : 0)
+        width: target ? binder.width - x : 0
+        height: binder.dropPosition === "inside" && target ? target.height : 2
+        radius: binder.dropPosition === "inside" ? Theme.radius.small : 1
+        color: binder.dropPosition === "inside" ? "transparent" : Theme.color.accent
+        border.width: binder.dropPosition === "inside" ? 1.5 : 0
+        border.color: Theme.color.accent
     }
 
     // The menu for an item outside the trash.
@@ -70,6 +131,9 @@ ListView {
 
     model: session.binder
     clip: true
+    // A drag on a row moves the item, so the list itself does not flick. The
+    // wheel scrolls it.
+    interactive: false
     spacing: 2
     keyNavigationEnabled: true
     boundsBehavior: Flickable.StopAtBounds
@@ -119,6 +183,10 @@ ListView {
             binder.forceActiveFocus();
         }
         onRenameCancelled: binder.renamingId = ""
+        dragged: itemId === binder.dragId
+        onDragStarted: binder.dragId = itemId
+        onDragMoved: y => binder.dragTo(mapToItem(binder, 0, y).y)
+        onDragEnded: binder.drop()
         onMenuRequested: position => {
             if (isSection)
                 return;
