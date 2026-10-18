@@ -57,33 +57,6 @@ Item {
         }
     }
 
-    // The theme styles the text, and a theme change applies at once.
-    Binding {
-        target: editorArea.document
-        property: "markColor"
-        value: Theme.color.mark
-    }
-
-    Binding {
-        target: editorArea.document
-        property: "accentColor"
-        value: Theme.color.accent
-    }
-
-    // The reading line height, as space added to the natural line.
-    Binding {
-        target: editorArea.document
-        property: "lineDistance"
-        value: Math.max(0, Theme.type.readingLine - metrics.lineSpacing)
-    }
-
-    FontMetrics {
-        id: metrics
-
-        font.family: Theme.type.reading
-        font.pixelSize: Theme.type.readingSize
-    }
-
     Flickable {
         id: page
 
@@ -121,26 +94,15 @@ Item {
                 contentY = top + rect.height - height;
         }
 
-        TextEdit {
+        PageText {
             id: textEdit
 
             objectName: "editor"
+            document: editorArea.document
+            availableWidth: page.width - 2 * Theme.space.xl
             y: Theme.space.xxxl
-            width: Math.min(Math.ceil(metrics.advanceWidth("abcdefghijklmnopqrstuvwxyz ") / 27
-                                      * Theme.type.measure), page.width - 2 * Theme.space.xl)
             x: Math.max(Theme.space.xl, (page.width - width) / 2)
             visible: editorArea.document.file !== ""
-            textFormat: TextEdit.PlainText
-            wrapMode: TextEdit.Wrap
-            font.family: Theme.type.reading
-            font.pixelSize: Theme.type.readingSize
-            color: Theme.color.ink
-            selectionColor: Theme.color.selection
-            selectedTextColor: Theme.color.ink
-            selectByMouse: true
-            persistentSelection: true
-            Component.onCompleted: editorArea.document.textDocument = textEdit.textDocument
-
             onCursorRectangleChanged: page.follow(cursorRectangle)
         }
     }
