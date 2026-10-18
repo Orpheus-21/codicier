@@ -31,6 +31,9 @@ public:
     // The format version that this app reads and writes.
     static constexpr int formatVersion = 1;
 
+    // True for a kind of project in docs/format.md, such as "novel".
+    static bool isProjectKind(const QString &kind);
+
     static LoadResult load(const QString &folder);
 
     // The bytes of project.toml and binder.toml in the canonical layout.

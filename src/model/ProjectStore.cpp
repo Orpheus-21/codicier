@@ -468,6 +468,11 @@ QString writeIfChanged(const QDir &dir, const QString &name, const QByteArray &c
 
 } // namespace
 
+bool ProjectStore::isProjectKind(const QString &kind)
+{
+    return contains(projectKinds, kind.toStdString());
+}
+
 LoadResult ProjectStore::load(const QString &folder)
 {
     return Loader(folder).run();

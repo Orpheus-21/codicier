@@ -49,6 +49,11 @@ target_compile_definitions(tst_roundtrip PRIVATE
 target_link_libraries(tst_roundtrip PRIVATE codicier_core Qt6::Test)
 add_test(NAME tst_roundtrip COMMAND tst_roundtrip)
 
+qt_add_executable(tst_templates tst_templates.cpp)
+target_compile_options(tst_templates PRIVATE -Wall -Wextra)
+target_link_libraries(tst_templates PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_templates COMMAND tst_templates)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 
