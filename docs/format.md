@@ -7,7 +7,7 @@ A Codicier project is a normal folder of text files. You can read, edit, copy, b
 ## Rules for all files
 
 - Text files use UTF-8 with no byte order mark.
-- Lines end with a line feed (LF), and each file ends with one line feed.
+- Lines end with a line feed (LF), and each file with text ends with one line feed. A new text item starts as an empty file.
 - The two TOML files follow TOML 1.0.
 - The app writes each file to a temporary file in the same folder, then renames the temporary file over the old file. A crash during a save cannot leave a half-written file.
 - The app writes a file only when its content changes.
