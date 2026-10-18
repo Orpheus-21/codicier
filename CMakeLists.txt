@@ -18,6 +18,8 @@ set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
     QML_FILES qml/Main.qml qml/Theme.qml qml/Icon.qml qml/IconPaths.js
+        qml/FocusRing.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
+        qml/ListItem.qml qml/Pane.qml qml/Splitter.qml qml/Menu.qml
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 
