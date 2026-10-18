@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick)
-# toml++ reads and writes the project files (docs/format.md). Header only.
+# toml++ reads the project files (docs/format.md).
 find_package(tomlplusplus 3 REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -16,7 +16,12 @@ qt_standard_project_setup(REQUIRES 6.8)
 add_library(codicier_core STATIC src/model/ProjectStore.cpp)
 target_include_directories(codicier_core PUBLIC src/model)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
-target_link_libraries(codicier_core PUBLIC Qt6::Core tomlplusplus::tomlplusplus)
+target_link_libraries(codicier_core PUBLIC Qt6::Core)
+# Arch builds toml++ as a shared library. Use only its headers, in header-only
+# mode, so the app needs no toml++ library at run time.
+get_target_property(TOML_INCLUDE tomlplusplus::tomlplusplus INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(codicier_core SYSTEM PUBLIC ${TOML_INCLUDE})
+target_compile_definitions(codicier_core PUBLIC TOML_HEADER_ONLY=1)
 
 # The QML module is a static library, so the app and the tests link the same module.
 # Its files go to build/qml/Codicier, so qmllint and tools find them by import path.
