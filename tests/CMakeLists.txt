@@ -33,6 +33,8 @@ add_test(NAME check_offline
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_test(NAME tst_floor_guard
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tst_floor_guard.py)
+add_test(NAME tst_coverage_diff
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tst_coverage_diff.py)
 
 # Lint every QML file. One warning fails the test.
 file(GLOB_RECURSE QML_LINT_FILES CONFIGURE_DEPENDS
