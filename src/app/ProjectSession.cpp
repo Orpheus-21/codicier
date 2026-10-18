@@ -14,6 +14,7 @@
 #include <QSet>
 
 #include <functional>
+#include <utility>
 
 ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 {
@@ -840,4 +841,70 @@ QVariantMap ProjectSession::compare(const QString &id, const QString &snapshotPa
     return { { QStringLiteral("segments"), segments },
              { QStringLiteral("addedWords"), added },
              { QStringLiteral("removedWords"), removed } };
+}
+
+int ProjectSession::trashCount() const
+{
+    int count = 0;
+    for (const ProjectItem &item : project.items) {
+        if (item.section == QLatin1String("trash"))
+            ++count;
+    }
+    return count;
+}
+
+int ProjectSession::emptyTrash()
+{
+    editError.clear();
+    if (project.readOnly || !loadError.isEmpty())
+        return -1;
+    const int count = trashCount();
+    if (count == 0)
+        return 0;
+    // A backup first, so a mistake can be undone from the zip.
+    if (!backupFolder.isEmpty()) {
+        changedSinceBackup = true;
+        if (backup().isEmpty()) {
+            editError = QStringLiteral("The backup failed, so the trash stays.");
+            emit edited();
+            return -1;
+        }
+    }
+    if (indexOf(current) >= 0
+        && project.items.at(indexOf(current)).section == QLatin1String("trash"))
+        setCurrentId(QString());
+
+    const QDir dir(project.folder);
+    QList<ProjectItem> kept;
+    QList<int> newIndex(project.items.size(), -1);
+    for (qsizetype i = 0; i < project.items.size(); ++i) {
+        const ProjectItem &item = project.items.at(i);
+        if (item.section != QLatin1String("trash")) {
+            newIndex[i] = static_cast<int>(kept.size());
+            kept.append(item);
+            continue;
+        }
+        if (!item.file.isEmpty())
+            QFile::remove(dir.filePath(item.file));
+        QDir(dir.filePath(QStringLiteral("snapshots/") + item.id)).removeRecursively();
+    }
+    // The indexes of the parents, the children, and the roots change.
+    for (ProjectItem &item : kept) {
+        item.parent = item.parent >= 0 ? newIndex.at(item.parent) : -1;
+        QList<int> children;
+        for (const int child : std::as_const(item.children)) {
+            if (newIndex.at(child) >= 0)
+                children.append(newIndex.at(child));
+        }
+        item.children = children;
+    }
+    QList<int> roots;
+    for (const int root : std::as_const(project.roots)) {
+        if (newIndex.at(root) >= 0)
+            roots.append(newIndex.at(root));
+    }
+    project.items = std::move(kept);
+    project.roots = std::move(roots);
+    commit({ });
+    return count;
 }

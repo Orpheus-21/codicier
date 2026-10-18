@@ -120,6 +120,12 @@ public:
     // a map with segments (each a map with kind "same", "added", or
     // "removed", and text), addedWords, and removedWords.
     Q_INVOKABLE QVariantMap compare(const QString &id, const QString &snapshotPath) const;
+    // The number of items in the trash, with the items below them.
+    Q_INVOKABLE int trashCount() const;
+    // Writes a backup, then deletes the files and snapshots of every item in
+    // the trash and removes the items from the binder. Returns the number of
+    // items deleted, or -1 on an error.
+    Q_INVOKABLE int emptyTrash();
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }

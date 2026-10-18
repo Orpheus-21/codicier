@@ -477,6 +477,55 @@ private slots:
         QVERIFY(!session->setField("t6v4h9r2mz", "include", "no"));
     }
 
+    void emptyTrashDeletesOnlyTheTrash()
+    {
+        QTemporaryDir backups;
+        session->setProperty("backupFolder", backups.path());
+        // The chapter with its two scenes joins the old scene in the trash.
+        QVERIFY(session->moveToTrash("f6g7h8j9k0"));
+        session->takeSnapshot("e5f6g7h8j9", "");
+        QCOMPARE(session->trashCount(), 4);
+        QCOMPARE(session->emptyTrash(), 4);
+        QCOMPARE(session->trashCount(), 0);
+
+        QVERIFY(!QFile::exists(dir.filePath("manuscript/old-opening.md")));
+        QVERIFY(!QFile::exists(dir.filePath("manuscript/a-date-she-did-not-know.md")));
+        QVERIFY(!QDir(dir.filePath("snapshots/e5f6g7h8j9")).exists());
+        QVERIFY(QFile::exists(dir.filePath("notes/the-ledger.md")));
+
+        // The rest of the tree loads and is correct.
+        Project project;
+        const ProjectItem part = onDisk(dir.path(), "a1b2c3d4e5", &project);
+        QCOMPARE(project.items.size(), 5);
+        QCOMPARE(part.children.size(), 0);
+        QCOMPARE(onDisk(dir.path(), "s5t6v7w8x9").title, QStringLiteral("The ledger"));
+
+        // The backup came first and holds the old scene.
+        const QString name = QFileInfo(dir.path()).fileName();
+        QCOMPARE(QDir(backups.filePath(name)).entryList({ "*.zip" }, QDir::Files).size(), 1);
+        QCOMPARE(session->emptyTrash(), 0);
+    }
+
+    void failedBackupKeepsTheTrash()
+    {
+        QTemporaryDir root;
+        QFile blocker(root.filePath("file"));
+        QVERIFY(blocker.open(QIODevice::WriteOnly));
+        blocker.close();
+        session->setProperty("backupFolder", root.filePath("file"));
+        QCOMPARE(session->emptyTrash(), -1);
+        QCOMPARE(session->lastError(), QStringLiteral("The backup failed, so the trash stays."));
+        QVERIFY(QFile::exists(dir.filePath("manuscript/old-opening.md")));
+        QCOMPARE(session->trashCount(), 1);
+    }
+
+    void emptyTrashWithNoBackupFolder()
+    {
+        session->setCurrentId("e5f6g7h8j9");
+        QCOMPARE(session->emptyTrash(), 1);
+        QCOMPARE(session->currentId(), QString());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

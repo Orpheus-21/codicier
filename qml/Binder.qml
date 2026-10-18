@@ -127,6 +127,82 @@ ListView {
         T.Action { text: "Move to trash"; onTriggered: binder.session.moveToTrash(binder.menuId) }
     }
 
+    // The menu of the trash heading.
+    Menu {
+        id: trashSectionMenu
+
+        T.Action {
+            text: "Empty trash"
+            enabled: binder.session.trashCount() > 0
+            onTriggered: emptyTrashDialog.open()
+        }
+    }
+
+    // One confirm before the files leave the disk.
+    T.Popup {
+        id: emptyTrashDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        implicitWidth: 440
+        implicitHeight: implicitContentHeight + topPadding + bottomPadding
+        padding: Theme.space.xl
+        modal: true
+        focus: true
+
+        T.Overlay.modal: Rectangle {
+            color: Qt.alpha(Theme.color.ink, 0.25)
+        }
+
+        background: Rectangle {
+            radius: Theme.radius.medium
+            color: Theme.color.paper
+            border.width: 1
+            border.color: Theme.color.rule
+        }
+
+        contentItem: Column {
+            spacing: Theme.space.l
+
+            Text {
+                text: "Empty the trash?"
+                font.family: Theme.type.reading
+                font.pixelSize: Theme.type.title
+                color: Theme.color.ink
+            }
+
+            Text {
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: "Delete " + binder.session.trashCount() + (binder.session.trashCount() === 1 ? " item" : " items")
+                      + " for good? Their files and snapshots leave the disk. A backup is written first."
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.inkMuted
+            }
+
+            Row {
+                anchors.right: parent.right
+                spacing: Theme.space.s
+
+                Button {
+                    text: "Cancel"
+                    onClicked: emptyTrashDialog.close()
+                }
+
+                Button {
+                    objectName: "confirmEmptyTrash"
+                    kind: "primary"
+                    text: "Delete"
+                    onClicked: {
+                        binder.session.emptyTrash();
+                        emptyTrashDialog.close();
+                    }
+                }
+            }
+        }
+    }
+
     // The menu for an item in the trash.
     Menu {
         id: trashMenu
@@ -193,6 +269,10 @@ ListView {
         onDragMoved: y => binder.dragTo(mapToItem(binder, 0, y).y)
         onDragEnded: binder.drop()
         onMenuRequested: position => {
+            if (itemId === "section:trash") {
+                trashSectionMenu.popup(this, position.x, position.y);
+                return;
+            }
             if (isSection)
                 return;
             binder.menuId = itemId;
