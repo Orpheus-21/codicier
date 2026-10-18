@@ -1,6 +1,6 @@
 # Project folder format
 
-Status: proposed. Format version 1.
+Status: accepted on 2026-10-18. Format version 1.
 
 A Codicier project is a normal folder of text files. You can read, edit, copy, back up, and put the folder in git without the app. The app adds nothing that you cannot read in a text editor.
 
