@@ -18,3 +18,6 @@ target_compile_definitions(tst_qml PRIVATE
 target_link_libraries(tst_qml PRIVATE Qt6::QuickTest)
 add_test(NAME tst_qml COMMAND tst_qml)
 set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "${TEST_ENV}")
+
+add_test(NAME check_offline
+    COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
