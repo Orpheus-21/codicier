@@ -39,6 +39,17 @@ Item {
         editor.focusText();
     }
 
+    // Splits the open scene at the cursor, and starts the rename of the new
+    // scene.
+    Shortcut {
+        sequence: "Ctrl+K"
+        onActivated: {
+            const id = view.session.split(view.session.currentId, editor.cursorPosition);
+            if (id !== "")
+                binder.startRename(id);
+        }
+    }
+
     Shortcut {
         sequence: "F11"
         onActivated: view.setFocusMode(!view.focusMode)

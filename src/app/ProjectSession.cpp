@@ -4,6 +4,7 @@
 #include "ProjectStore.h"
 
 #include <QDir>
+#include <QFile>
 #include <QSaveFile>
 #include <QSet>
 
@@ -408,4 +409,159 @@ int ProjectSession::chapterWords() const
 int ProjectSession::goalWords() const
 {
     return static_cast<int>(project.data["goals"]["words"].value_or(std::int64_t { 0 }));
+}
+
+namespace {
+
+QString readTextFile(const QString &path, bool *ok)
+{
+    QFile file(path);
+    *ok = file.open(QIODevice::ReadOnly);
+    QString text = *ok ? QString::fromUtf8(file.readAll()) : QString();
+    if (text.endsWith(u'\n'))
+        text.chop(1);
+    return text;
+}
+
+bool writeTextFile(const QString &path, QString text)
+{
+    if (!text.isEmpty())
+        text += u'\n';
+    QSaveFile file(path);
+    const QByteArray bytes = text.toUtf8();
+    return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
+}
+
+} // namespace
+
+QString ProjectSession::split(const QString &id, int position)
+{
+    editError.clear();
+    const int index = indexOf(id);
+    if (index < 0 || project.readOnly || project.items.at(index).kind != QLatin1String("scene")
+        || project.items.at(index).section == QLatin1String("trash")) {
+        editError = QStringLiteral("Only a scene can split.");
+        emit edited();
+        return { };
+    }
+    // The file must hold the latest text before the split reads it.
+    if (current == id && !text.save()) {
+        editError = QStringLiteral("Save the scene first.");
+        emit edited();
+        return { };
+    }
+    const QDir dir(project.folder);
+    const ProjectItem source = project.items.at(index);
+    bool ok = false;
+    const QString all = readTextFile(dir.filePath(source.file), &ok);
+    // Only the whitespace at the cut moves; no other character changes.
+    const QString first = all.left(position).trimmed().isEmpty() ? QString() : [&] {
+        QString left = all.left(position);
+        while (!left.isEmpty() && left.back().isSpace())
+            left.chop(1);
+        return left;
+    }();
+    QString second = all.mid(position);
+    while (!second.isEmpty() && second.front().isSpace())
+        second.remove(0, 1);
+    if (!ok || position < 0 || position > all.size() || first.isEmpty() || second.isEmpty()) {
+        editError = QStringLiteral("There is no text on one side of the cursor.");
+        emit edited();
+        return { };
+    }
+
+    QSet<QString> ids;
+    for (const ProjectItem &item : std::as_const(project.items))
+        ids.insert(item.id);
+    ProjectItem item;
+    item.id = Naming::newItemId(ids);
+    item.kind = source.kind;
+    item.title = source.title + QStringLiteral(" (2)");
+    for (const char *key : { "pov", "place", "time" }) {
+        if (const toml::node *value = source.data.get(key))
+            item.data.insert(key, *value);
+    }
+    const QStringList names
+        = QDir(dir.filePath(QStringLiteral("manuscript"))).entryList(QDir::Files);
+    item.file = QStringLiteral("manuscript/")
+        + Naming::fileNameFor(item.title, QSet<QString>(names.begin(), names.end()));
+    // The new file first: a crash after this keeps the text twice, never
+    // loses it.
+    if (!writeTextFile(dir.filePath(item.file), second)
+        || !writeTextFile(dir.filePath(source.file), first)) {
+        editError = QStringLiteral("Cannot write the split scenes.");
+        emit edited();
+        return { };
+    }
+    project.items.append(item);
+    const int added = static_cast<int>(project.items.size() - 1);
+    const int parent = project.items.at(index).parent;
+    const QList<int> &siblings = parent >= 0 ? project.items.at(parent).children : project.roots;
+    place(added, parent, static_cast<int>(siblings.indexOf(index)) + 1, source.section);
+    commit({ item.file, source.file });
+    if (current == id)
+        text.open(project.folder, source.file);
+    setCurrentId(item.id);
+    return item.id;
+}
+
+QString ProjectSession::nextScene(const QString &id) const
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.items.at(index).kind != QLatin1String("scene")
+        || project.items.at(index).section == QLatin1String("trash"))
+        return { };
+    const int parent = project.items.at(index).parent;
+    const QList<int> &siblings = parent >= 0 ? project.items.at(parent).children : project.roots;
+    const qsizetype at = siblings.indexOf(index) + 1;
+    if (at >= siblings.size() || project.items.at(siblings.at(at)).kind != QLatin1String("scene"))
+        return { };
+    return project.items.at(siblings.at(at)).id;
+}
+
+bool ProjectSession::mergeWithNext(const QString &id)
+{
+    editError.clear();
+    const QString next = nextScene(id);
+    if (next.isEmpty() || project.readOnly) {
+        editError = QStringLiteral("There is no next scene to merge.");
+        emit edited();
+        return false;
+    }
+    text.save();
+    const QDir dir(project.folder);
+    const int first = indexOf(id);
+    const int second = indexOf(next);
+    bool okFirst = false;
+    bool okSecond = false;
+    const QString a = readTextFile(dir.filePath(project.items.at(first).file), &okFirst);
+    const QString b = readTextFile(dir.filePath(project.items.at(second).file), &okSecond);
+    if (!okFirst || !okSecond) {
+        editError = QStringLiteral("Cannot read the scenes to merge.");
+        emit edited();
+        return false;
+    }
+    const QString joined = a.isEmpty() ? b : b.isEmpty() ? a : a + QStringLiteral("\n\n") + b;
+    if (!writeTextFile(dir.filePath(project.items.at(first).file), joined)) {
+        editError = QStringLiteral("Cannot write the merged scene.");
+        emit edited();
+        return false;
+    }
+    // The notes of the second scene join the notes of the first.
+    const QString notesA
+        = QString::fromStdString(project.items.at(first).data["notes"].value_or(std::string()));
+    const QString notesB
+        = QString::fromStdString(project.items.at(second).data["notes"].value_or(std::string()));
+    if (!notesB.isEmpty()) {
+        const QString notes = notesA.isEmpty() ? notesB : notesA + QStringLiteral("\n\n") + notesB;
+        project.items[first].data.insert_or_assign("notes", notes.toStdString());
+    }
+    if (watcher)
+        watcher->noteSaved(project.items.at(first).file);
+    // The second scene keeps its file in the trash, so its old text stays.
+    moveToTrash(next);
+    if (current == id || current.isEmpty())
+        text.open(project.folder, project.items.at(first).file);
+    setCurrentId(id);
+    return true;
 }

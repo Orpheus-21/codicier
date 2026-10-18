@@ -77,6 +77,14 @@ public:
                              const QString &position) const;
     // Moves the item one place up (-1) or down (+1) among its siblings.
     Q_INVOKABLE bool moveBy(const QString &id, int delta);
+    // Splits the scene at a position in its text: the text after it goes to
+    // a new scene right after this one. Returns the id of the new scene.
+    Q_INVOKABLE QString split(const QString &id, int position);
+    // Joins the next scene in the same parent to the end of this scene, and
+    // moves the next scene to the trash with its file.
+    Q_INVOKABLE bool mergeWithNext(const QString &id);
+    // The id of the next scene in the same parent, or "".
+    Q_INVOKABLE QString nextScene(const QString &id) const;
     // The last error of an edit, or "".
     QString lastError() const { return editError; }
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }

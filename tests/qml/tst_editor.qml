@@ -83,6 +83,27 @@ TestCase {
         view.setFocusMode(false);
     }
 
+    function test_ctrlKSplitsAtTheCursor() {
+        const view = makeView();
+        const model = view.session.binder;
+        const first = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = first;
+        const text = findChild(view, "editor") as TextEdit;
+        text.forceActiveFocus();
+        for (const c of "One")
+            keyClick(c);
+        keyClick(Qt.Key_Return);
+        keyClick(Qt.Key_Return);
+        for (const c of "Two")
+            keyClick(c);
+        compare(view.session.document.dirty, true);
+        text.cursorPosition = text.text.indexOf("Two");
+        keyClick(Qt.Key_K, Qt.ControlModifier);
+        verify(view.session.currentId !== first);
+        compare(model.data(model.index(2, 0), BinderModel.TitleRole), "Opening (2)");
+        compare(text.text, "Two");
+    }
+
     function test_themeChangeIsNotAnEdit() {
         const view = makeView();
         const model = view.session.binder;

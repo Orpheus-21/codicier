@@ -8,6 +8,8 @@
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTextCursor>
+#include <QTextDocument>
 
 namespace {
 
@@ -294,6 +296,95 @@ private slots:
         }
         QCOMPARE(manuscript, (QStringList { "Part Two", "Part One" }));
         QVERIFY(!session->moveBy("k3m9q2x7ab", -1));
+    }
+
+    QByteArray readFile(const QString &file) const
+    {
+        QFile in(dir.filePath(file));
+        return in.open(QIODevice::ReadOnly) ? in.readAll() : QByteArray();
+    }
+
+    void writeFile(const QString &file, const QByteArray &bytes) const
+    {
+        QFile out(dir.filePath(file));
+        QVERIFY(out.open(QIODevice::WriteOnly | QIODevice::Truncate));
+        out.write(bytes);
+    }
+
+    void splitLosesNoText()
+    {
+        const QString file = "manuscript/a-date-she-did-not-know.md";
+        const QByteArray original
+            = "First paragraph here.\n\nSecond paragraph here.\n\nThird one.\n";
+        writeFile(file, original);
+        session->reload();
+        const QString text = QString::fromUtf8(original).chopped(1);
+        const int cut = static_cast<int>(text.indexOf("Second"));
+
+        const QString id = session->split("t6v4h9r2mz", cut - 1);
+        QVERIFY2(!id.isEmpty(), qPrintable(session->lastError()));
+        const ProjectItem added = onDisk(dir.path(), id);
+        QCOMPARE(added.title, QStringLiteral("A Date She Did Not Know (2)"));
+        QCOMPARE(added.data["pov"].value_or(std::string()), std::string("Mara"));
+        QCOMPARE(added.file, QStringLiteral("manuscript/a-date-she-did-not-know-2.md"));
+        QCOMPARE(session->currentId(), id);
+
+        // The two parts and the whitespace at the cut are the old text.
+        const QByteArray first = readFile(file);
+        const QByteArray second = readFile(added.file);
+        QCOMPARE(first, QByteArray("First paragraph here.\n"));
+        QCOMPARE(second, QByteArray("Second paragraph here.\n\nThird one.\n"));
+        QCOMPARE(first.chopped(1) + "\n\n" + second, original);
+
+        // The new scene comes right after the old one.
+        Project project;
+        const ProjectItem chapter = onDisk(dir.path(), "f6g7h8j9k0", &project);
+        QCOMPARE(project.items.at(chapter.children.at(1)).id, QStringLiteral("t6v4h9r2mz"));
+        QCOMPARE(project.items.at(chapter.children.at(2)).id, id);
+
+        // A merge gives back the old file.
+        QVERIFY(session->mergeWithNext("t6v4h9r2mz"));
+        QCOMPARE(readFile(file), original);
+        QVERIFY(onDisk(dir.path(), id).section == "trash");
+        QCOMPARE(readFile(added.file), second);
+    }
+
+    void splitSavesTheOpenTextFirst()
+    {
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor cursor(&editor);
+        cursor.movePosition(QTextCursor::End);
+        cursor.insertText("\n\nTyped but not saved.");
+        const int cut = static_cast<int>(editor.toPlainText().indexOf("Typed"));
+        const QString id = session->split("t6v4h9r2mz", cut);
+        QVERIFY(!id.isEmpty());
+        QCOMPARE(readFile(onDisk(dir.path(), id).file), QByteArray("Typed but not saved.\n"));
+        QVERIFY(
+            readFile("manuscript/a-date-she-did-not-know.md").endsWith("The year is missing.\n"));
+    }
+
+    void splitRefusesAnEmptySide()
+    {
+        QCOMPARE(session->split("t6v4h9r2mz", 0), QString());
+        QCOMPARE(session->lastError(),
+                 QStringLiteral("There is no text on one side of the cursor."));
+        QCOMPARE(session->split("t6v4h9r2mz", 100000), QString());
+        QCOMPARE(session->split("f6g7h8j9k0", 3), QString());
+        QCOMPARE(session->lastError(), QStringLiteral("Only a scene can split."));
+    }
+
+    void mergeJoinsNotesAndNeedsANextScene()
+    {
+        QVERIFY(session->mergeWithNext("m1n2p3q4r5"));
+        const ProjectItem merged = onDisk(dir.path(), "m1n2p3q4r5");
+        QVERIFY(QString::fromStdString(merged.data["notes"].value_or(std::string()))
+                    .contains("count of days"));
+        QVERIFY(readFile("manuscript/the-river-office.md").contains("The letter said"));
+        QVERIFY(!session->mergeWithNext("m1n2p3q4r5"));
+        QCOMPARE(session->nextScene("f6g7h8j9k0"), QString());
+        QCOMPARE(session->nextScene("nothing"), QString());
     }
 
     void readOnlyProjectRefusesEdits()

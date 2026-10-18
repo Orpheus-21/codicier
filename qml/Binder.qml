@@ -119,6 +119,11 @@ ListView {
         T.Action { text: "New note"; onTriggered: binder.addItem("note") }
         T.Action { text: "New page"; onTriggered: binder.addItem("page") }
         T.Action { text: "Rename"; onTriggered: binder.startRename(binder.menuId) }
+        T.Action {
+            text: "Merge with next scene"
+            enabled: binder.menuId !== "" && binder.session.nextScene(binder.menuId) !== ""
+            onTriggered: binder.session.mergeWithNext(binder.menuId)
+        }
         T.Action { text: "Move to trash"; onTriggered: binder.session.moveToTrash(binder.menuId) }
     }
 

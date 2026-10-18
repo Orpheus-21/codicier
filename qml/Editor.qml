@@ -8,6 +8,8 @@ Item {
     id: editorArea
 
     required property Document document
+    // The place of the cursor in the text, for a split.
+    readonly property int cursorPosition: textEdit.cursorPosition
     // Typewriter scroll: the line with the cursor stays at one height.
     property bool typewriter: false
     // That height, as a part of the page height.
