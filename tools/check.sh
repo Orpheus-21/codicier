@@ -22,5 +22,5 @@ find build-cov -name '*.gcda' -delete
 ctest --test-dir build-cov > /dev/null
 python3 tools/coverage_diff.py build-cov --base "$base" --min 80
 
-clang-tidy --quiet -p build src/*.cpp tests/*.cpp
+clang-tidy --quiet -p build src/*.cpp spike/*.cpp tests/*.cpp
 echo "check: all $mode checks passed"
