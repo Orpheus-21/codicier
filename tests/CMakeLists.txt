@@ -99,9 +99,11 @@ add_test(NAME check_qmllint
 file(GLOB_RECURSE QML_LINT_FILES CONFIGURE_DEPENDS
     ${PROJECT_SOURCE_DIR}/spike/*.qml ${PROJECT_SOURCE_DIR}/mocks/*.qml
     ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml)
+# The same arguments map the module files into the module, so qmllint also
+# finds the C++ types of the module for the files that use it.
 add_test(NAME check_qmllint_tests
-    COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0 -I ${CMAKE_BINARY_DIR}/qml
-    ${QML_LINT_FILES})
+    COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0
+    @${CMAKE_BINARY_DIR}/.rcc/qmllint/codicier_ui.rsp ${QML_LINT_FILES})
 
 # Check the C++ format against .clang-format.
 find_program(CLANG_FORMAT clang-format REQUIRED)
