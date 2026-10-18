@@ -17,3 +17,6 @@ qt_add_qml_module(codicier
 
 target_compile_options(codicier PRIVATE -Wall -Wextra)
 target_link_libraries(codicier PRIVATE Qt6::Gui Qt6::Qml Qt6::Quick)
+
+enable_testing()
+add_subdirectory(tests)
