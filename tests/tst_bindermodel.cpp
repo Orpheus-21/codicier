@@ -34,6 +34,9 @@ private slots:
     {
         const LoadResult result = ProjectStore::load(QStringLiteral(FIXTURE_DIR "/novel"));
         QVERIFY(result.ok());
+        // A different project first, so each test starts with the default
+        // open and closed state.
+        model.setProject(Project());
         model.setProject(result.project);
     }
 
@@ -106,6 +109,14 @@ private slots:
         QCOMPARE(model.rowCount(model.index(0)), 0);
         QCOMPARE(model.rowOf("nothing"), -1);
         QCOMPARE(model.roleNames().size(), 10);
+    }
+
+    void openStateSurvivesAChangeInTheSameProject()
+    {
+        const LoadResult result = ProjectStore::load(QStringLiteral(FIXTURE_DIR "/novel"));
+        model.toggle(model.rowOf("a1b2c3d4e5"));
+        model.setProject(result.project);
+        QCOMPARE(model.rowOf("t6v4h9r2mz"), -1);
     }
 
     void sectionLabels()

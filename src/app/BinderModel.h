@@ -47,6 +47,8 @@ public:
     Q_INVOKABLE void setExpanded(int row, bool expanded);
     // The row of the item with id, or -1 if the item is hidden or unknown.
     Q_INVOKABLE int rowOf(const QString &id) const;
+    // True if the item with id is in the trash section.
+    Q_INVOKABLE bool isInTrash(const QString &id) const;
     // The section label for a section key, such as "Front matter".
     static QString sectionLabel(const QString &section);
 
@@ -74,6 +76,8 @@ private:
     QList<int> roots;
     QList<Row> rows;
     QSet<QString> collapsed;
+    // The open and closed state survives a change in the same project.
+    QString folder;
 
     QString keyOf(const Row &row) const;
     int sumWords(int node);

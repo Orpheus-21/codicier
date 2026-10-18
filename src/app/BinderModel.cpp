@@ -49,8 +49,11 @@ void BinderModel::setProject(const Project &project)
     roots = project.roots;
     for (const int root : std::as_const(roots))
         sumWords(root);
-    // The trash starts closed. Other sections and items start open.
-    collapsed = { sectionKey(QStringLiteral("trash")) };
+    // In a new project the trash starts closed, and the rest starts open.
+    if (project.folder != folder) {
+        folder = project.folder;
+        collapsed = { sectionKey(QStringLiteral("trash")) };
+    }
     rebuild();
 }
 
@@ -207,6 +210,15 @@ int BinderModel::rowOf(const QString &id) const
             return static_cast<int>(i);
     }
     return -1;
+}
+
+bool BinderModel::isInTrash(const QString &id) const
+{
+    for (const Node &node : nodes) {
+        if (node.id == id)
+            return node.section == QLatin1String("trash");
+    }
+    return false;
 }
 
 QString BinderModel::sectionLabel(const QString &section)

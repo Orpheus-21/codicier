@@ -98,6 +98,13 @@ target_link_libraries(tst_document PRIVATE codicier_ui Qt6::Test)
 add_test(NAME tst_document COMMAND tst_document)
 set_tests_properties(tst_document PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
+qt_add_executable(tst_binderedit tst_binderedit.cpp)
+target_compile_options(tst_binderedit PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_binderedit PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_binderedit PRIVATE codicier_ui Qt6::Test)
+add_test(NAME tst_binderedit COMMAND tst_binderedit)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 

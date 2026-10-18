@@ -21,6 +21,13 @@ T.ItemDelegate {
     required property bool missing
     // The view sets this for the current row.
     property bool current: false
+    // The view sets this while the author renames this row.
+    property bool renaming: false
+
+    // A right-click on the row.
+    signal menuRequested(point position)
+    signal renameAccepted(string title)
+    signal renameCancelled
 
     // The arrow was clicked.
     signal toggleRequested
@@ -120,6 +127,7 @@ T.ItemDelegate {
             }
 
             Text {
+                visible: !row.renaming
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - 14 - parent.spacing
                        - (row.iconName !== "" ? 16 + parent.spacing : 0)
@@ -133,10 +141,34 @@ T.ItemDelegate {
             }
         }
 
+        // Rename in place: Enter saves, Escape or a click away cancels.
+        Loader {
+            active: row.renaming
+            anchors.left: parent.left
+            anchors.leftMargin: 14 + Theme.space.xs + (row.iconName !== "" ? 16 + Theme.space.xs : 0)
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+
+            sourceComponent: TextField {
+                implicitHeight: 28
+                text: row.title
+                Component.onCompleted: {
+                    selectAll();
+                    forceActiveFocus();
+                }
+                onAccepted: row.renameAccepted(text)
+                Keys.onEscapePressed: row.renameCancelled()
+                onActiveFocusChanged: {
+                    if (!activeFocus)
+                        row.renameCancelled();
+                }
+            }
+        }
+
         Text {
             id: wordCount
 
-            visible: !row.isSection && row.words > 0
+            visible: !row.isSection && row.words > 0 && !row.renaming
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             text: Number(row.words).toLocaleString(Qt.locale("en_GB"), "f", 0)
@@ -144,6 +176,11 @@ T.ItemDelegate {
             font.pixelSize: Theme.type.small
             color: Theme.color.inkMuted
         }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+        onTapped: eventPoint => row.menuRequested(eventPoint.position)
     }
 
     background: Rectangle {

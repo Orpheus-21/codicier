@@ -31,6 +31,11 @@ Item {
         onActivated: view.close()
     }
 
+    Shortcut {
+        sequence: "Ctrl+N"
+        onActivated: binder.addItem("scene")
+    }
+
     // A project that did not load: the error and the way back.
     Column {
         visible: view.session.error !== ""
@@ -84,6 +89,26 @@ Item {
                 onClicked: projectMenu.popup(projectButton, 0, projectButton.height)
             }
 
+            IconButton {
+                id: addButton
+
+                anchors.right: parent.right
+                anchors.verticalCenter: projectButton.verticalCenter
+                iconName: "plus"
+                label: "New item"
+                onClicked: addMenu.popup(addButton, 0, addButton.height)
+            }
+
+            Menu {
+                id: addMenu
+
+                T.Action { text: "New scene"; onTriggered: binder.addItem("scene") }
+                T.Action { text: "New chapter"; onTriggered: binder.addItem("chapter") }
+                T.Action { text: "New part"; onTriggered: binder.addItem("part") }
+                T.Action { text: "New note"; onTriggered: binder.addItem("note") }
+                T.Action { text: "New page"; onTriggered: binder.addItem("page") }
+            }
+
             Menu {
                 id: projectMenu
 
@@ -94,6 +119,8 @@ Item {
             }
 
             Binder {
+                id: binder
+
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()
                 anchors.top: projectButton.bottom
