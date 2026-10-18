@@ -45,10 +45,14 @@ add_test(NAME tst_coverage_diff
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tst_coverage_diff.py)
 
 # Lint every QML file. One warning fails the test.
-file(GLOB_RECURSE QML_LINT_FILES CONFIGURE_DEPENDS
-    ${PROJECT_SOURCE_DIR}/qml/*.qml ${PROJECT_SOURCE_DIR}/spike/*.qml
-    ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml)
+# The module files use the arguments that Qt generates for the module. They
+# map each source file into the Codicier module, so qmllint reads its qmldir.
 add_test(NAME check_qmllint
+    COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0
+    @${CMAKE_BINARY_DIR}/.rcc/qmllint/codicier_ui.rsp)
+file(GLOB_RECURSE QML_LINT_FILES CONFIGURE_DEPENDS
+    ${PROJECT_SOURCE_DIR}/spike/*.qml ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml)
+add_test(NAME check_qmllint_tests
     COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0 -I ${CMAKE_BINARY_DIR}/qml
     ${QML_LINT_FILES})
 
