@@ -125,16 +125,35 @@ Window {
                 }
             }
 
-            Text {
+            WorkspaceHome {
+                id: workspaceHome
+
                 anchors.top: topBar.bottom
-                anchors.topMargin: Theme.space.xxxl
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Math.min(implicitWidth, parent.width - 2 * Theme.space.xl)
-                elide: Text.ElideMiddle
-                text: window.error !== "" ? window.error : Workspaces.current
+                anchors.bottom: parent.bottom
+                width: parent.width
+                folder: Workspaces.current
+            }
+
+            Row {
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.space.l
+                anchors.verticalCenter: topBar.verticalCenter
+                spacing: Theme.space.xs
+
+                Button {
+                    iconName: "plus"
+                    text: "New project"
+                    onClicked: workspaceHome.openNewProject()
+                }
+            }
+
+            Text {
+                visible: window.error !== ""
+                anchors.centerIn: topBar
+                text: window.error
                 font.family: Theme.type.ui
                 font.pixelSize: Theme.type.body
-                color: window.error !== "" ? Theme.color.accent : Theme.color.inkMuted
+                color: Theme.color.accent
             }
         }
     }

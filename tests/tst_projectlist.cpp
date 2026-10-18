@@ -1,0 +1,181 @@
+#include "ProjectList.h"
+#include "Templates.h"
+
+#include <QDir>
+#include <QFile>
+#include <QSignalSpy>
+#include <QTemporaryDir>
+#include <QTest>
+#include <QThread>
+
+namespace {
+
+void writeFile(const QString &path, const QByteArray &bytes)
+{
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    file.write(bytes);
+}
+
+QStringList titles(const ProjectList &list)
+{
+    QStringList out;
+    for (int i = 0; i < list.rowCount(); ++i)
+        out.append(list.data(list.index(i), ProjectList::TitleRole).toString());
+    return out;
+}
+
+} // namespace
+
+class TestProjectList : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void listsTheProjectsNewestFirst()
+    {
+        QTemporaryDir dir;
+        QVERIFY(
+            Templates::create(dir.filePath("ledger"), "novel", "The Salt Ledger", "A").isEmpty());
+        QThread::msleep(20);
+        QVERIFY(Templates::create(dir.filePath("revision"), "essay", "On Revision", "A").isEmpty());
+        QVERIFY(QDir(dir.path()).mkdir("not-a-project"));
+
+        ProjectList list;
+        list.setFolder(dir.path());
+        QCOMPARE(list.count(), 2);
+        QCOMPARE(titles(list), (QStringList { "On Revision", "The Salt Ledger" }));
+        QCOMPARE(list.fictionCount(), 1);
+        QCOMPARE(list.nonFictionCount(), 1);
+
+        // A new edit moves a project to the top.
+        QThread::msleep(20);
+        writeFile(dir.filePath("ledger/manuscript/scene-1.md"),
+                  "The lamp had burned down.\n\nShe found the letter.\n");
+        list.refresh();
+        QCOMPARE(titles(list), (QStringList { "The Salt Ledger", "On Revision" }));
+        const QVariantMap first = list.get(0);
+        QCOMPARE(first.value("words").toInt(), 9);
+        QCOMPARE(list.totalWords(), 9);
+        QCOMPARE(first.value("goal").toInt(), 80000);
+        QCOMPARE(first.value("kindLabel").toString(), QStringLiteral("Novel"));
+        QCOMPARE(first.value("fiction").toBool(), true);
+        QCOMPARE(first.value("lastLine").toString(), QStringLiteral("She found the letter."));
+        QCOMPARE(first.value("editedLabel").toString(), QStringLiteral("Today"));
+        QCOMPARE(first.value("error").toString(), QString());
+        QVERIFY(list.get(5).isEmpty());
+    }
+
+    void lastLineIsPlainProse()
+    {
+        QTemporaryDir dir;
+        QVERIFY(Templates::create(dir.filePath("p"), "essay", "E", "").isEmpty());
+        writeFile(
+            dir.filePath("p/manuscript/draft.md"),
+            "# A heading\n\nThe letter said *the fourth* of **March**, _snake_case_ stays.[^1]\n\n"
+            "[^1]: A footnote.\n");
+        ProjectList list;
+        list.setFolder(dir.path());
+        QCOMPARE(list.get(0).value("lastLine").toString(),
+                 QStringLiteral("The letter said the fourth of March, snake_case stays."));
+    }
+
+    void brokenProjectStaysWithItsError()
+    {
+        QTemporaryDir dir;
+        QVERIFY(QDir(dir.path()).mkdir("broken"));
+        writeFile(dir.filePath("broken/project.toml"), "title = \"No end\n");
+        ProjectList list;
+        list.setFolder(dir.path());
+        QCOMPARE(list.count(), 1);
+        QCOMPARE(list.get(0).value("title").toString(), QStringLiteral("broken"));
+        QVERIFY(list.get(0).value("error").toString().startsWith("project.toml:1:"));
+        QCOMPARE(list.fictionCount(), 0);
+    }
+
+    void createMakesAProjectFolder()
+    {
+        QTemporaryDir dir;
+        ProjectList list;
+        list.setFolder(dir.path());
+        QSignalSpy refreshed(&list, &ProjectList::refreshed);
+
+        QCOMPARE(list.create("  The Salt Ledger ", "novel", "A. Writer"), QString());
+        QVERIFY(QFile::exists(dir.filePath("the-salt-ledger/project.toml")));
+        QCOMPARE(list.count(), 1);
+        QVERIFY(refreshed.size() >= 1);
+
+        // The same title again gets a new folder name.
+        QCOMPARE(list.create("The Salt Ledger", "essay", QString()), QString());
+        QVERIFY(QFile::exists(dir.filePath("the-salt-ledger-2/project.toml")));
+        QCOMPARE(list.count(), 2);
+    }
+
+    void createRefusesBadInput()
+    {
+        QTemporaryDir dir;
+        ProjectList list;
+        QVERIFY(list.create("Title", "novel", QString()).contains("workspace"));
+        list.setFolder(dir.path());
+        QVERIFY(list.create("   ", "novel", QString()).contains("title"));
+        QVERIFY(list.create("Poems", "poem", QString()).contains("not a kind"));
+        QCOMPARE(list.count(), 0);
+    }
+
+    void newFolderInTheWorkspaceIsSeen()
+    {
+        QTemporaryDir dir;
+        ProjectList list;
+        list.setFolder(dir.path());
+        QCOMPARE(list.count(), 0);
+        QVERIFY(
+            Templates::create(dir.filePath("outside"), "essay", "Made Elsewhere", "").isEmpty());
+        QTRY_COMPARE_WITH_TIMEOUT(list.count(), 1, 5000);
+    }
+
+    void editedLabels_data()
+    {
+        QTest::addColumn<int>("daysAgo");
+        QTest::addColumn<QString>("label");
+        QTest::newRow("today") << 0 << "Today";
+        QTest::newRow("yesterday") << 1 << "Yesterday";
+        QTest::newRow("days") << 3 << "3 days ago";
+        QTest::newRow("one week") << 8 << "1 week ago";
+        QTest::newRow("weeks") << 20 << "2 weeks ago";
+        QTest::newRow("month") << 60 << "August 2026";
+    }
+
+    void editedLabels()
+    {
+        QFETCH(int, daysAgo);
+        QFETCH(QString, label);
+        const QDateTime now(QDate(2026, 10, 18), QTime(12, 0));
+        QCOMPARE(ProjectList::editedLabel(now.addDays(-daysAgo), now), label);
+        QCOMPARE(ProjectList::editedLabel(QDateTime(), now), QString());
+    }
+
+    void kinds()
+    {
+        QCOMPARE(ProjectList::kindLabel("essay-collection"), QStringLiteral("Essay collection"));
+        QVERIFY(ProjectList::isFiction("series"));
+        QVERIFY(!ProjectList::isFiction("non-fiction"));
+    }
+
+    void roleNamesMatchTheData()
+    {
+        QTemporaryDir dir;
+        QVERIFY(Templates::create(dir.filePath("p"), "novella", "N", "").isEmpty());
+        ProjectList list;
+        list.setFolder(dir.path());
+        const QHash<int, QByteArray> roles = list.roleNames();
+        QCOMPARE(roles.size(), 11);
+        QCOMPARE(list.data(list.index(0), ProjectList::FolderRole).toString(), dir.filePath("p"));
+        QVERIFY(list.data(list.index(0), ProjectList::EditedRole).toDateTime().isValid());
+        QVERIFY(!list.data(list.index(0), Qt::DisplayRole).isValid());
+        QVERIFY(!list.data(list.index(3), ProjectList::TitleRole).isValid());
+        QCOMPARE(list.rowCount(list.index(0)), 0);
+    }
+};
+
+QTEST_GUILESS_MAIN(TestProjectList)
+#include "tst_projectlist.moc"

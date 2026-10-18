@@ -71,6 +71,11 @@ target_compile_options(tst_workspaces PRIVATE -Wall -Wextra)
 target_link_libraries(tst_workspaces PRIVATE codicier_ui Qt6::Test)
 add_test(NAME tst_workspaces COMMAND tst_workspaces)
 
+qt_add_executable(tst_projectlist tst_projectlist.cpp)
+target_compile_options(tst_projectlist PRIVATE -Wall -Wextra)
+target_link_libraries(tst_projectlist PRIVATE codicier_ui Qt6::Test)
+add_test(NAME tst_projectlist COMMAND tst_projectlist)
+
 add_test(NAME check_offline
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/check_offline.sh ${PROJECT_SOURCE_DIR})
 
