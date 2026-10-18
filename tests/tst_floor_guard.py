@@ -11,8 +11,22 @@ FAKE_TOKEN = "ghp_" + "a" * 36
 BASE_FILES = {
     "src/a.cpp": "int a() { return 1; }\n",
     "tests/tst_a.cpp": "QCOMPARE(a(), 1);\nQVERIFY(true);\n",
-    "CONSTRAINTS.md": "- Coverage: at least 80%\n",
+    "CONSTRAINTS.md": (
+        "- Coverage: at least 80%\n\n"
+        "## Enforced with numbers\n\n"
+        "| Dimension | Rule | Checked by |\n|---|---|---|\n| Tests | All pass | ctest |\n\n"
+        "## Planned\n\n"
+        "| Dimension | Rule | Check added in |\n|---|---|---|\n| Speed | 16 ms | T7 |\n"),
 }
+PLANNED_ROW = "| Speed | 16 ms | T7 |\n"
+ENFORCED_ROW = "| Tests | All pass | ctest |\n"
+
+
+def promote(rule):
+    def change(root):
+        replace("CONSTRAINTS.md", PLANNED_ROW, "")(root)
+        replace("CONSTRAINTS.md", ENFORCED_ROW, ENFORCED_ROW + f"| Speed | {rule} | probe |\n")(root)
+    return change
 
 
 def run(*args, cwd):
@@ -71,6 +85,9 @@ case("assertion removed", replace("tests/tst_a.cpp", "QVERIFY(true);\n", ""), 1,
      "assertion-removed")
 case("test deleted", lambda r: (r / "tests/tst_a.cpp").unlink(), 1, "test-deleted")
 case("constraint changed", replace("CONSTRAINTS.md", "80%", "50%"), 1, "constraint-changed")
+case("planned rule enforced", promote("16 ms"), 0)
+case("planned rule dropped", replace("CONSTRAINTS.md", PLANNED_ROW, ""), 1, "constraint-changed")
+case("planned rule weakened as it moves", promote("32 ms"), 1, "constraint-changed")
 case("secret redacted", append("src/a.cpp", f'auto t = "{FAKE_TOKEN}";\n'), 1, "secret")
 
 with tempfile.TemporaryDirectory() as tmp:

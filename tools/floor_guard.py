@@ -92,7 +92,37 @@ def is_rule(text):
     return text.lstrip().startswith(("- ", "|"))
 
 
-def check(added, removed, deleted):
+def table_rows(text):
+    """Map each table row in CONSTRAINTS.md text to its section and its cells."""
+    section, rows = "", {}
+    for line in text.splitlines():
+        if line.startswith("## "):
+            section = line[3:].strip()
+        elif line.startswith("|"):
+            rows[line] = (section, [cell.strip() for cell in line.strip("|").split("|")])
+    return rows
+
+
+def promotions(base):
+    """Return the Planned rows that moved to Enforced with the same rule text.
+
+    A promotion makes the bar stricter, so its removed row is not a finding.
+    """
+    merge_base = git("merge-base", base, "HEAD")
+    if merge_base is None:
+        bail(f"no merge base against {base}")
+    old = git("show", f"{merge_base.strip()}:CONSTRAINTS.md", ok_codes=(0, 128)) or ""
+    try:
+        new = open("CONSTRAINTS.md", encoding="utf-8").read()
+    except FileNotFoundError:
+        return set()
+    enforced = {tuple(cells[:2]) for section, cells in table_rows(new).values()
+                if section.startswith("Enforced")}
+    return {line for line, (section, cells) in table_rows(old).items()
+            if section == "Planned" and tuple(cells[:2]) in enforced}
+
+
+def check(added, removed, deleted, promoted=frozenset()):
     findings = []
     for path, text in added:
         if SECRET.search(text):
@@ -113,7 +143,7 @@ def check(added, removed, deleted):
             findings.append(("assertion-removed", path, text))
         # ponytail: any changed rule line is loud, tightening too; add a direction parser
         # if tightening commits become common.
-        if path == "CONSTRAINTS.md" and is_rule(text):
+        if path == "CONSTRAINTS.md" and is_rule(text) and text not in promoted:
             findings.append(("constraint-changed", path, text))
     return findings
 
@@ -128,7 +158,7 @@ def main():
         bail("not inside a git work tree")
     os.chdir(top.strip())
 
-    findings = check(*parse(collect_diff(args.base)))
+    findings = check(*parse(collect_diff(args.base)), promotions(args.base))
     if not findings:
         print("floor-guard: clean")
         return 0
