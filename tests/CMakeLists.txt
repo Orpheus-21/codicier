@@ -26,9 +26,9 @@ add_test(NAME tst_offline COMMAND tst_offline)
 set_tests_properties(tst_offline PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
 qt_add_executable(tst_highlighter tst_highlighter.cpp
-    ${PROJECT_SOURCE_DIR}/spike/MarkdownHighlighter.cpp)
+    ${PROJECT_SOURCE_DIR}/src/app/MarkdownHighlighter.cpp)
 target_compile_options(tst_highlighter PRIVATE -Wall -Wextra)
-target_include_directories(tst_highlighter PRIVATE ${PROJECT_SOURCE_DIR}/spike)
+target_include_directories(tst_highlighter PRIVATE ${PROJECT_SOURCE_DIR}/src/app)
 target_link_libraries(tst_highlighter PRIVATE Qt6::Gui Qt6::Test)
 add_test(NAME tst_highlighter COMMAND tst_highlighter)
 set_tests_properties(tst_highlighter PROPERTIES ENVIRONMENT "${TEST_ENV}")

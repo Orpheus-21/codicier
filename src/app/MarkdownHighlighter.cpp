@@ -9,11 +9,21 @@ MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
       emphasis(QStringLiteral("(?<![*\\w])[*_](?=[^\\s*_])(.+?)(?<=[^\\s*_])[*_](?![*\\w])")),
       footnote(QStringLiteral("\\[\\^[^\\]\\s]+\\]"))
 {
-    markFormat.setForeground(QColor(0xb5, 0xa9, 0x96));
+    // The light theme colours until the app sets the theme.
+    markFormat.setForeground(QColor(0x70, 0x6b, 0x65));
     strongFormat.setFontWeight(QFont::Bold);
     emphasisFormat.setFontItalic(true);
-    footnoteFormat.setForeground(QColor(0x9a, 0x5b, 0x2e));
+    footnoteFormat.setForeground(QColor(0x94, 0x55, 0x2a));
     footnoteFormat.setVerticalAlignment(QTextCharFormat::AlignSuperScript);
+}
+
+void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
+{
+    if (markFormat.foreground().color() == mark && footnoteFormat.foreground().color() == accent)
+        return;
+    markFormat.setForeground(mark);
+    footnoteFormat.setForeground(accent);
+    rehighlight();
 }
 
 void MarkdownHighlighter::highlightBlock(const QString &text)

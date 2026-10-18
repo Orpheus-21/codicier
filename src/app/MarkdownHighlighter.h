@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QColor>
 #include <QRegularExpression>
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
@@ -11,6 +12,10 @@ class MarkdownHighlighter : public QSyntaxHighlighter
 {
 public:
     explicit MarkdownHighlighter(QTextDocument *document);
+
+    // The colour of the Markdown marks and of the footnote marks. A change
+    // styles the whole text again.
+    void setColors(const QColor &mark, const QColor &accent);
 
 protected:
     void highlightBlock(const QString &text) override;
