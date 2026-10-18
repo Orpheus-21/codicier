@@ -102,7 +102,7 @@ Do not say so yet."""
 |---|---|---|---|
 | `id` | string | all | The item id. See "Item ids". |
 | `kind` | string | all | The kind of item. See "Kinds of items". |
-| `section` | string | top level only | `manuscript`, `front`, `back`, `notes`, `research`, or `trash`. |
+| `section` | string | top level only | `manuscript`, `front`, `back`, `notes`, `research`, `searches`, or `trash`. |
 | `parent` | string | all below the top level | The id of the parent item. |
 | `title` | string | all | The title in the binder. |
 | `file` | string | text and file items | The path of the file, relative to the project folder, with `/` between the parts. |
@@ -114,6 +114,8 @@ Do not say so yet."""
 | `tags` | array of strings | text items | Tags. |
 | `target` | integer | text items | The word target. |
 | `include` | boolean | text items | False leaves the item out of the manuscript: no total counts its words. The default is true, and the app writes the key only when it is false. |
+| `query` | string | saved searches | The text of the search. |
+| `regex` | boolean | saved searches | True makes the query a regular expression. The default is false, and the app writes the key only when it is true. |
 | `notes` | string | all | Free notes for the item. |
 | `restore` | string | items in the trash | The id of the parent before the move to the trash. |
 
@@ -130,6 +132,7 @@ An item at the top level has a `section` and no `parent`. An item below the top 
 | `page` | front or back matter, such as a dedication | yes, in `matter/` | `front` or `back` |
 | `note` | a note | yes, in `notes/` | `notes` |
 | `file` | a research file | yes, in `research/` | `research` |
+| `search` | a saved search | no | `searches` |
 
 A short story or an essay can have scenes at the top of the manuscript, with no parts or chapters.
 
