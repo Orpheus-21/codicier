@@ -12,8 +12,9 @@ T.SplitView {
         implicitWidth: 7
         implicitHeight: 7
 
+        // The rule sits at the start of the handle, against the first pane,
+        // so no strip of another colour shows between them.
         Rectangle {
-            anchors.centerIn: parent
             width: control.orientation === Qt.Horizontal ? 1 : parent.width
             height: control.orientation === Qt.Horizontal ? parent.height : 1
             color: parent.T.SplitHandle.pressed || parent.T.SplitHandle.hovered

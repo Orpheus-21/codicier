@@ -225,8 +225,8 @@ TestCase {
         const splitter = make(splitterComponent);
         compare(splitter.count, 2);
         const first = splitter.itemAt(0);
-        // The handle sits right after the first pane, and its centre is the rule.
-        verify(Qt.colorEqual(pixelAt(splitter, first.width + 3, 50), Theme.color.rule));
+        // The rule is the first pixel of the handle, right after the first pane.
+        verify(Qt.colorEqual(pixelAt(splitter, first.width, 50), Theme.color.rule));
     }
 
     function test_menuOpensAndTriggers() {
