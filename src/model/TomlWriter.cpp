@@ -18,9 +18,10 @@ bool isSection(const toml::node &node)
 void escape(std::string &out, unsigned char c)
 {
     constexpr std::string_view hex = "0123456789ABCDEF";
+    const unsigned value = c;
     out += "\\u00";
-    out += hex[c >> 4];
-    out += hex[c & 0xF];
+    out += hex[value >> 4U];
+    out += hex[value & 0xFU];
 }
 
 std::string basicString(std::string_view text)
