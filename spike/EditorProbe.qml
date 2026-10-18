@@ -22,6 +22,13 @@ Rectangle {
         flick.contentY = Math.max(0, editor.cursorRectangle.y - height / 2);
     }
 
+    // Scroll down by dy. At the end, go back to the top, so each step moves
+    // the view.
+    function scrollStep(dy: real) {
+        const end = flick.contentHeight - flick.height;
+        flick.contentY = flick.contentY + dy > end ? 0 : flick.contentY + dy;
+    }
+
     FontLoader {
         id: roman
 

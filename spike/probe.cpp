@@ -1,8 +1,8 @@
 // Editor speed probe. It opens a chapter in EditorProbe.qml with the Markdown
-// highlighter, types keys into the editor, and logs the time from each key
-// press to the next frame.
+// highlighter, types keys into the editor, then scrolls it. It logs the time
+// from each key press or scroll step to the next frame.
 // Usage: probe FIXTURE.md [BUDGET_MS]
-// Exit 0 if the p95 time is within the budget, 1 if not, 2 if the run failed.
+// Exit 0 if both p95 times are within the budget, 1 if not, 2 if the run failed.
 
 #include "MarkdownHighlighter.h"
 
@@ -19,12 +19,14 @@
 #include <algorithm>
 #include <cstdio>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace {
 
-constexpr int warmupKeys = 20;
-constexpr int measuredKeys = 300;
+constexpr int warmupSteps = 20;
+constexpr int measuredSteps = 300;
+constexpr double scrollPixels = 40;
 constexpr int deadlineMs = 60000;
 constexpr std::u16string_view typed = u"the quiet river ";
 
@@ -73,6 +75,7 @@ int main(int argc, char *argv[])
     const QString fixture = QString::fromUtf8(file.readAll());
 
     QQuickView view;
+    view.setResizeMode(QQuickView::SizeRootObjectToView);
     view.setInitialProperties({ { "fixture", fixture } });
     view.setSource(QUrl::fromLocalFile(QStringLiteral(PROBE_QML)));
     QQuickItem *root = view.rootObject();
@@ -90,16 +93,22 @@ int main(int argc, char *argv[])
         QCoreApplication::exit(2);
     });
 
-    QElapsedTimer sinceKey;
-    std::vector<double> samples;
-    int keysSent = 0;
+    QElapsedTimer sinceStep;
+    std::vector<double> keySamples;
+    std::vector<double> scrollSamples;
+    constexpr int stepsPerPhase = warmupSteps + measuredSteps;
+    int steps = 0;
     int startLength = 0;
     bool loaded = false;
 
-    auto typeNext = [&] {
-        sendKey(&view, QChar(typed[keysSent % typed.size()]));
-        ++keysSent;
-        sinceKey.start();
+    // The first phase types keys. The second phase scrolls.
+    auto stepNext = [&] {
+        if (steps < stepsPerPhase)
+            sendKey(&view, QChar(typed[steps % typed.size()]));
+        else
+            QMetaObject::invokeMethod(root, "scrollStep", scrollPixels);
+        ++steps;
+        sinceStep.start();
     };
 
     QObject::connect(&view, &QQuickWindow::frameSwapped, &app, [&] {
@@ -111,17 +120,18 @@ int main(int argc, char *argv[])
             loaded = true;
             startLength = editor->property("length").toInt();
             QMetaObject::invokeMethod(root, "placeCursor", startLength / 2);
-            QTimer::singleShot(0, &app, typeNext);
+            QTimer::singleShot(0, &app, stepNext);
             return;
         }
-        if (!sinceKey.isValid())
+        if (!sinceStep.isValid())
             return;
-        const double ms = static_cast<double>(sinceKey.nsecsElapsed()) / 1e6;
-        sinceKey.invalidate();
-        if (keysSent > warmupKeys)
-            samples.push_back(ms);
-        if (keysSent < warmupKeys + measuredKeys)
-            QTimer::singleShot(0, &app, typeNext);
+        const double ms = static_cast<double>(sinceStep.nsecsElapsed()) / 1e6;
+        sinceStep.invalidate();
+        const int inPhase = (steps - 1) % stepsPerPhase;
+        if (inPhase >= warmupSteps)
+            (steps <= stepsPerPhase ? keySamples : scrollSamples).push_back(ms);
+        if (steps < 2 * stepsPerPhase)
+            QTimer::singleShot(0, &app, stepNext);
         else
             QCoreApplication::exit(0);
     });
@@ -130,16 +140,25 @@ int main(int argc, char *argv[])
     if (app.exec() != 0)
         return 2;
 
+    if (!root->property("fontsReady").toBool()) {
+        std::fprintf(stderr, "probe: the bundled fonts did not load\n");
+        return 2;
+    }
     const int grown = editor->property("length").toInt() - startLength;
-    if (grown != keysSent) {
-        std::fprintf(stderr, "probe: sent %d keys but the text grew by %d\n", keysSent, grown);
+    if (grown != stepsPerPhase) {
+        std::fprintf(stderr, "probe: sent %d keys but the text grew by %d\n", stepsPerPhase, grown);
         return 2;
     }
 
-    const double p95 = percentile(samples, 0.95);
-    std::printf("probe: %zu keys, %d chars, %s\n", samples.size(), startLength,
-                qPrintable(QGuiApplication::platformName()));
-    std::printf("probe: p50 %.2f ms, p95 %.2f ms, max %.2f ms, budget %.1f ms\n",
-                percentile(samples, 0.5), p95, percentile(samples, 1.0), budgetMs);
-    return p95 <= budgetMs ? 0 : 1;
+    std::printf("probe: %d chars, %s, budget %.1f ms\n", startLength,
+                qPrintable(QGuiApplication::platformName()), budgetMs);
+    bool within = true;
+    for (const auto &[name, samples] :
+         { std::pair { "key", &keySamples }, std::pair { "scroll", &scrollSamples } }) {
+        const double p95 = percentile(*samples, 0.95);
+        std::printf("probe: %-6s %zu steps, p50 %.2f ms, p95 %.2f ms, max %.2f ms\n", name,
+                    samples->size(), percentile(*samples, 0.5), p95, percentile(*samples, 1.0));
+        within = within && p95 <= budgetMs;
+    }
+    return within ? 0 : 1;
 }
