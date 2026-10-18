@@ -42,6 +42,7 @@ void BinderModel::setProject(const Project &project)
         node.status = QString::fromStdString(item.data["status"].value_or(std::string()));
         node.children = item.children;
         node.missing = item.missingFile;
+        node.included = item.data["include"].value_or(true);
         if (!item.file.isEmpty() && item.kind != QLatin1String("file") && !item.missingFile)
             node.words = wordsInFile(dir.filePath(item.file));
         nodes.append(node);
@@ -62,8 +63,11 @@ void BinderModel::setProject(const Project &project)
 
 int BinderModel::sumWords(int node)
 {
-    for (const int child : std::as_const(nodes[node].children))
-        nodes[node].words += sumWords(child);
+    for (const int child : std::as_const(nodes[node].children)) {
+        const int words = sumWords(child);
+        if (nodes.at(child).included)
+            nodes[node].words += words;
+    }
     return nodes.at(node).words;
 }
 
@@ -136,6 +140,8 @@ QVariant BinderModel::data(const QModelIndex &index, int role) const
             return QString();
         case MissingRole:
             return false;
+        case IncludedRole:
+            return true;
         default:
             return { };
         }
@@ -164,6 +170,8 @@ QVariant BinderModel::data(const QModelIndex &index, int role) const
         return node.words;
     case MissingRole:
         return node.missing;
+    case IncludedRole:
+        return node.included;
     default:
         return { };
     }
@@ -182,6 +190,7 @@ QHash<int, QByteArray> BinderModel::roleNames() const
         { StatusRole, "status" },
         { WordsRole, "words" },
         { MissingRole, "missing" },
+        { IncludedRole, "included" },
     };
 }
 
@@ -243,6 +252,9 @@ void BinderModel::setItemWords(const QString &id, int words)
     for (int up = node; up >= 0; up = parents.at(up)) {
         nodes[up].words += delta;
         changed.insert(up);
+        // A left out item stops the count at itself.
+        if (!nodes.at(up).included)
+            break;
     }
     for (qsizetype row = 0; row < rows.size(); ++row) {
         if (changed.contains(rows.at(row).node))
@@ -261,7 +273,7 @@ int BinderModel::manuscriptWords() const
 {
     int total = 0;
     for (const int root : roots) {
-        if (nodes.at(root).section == QLatin1String("manuscript"))
+        if (nodes.at(root).section == QLatin1String("manuscript") && nodes.at(root).included)
             total += nodes.at(root).words;
     }
     return total;

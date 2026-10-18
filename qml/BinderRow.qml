@@ -19,6 +19,8 @@ T.ItemDelegate {
     required property string status
     required property int words
     required property bool missing
+    // False for an item left out of the manuscript.
+    required property bool included
     // The view sets this for the current row.
     property bool current: false
     // The view sets this while the author renames this row.
@@ -144,7 +146,7 @@ T.ItemDelegate {
                 font.pixelSize: Theme.type.body
                 font.weight: row.current ? Font.Medium : Font.Normal
                 font.strikeout: row.missing
-                color: row.missing ? Theme.color.inkMuted : Theme.color.ink
+                color: row.missing || !row.included ? Theme.color.inkMuted : Theme.color.ink
             }
         }
 

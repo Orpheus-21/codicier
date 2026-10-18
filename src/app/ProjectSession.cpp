@@ -210,6 +210,9 @@ void ProjectSession::place(int index, int parent, int position, const QString &s
 
 bool ProjectSession::commit(const QStringList &newFiles)
 {
+    // The open text saves first, so the counts that the binder reads from the
+    // files include the latest typing.
+    text.save();
     const QList<LoadError> errors = ProjectStore::save(project);
     editError = errors.isEmpty() ? QString() : errors.first().text();
     if (watcher) {
@@ -607,6 +610,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
     map.insert(QStringLiteral("target"),
                static_cast<int>(item.data["target"].value_or(std::int64_t { 0 })));
     map.insert(QStringLiteral("words"), binderModel.wordsOf(id));
+    map.insert(QStringLiteral("include"), item.data["include"].value_or(true));
     return map;
 }
 
@@ -642,6 +646,14 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
             data.erase(name);
         else
             data.insert_or_assign(name, target);
+    } else if (key == QLatin1String("include")) {
+        // The default is true, so only false is written.
+        if (value.typeId() != QMetaType::Bool)
+            return false;
+        if (value.toBool())
+            data.erase(name);
+        else
+            data.insert_or_assign(name, false);
     } else if (key == QLatin1String("status")) {
         const QString status = value.toString();
         if (status != QLatin1String("draft") && status != QLatin1String("revised")

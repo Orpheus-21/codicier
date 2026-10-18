@@ -108,7 +108,7 @@ private slots:
         QVERIFY(!model.data(model.index(1), Qt::DisplayRole).isValid());
         QCOMPARE(model.rowCount(model.index(0)), 0);
         QCOMPARE(model.rowOf("nothing"), -1);
-        QCOMPARE(model.roleNames().size(), 10);
+        QCOMPARE(model.roleNames().size(), 11);
     }
 
     void openStateSurvivesAChangeInTheSameProject()
@@ -135,6 +135,30 @@ private slots:
         model.setItemWords("nothing", 5);
         QCOMPARE(model.wordsOf("f6g7h8j9k0"), 40);
         QCOMPARE(model.wordsOf("nothing"), 0);
+    }
+
+    void leftOutItemsCountInNoTotal()
+    {
+        LoadResult result = ProjectStore::load(QStringLiteral(FIXTURE_DIR "/novel"));
+        for (ProjectItem &item : result.project.items) {
+            if (item.id == "t6v4h9r2mz")
+                item.data.insert_or_assign("include", false);
+        }
+        model.setProject(result.project);
+        const int row = model.rowOf("t6v4h9r2mz");
+        QCOMPARE(model.data(model.index(row), BinderModel::IncludedRole).toBool(), false);
+        QCOMPARE(
+            model.data(model.index(model.rowOf("section:manuscript")), BinderModel::IncludedRole)
+                .toBool(),
+            true);
+        // The scene keeps its own count, but its chapter and the book do not
+        // count it.
+        QCOMPARE(model.wordsOf("t6v4h9r2mz"), 18);
+        QCOMPARE(model.wordsOf("f6g7h8j9k0"), 10);
+        QCOMPARE(model.manuscriptWords(), 10);
+        model.setItemWords("t6v4h9r2mz", 40);
+        QCOMPARE(model.wordsOf("t6v4h9r2mz"), 40);
+        QCOMPARE(model.wordsOf("f6g7h8j9k0"), 10);
     }
 
     void sectionLabels()

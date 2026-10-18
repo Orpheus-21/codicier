@@ -205,6 +205,8 @@ private slots:
                                   << "binder.toml:21: `tags` must hold only strings";
         QTest::newRow("bad target") << projectText() << goodBinder() + "target = \"many\"\n"
                                     << "binder.toml:21: `target` must be an integer";
+        QTest::newRow("bad include") << projectText() << goodBinder() + "include = \"no\"\n"
+                                     << "binder.toml:21: `include` must be a boolean";
 
         QTest::newRow("project kind")
             << QString(projectText()).replace("\"novel\"", "\"poem\"") << goodBinder()

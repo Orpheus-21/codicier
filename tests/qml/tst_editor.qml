@@ -177,6 +177,25 @@ TestCase {
         compare(view.session.chapterWords, 7);
     }
 
+    function test_leftOutSceneLeavesTheBookTotal() {
+        const view = makeView();
+        const model = view.session.binder;
+        const id = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = id;
+        const text = findChild(view, "editor") as TextEdit;
+        text.forceActiveFocus();
+        for (const c of "Four words in here")
+            keyClick(c);
+        tryCompare(view.session, "manuscriptWords", 4);
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        verify(findChild(view, "inspector").save("include", false));
+        compare(view.session.manuscriptWords, 0);
+        // The binder edit saved the typing first, so the scene keeps its count.
+        compare(model.data(model.index(model.rowOf(id), 0), BinderModel.WordsRole), 4);
+        compare(model.data(model.index(model.rowOf(id), 0), BinderModel.IncludedRole), false);
+    }
+
     function test_themeChangeIsNotAnEdit() {
         const view = makeView();
         const model = view.session.binder;

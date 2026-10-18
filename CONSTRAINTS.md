@@ -61,6 +61,7 @@ No rule is planned now.
 |---|---|---|---|---|---|
 | E1 | assertion-removed | tests/qml/tst_components.qml | The splitter rule moved from the centre of the handle to its start, so the checked pixel moved with it. | Orpheus-21 | 2026-10-25 |
 | E2 | assertion-removed | tests/qml/tst_editor.qml | T39 makes the composite view editable, so the check for read only became a check for editable. | Orpheus-21 | 2026-10-25 |
+| E3 | assertion-removed | tests/tst_bindermodel.cpp | T40 adds the included role, so the binder model has 11 roles, not 10. | Orpheus-21 | 2026-10-25 |
 
 An exception lasts 90 days at most.
 

@@ -95,6 +95,8 @@ QString typeName(toml::node_type type)
         return QStringLiteral("a date and time");
     case toml::node_type::array:
         return QStringLiteral("an array");
+    case toml::node_type::boolean:
+        return QStringLiteral("a boolean");
     case toml::node_type::table:
         return QStringLiteral("a table");
     default:
@@ -279,6 +281,7 @@ private:
              { "pov", "place", "time", "synopsis", "notes", "restore" })
             checkType(entry, key, toml::node_type::string, file);
         checkType(entry, "target", toml::node_type::integer, file);
+        checkType(entry, "include", toml::node_type::boolean, file);
         if (const auto status = string(entry, "status", file, line, false);
             status && !contains(statuses, *status))
             error(file, lineOf(*entry.get("status")),
@@ -397,10 +400,10 @@ constexpr std::array<std::string_view, 7> projectOrder { "format", "title",    "
                                                          "kind",   "language", "created" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 15> itemOrder { "id",     "kind",    "section",  "parent",
-                                                       "title",  "file",    "status",   "pov",
-                                                       "place",  "time",    "synopsis", "tags",
-                                                       "target", "restore", "notes" };
+constexpr std::array<std::string_view, 16> itemOrder { "id",    "kind",   "section", "parent",
+                                                       "title", "file",   "status",  "include",
+                                                       "pov",   "place",  "time",    "synopsis",
+                                                       "tags",  "target", "restore", "notes" };
 
 TomlWriter::Order orderFor(std::string_view path)
 {

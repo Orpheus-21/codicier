@@ -464,6 +464,19 @@ private slots:
         QCOMPARE(session->chapterWords(), 28);
     }
 
+    void includeIsWrittenOnlyWhenFalse()
+    {
+        QCOMPARE(session->fields("t6v4h9r2mz").value("include").toBool(), true);
+        QVERIFY(session->setField("t6v4h9r2mz", "include", false));
+        QCOMPARE(onDisk(dir.path(), "t6v4h9r2mz").data["include"].value_or(true), false);
+        QCOMPARE(session->fields("t6v4h9r2mz").value("include").toBool(), false);
+        QCOMPARE(session->manuscriptWords(), 10);
+        QVERIFY(session->setField("t6v4h9r2mz", "include", true));
+        QVERIFY(!onDisk(dir.path(), "t6v4h9r2mz").data.contains("include"));
+        QCOMPARE(session->manuscriptWords(), 28);
+        QVERIFY(!session->setField("t6v4h9r2mz", "include", "no"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

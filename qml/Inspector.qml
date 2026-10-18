@@ -80,6 +80,35 @@ Pane {
         }
     }
 
+    // One choice of a set, such as "Left out".
+    component Choice: T.ItemDelegate {
+        id: option
+
+        required property string label
+        required property bool chosen
+
+        implicitWidth: optionText.implicitWidth + 2 * Theme.space.s
+        implicitHeight: 30
+
+        background: Rectangle {
+            radius: Theme.radius.small
+            color: option.chosen ? Theme.color.selection
+                 : option.hovered ? Qt.alpha(Theme.color.selection, 0.5) : "transparent"
+        }
+
+        contentItem: Item {
+            Text {
+                id: optionText
+
+                anchors.centerIn: parent
+                text: option.label
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.small + 1
+                color: Theme.color.ink
+            }
+        }
+    }
+
     // The status as the shape from the binder: a pale ring for draft, an
     // accent ring for revised, and an accent dot for final.
     component StatusChoice: T.ItemDelegate {
@@ -209,6 +238,32 @@ Pane {
                     StatusChoice {
                         status: "final"
                         label: "Final"
+                    }
+                }
+            }
+
+            Column {
+                visible: inspector.fields.kind === "scene"
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Manuscript"
+                }
+
+                Row {
+                    spacing: Theme.space.xs
+
+                    Choice {
+                        label: "In the manuscript"
+                        chosen: inspector.fields.include ?? true
+                        onClicked: inspector.save("include", true)
+                    }
+
+                    Choice {
+                        label: "Left out"
+                        chosen: !(inspector.fields.include ?? true)
+                        onClicked: inspector.save("include", false)
                     }
                 }
             }

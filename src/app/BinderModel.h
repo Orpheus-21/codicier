@@ -30,6 +30,7 @@ public:
         StatusRole,
         WordsRole,
         MissingRole,
+        IncludedRole,
     };
     Q_ENUM(Role)
 
@@ -72,6 +73,8 @@ private:
         QList<int> children;
         int words = 0;
         bool missing = false;
+        // An item left out of the manuscript counts in no total above it.
+        bool included = true;
     };
     struct Row
     {
