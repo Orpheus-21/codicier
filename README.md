@@ -4,7 +4,7 @@ Codicier is a desktop app for authors who write books, stories, and essays.
 
 ## What it does
 
-Codicier keeps each writing project in a folder of plain Markdown files. A binder on the left shows the parts, chapters, scenes, notes, and research of the project. The page on the right shows the text of one scene, or all the scenes of a chapter as one scroll. The app saves the text one second after each edit.
+Codicier keeps each writing project in a folder of plain Markdown files. A binder on the left shows the parts, chapters, scenes, notes, and research of the project. The page in the middle shows the text of one scene, or all the scenes of a chapter as one scroll. The inspector on the right can show the data of the selected item. The app saves the text one second after the last edit.
 
 The app also does these things:
 
@@ -13,6 +13,8 @@ The app also does these things:
 - It writes a zip backup of a project when the project closes.
 - It searches the full text of the project, also with regular expressions. It replaces words across the manuscript.
 - It has a focus mode with typewriter scroll.
+- It has a command palette that finds every command and every item by name.
+- It keeps the layout of the panes for each project. A key map file sets the key of each command.
 
 The app runs as a native window. It does not use a web view. It works offline: it sends no telemetry and needs no network connection. Typesetting, import, and export are not part of the app.
 
@@ -71,19 +73,37 @@ ctest --test-dir build
 
 At the first start, choose a folder for your writing. This folder is a workspace. Each project in it is a folder. Click "New project" to make a project. Choose one of these kinds: short story, novella, novel, series, essay, essay collection, or non-fiction book. Each kind starts with its own structure of items.
 
+### The command palette
+
+Press Ctrl+Shift+P and type a part of a name. The palette lists the commands and the items of the binder that match. Up and Down choose a line. Enter runs the command or opens the item.
+
 ### Keys in the project
+
+These are the default keys. The key map file can change each key. See "Configuration".
 
 | Key | Action |
 |---|---|
+| Ctrl+Shift+P | Find a command or an item. |
+| F6 | Move to the next pane: the binder, the page, then the inspector. |
 | Ctrl+N | Make a new scene. |
+| Ctrl+Shift+N | Make a new chapter. |
+| Ctrl+Alt+N | Make a new part. |
+| Ctrl+Alt+M | Make a new note. |
+| Ctrl+Alt+P | Make a new page. |
+| F2 | Rename the item. |
 | Ctrl+K | Split the scene at the cursor. |
+| Ctrl+Shift+J | Merge the scene with the next scene. |
+| Ctrl+Shift+Del | Move the item to the trash. |
 | Ctrl+Shift+S | Take a snapshot of the open text. |
-| Ctrl+I | Show or hide the inspector. |
 | Ctrl+Shift+F | Search the project. |
 | Ctrl+H | Replace across the manuscript. |
+| Ctrl+Shift+B | Show or hide the binder. |
+| Ctrl+I | Show or hide the inspector. |
 | F11 | Start or stop focus mode. |
 | Escape | Stop focus mode, or close the search panel. |
 | Ctrl+W | Close the project and go back to the workspace. |
+
+Tab types a tab character on the page. Use F6 to move the keyboard focus to the page and away from the page.
 
 ### Keys in the binder
 
@@ -97,6 +117,8 @@ At the first start, choose a folder for your writing. This folder is a workspace
 | Delete | Move the item to the trash. |
 
 You can also drag an item to a new place in the binder. A right click on an item opens a menu with more actions, such as "Merge with next scene" and "Restore".
+
+Drag the line between two panes to change the width of a pane. The buttons at the top right of the page show or hide the binder and the inspector. The app saves the open item, the open panes, and their widths for each project.
 
 ### The inspector
 
@@ -112,16 +134,37 @@ Press Ctrl+H to replace. Type the old words, press Tab, and type the new words. 
 
 ## Configuration
 
-Click the settings button on the workspace screen to change these settings:
+Click the settings button on the workspace screen to change these settings. Each change applies at once.
 
 | Setting | Default | What it does |
 |---|---|---|
+| Theme | System | System, Light, Dark, or Sepia. System follows the light or dark setting of the system. |
+| Font of the text | Literata | The font of the page. The list shows the fonts of the computer. |
+| Font of the menus | Inter | The font of the binder, the inspector, and the menus. |
+| Size of the text | 19 px | The size of the text on the page, from 14 px to 28 px. |
+| Width of the page | 66 characters | The width of the text column, from 45 to 90 characters. |
+| Animations | On | Off stops all motion in the app. |
+| Save the text after a pause of | 1 s | The wait after the last edit before the app saves: 0.5 s, 1 s, 2 s, or 5 s. |
 | Backup folder | `~/.local/share/codicier/backups` | The folder for the zip backups. Each project has its own folder in it. |
 | Backups to keep for each project | 10 | The number of zip backups to keep. The app deletes older backups. The value is from 1 to 1000. |
 
 The app writes the settings and the list of workspaces to `~/.config/codicier/settings.ini`.
 
-The colours follow the light or dark setting of the system.
+### The key map
+
+The file `~/.config/codicier/keys.ini` holds the key of each command. The app writes the file with the default keys when a project opens. To change a key, edit the line of the command:
+
+```
+[keys]
+scene.new=Ctrl+N
+focus=F11
+```
+
+An empty value turns the key of the command off. The app reads the file when a project opens. If two commands have the same key, only one of the two commands uses the key, and the status bar shows a warning. A key that is not valid also shows a warning.
+
+### The layout of a project
+
+The app writes the layout of each project to `.codicier/state.toml` in the project folder. Delete the file to go back to the default layout.
 
 ## How it works
 
@@ -129,7 +172,7 @@ The code has three parts:
 
 - `src/model` reads and writes projects. It holds the binder, the file names, the file watcher, the snapshots, the differences, and the backups. It uses only Qt Core.
 - `src/index` keeps the search index. It is an SQLite database with full text search in `.codicier/index.db` in the project folder.
-- `src/app` and `qml` make the window. The C++ classes in `src/app` give the project to the QML views.
+- `src/app` and `qml` make the window. The C++ classes in `src/app` give the project, the settings, and the key map to the QML views.
 
 A project folder holds `project.toml`, `binder.toml`, and the Markdown files. `binder.toml` holds the structure of the binder and the data of each item. A Markdown file holds only the prose. The app writes each file through a temporary file, so a crash cannot leave half a file. The app can delete the `.codicier` folder and build it again at any time. `docs/format.md` describes the format in full.
 
