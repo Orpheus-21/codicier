@@ -478,6 +478,21 @@ bool ProjectStore::isProjectKind(const QString &kind)
     return contains(projectKinds, kind.toStdString());
 }
 
+QString ProjectStore::makeAppFolder(const QString &projectFolder)
+{
+    const QDir dir(projectFolder);
+    if (!dir.mkpath(QStringLiteral(".codicier")))
+        return QStringLiteral("cannot make the .codicier folder");
+    // git must not track the folder: everything in it can be built again.
+    const QString ignore = dir.filePath(QStringLiteral(".codicier/.gitignore"));
+    if (!QFile::exists(ignore)) {
+        QFile file(ignore);
+        if (!file.open(QIODevice::WriteOnly) || file.write("*\n") != 2)
+            return QStringLiteral("cannot write .codicier/.gitignore");
+    }
+    return { };
+}
+
 LoadResult ProjectStore::load(const QString &folder)
 {
     return Loader(folder).run();

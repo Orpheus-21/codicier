@@ -1,6 +1,7 @@
 #include "Document.h"
 
 #include "Index.h"
+#include "ProjectStore.h"
 
 #include <QDateTime>
 #include <QDir>
@@ -264,7 +265,8 @@ void Document::useFile()
         = QStringLiteral(".codicier/recovered/%1-%2.md")
               .arg(QFileInfo(path).completeBaseName(),
                    QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")));
-    if (!dir.mkpath(QStringLiteral(".codicier/recovered"))
+    if (!ProjectStore::makeAppFolder(folder).isEmpty()
+        || !dir.mkpath(QStringLiteral(".codicier/recovered"))
         || !writeAtomically(dir.filePath(name), toFile(text())).isEmpty()) {
         setError(QStringLiteral("Cannot keep a copy of the text, so the file did not replace it."));
         return;

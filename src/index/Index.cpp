@@ -1,5 +1,7 @@
 #include "Index.h"
 
+#include "ProjectStore.h"
+
 #include <QDir>
 #include <QFile>
 #include <QSqlDatabase>
@@ -53,16 +55,8 @@ QString Index::path(const QString &projectFolder)
 
 QString Index::open()
 {
-    const QDir dir(folder);
-    if (!dir.mkpath(QStringLiteral(".codicier")))
-        return QStringLiteral("cannot make the .codicier folder");
-    // git must not track the folder: everything in it can be built again.
-    const QString ignore = dir.filePath(QStringLiteral(".codicier/.gitignore"));
-    if (!QFile::exists(ignore)) {
-        QFile file(ignore);
-        if (!file.open(QIODevice::WriteOnly) || file.write("*\n") != 2)
-            return QStringLiteral("cannot write .codicier/.gitignore");
-    }
+    if (const QString error = ProjectStore::makeAppFolder(folder); !error.isEmpty())
+        return error;
 
     QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
     db.setDatabaseName(path(folder));

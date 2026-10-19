@@ -34,6 +34,10 @@ public:
     // True for a kind of project in docs/format.md, such as "novel".
     static bool isProjectKind(const QString &kind);
 
+    // Makes the .codicier folder of a project, with the .gitignore that keeps
+    // it out of git. Returns an error text, or an empty string.
+    static QString makeAppFolder(const QString &projectFolder);
+
     static LoadResult load(const QString &folder);
 
     // The bytes of project.toml and binder.toml in the canonical layout.
