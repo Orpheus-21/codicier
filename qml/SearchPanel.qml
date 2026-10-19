@@ -116,7 +116,6 @@ Item {
             }
             Keys.onReturnPressed: panel.openRow(list.currentIndex)
             Keys.onEnterPressed: panel.openRow(list.currentIndex)
-            Keys.onTabPressed: (panel.replacing ? replaceField : field).forceActiveFocus()
             Keys.onDownPressed: {
                 if (panel.results.length > 0) {
                     list.currentIndex = Math.min(list.currentIndex + 1, panel.results.length - 1);
@@ -141,7 +140,6 @@ Item {
                 panel.doneText = "";
                 searchTimer.restart();
             }
-            Keys.onTabPressed: field.forceActiveFocus()
         }
 
         // A pattern that is not valid: the reason, in place of the results.
@@ -179,8 +177,8 @@ Item {
         implicitHeight: 26
         enabled: !panel.replacing && field.text.trim() !== "" && panel.error === ""
         opacity: enabled ? 1 : 0
-        focusPolicy: Qt.NoFocus
         Accessible.name: "Save the search in the binder"
+        focusPolicy: Qt.TabFocus
         onClicked: panel.session.saveSearch(field.text, panel.regex)
 
         contentItem: Item {
@@ -207,7 +205,7 @@ Item {
         implicitHeight: 26
         checkable: true
         checked: panel.regex
-        focusPolicy: Qt.NoFocus
+        focusPolicy: Qt.TabFocus
         Accessible.name: "Regular expression"
         onToggled: panel.regex = checked
 
@@ -270,6 +268,7 @@ Item {
             required property int index
 
             width: ListView.view.width
+            Accessible.name: modelData.title
             // The template gives no implicit height.
             implicitHeight: implicitContentHeight + topPadding + bottomPadding
             highlighted: ListView.isCurrentItem

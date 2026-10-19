@@ -37,6 +37,14 @@ ListView {
         return row < 0 ? "" : model.data(model.index(row, 0), BinderModel.IdRole);
     }
 
+    // With no current row, the focus stays on the list itself, and a screen
+    // reader reads nothing. The first row becomes current. A rename field in
+    // a row also gives the list active focus, so only the list counts.
+    onActiveFocusChanged: {
+        if (Window.activeFocusItem === binder && currentIndex < 0 && count > 0)
+            currentIndex = 0;
+    }
+
     Keys.onPressed: event => {
         const id = idAt(currentIndex);
         if ((event.key === Qt.Key_Up || event.key === Qt.Key_Down)
@@ -255,6 +263,10 @@ ListView {
 
     delegate: BinderRow {
         width: ListView.view.width
+        // The current row holds the focus inside the list, so a screen
+        // reader reads each row as the arrow keys move. The keys that the
+        // row does not use go on to the list.
+        focus: ListView.isCurrentItem
         current: itemId === binder.session.currentId
         renaming: itemId === binder.renamingId
         onRenameAccepted: newTitle => {

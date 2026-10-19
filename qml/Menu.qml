@@ -12,6 +12,7 @@ T.Menu {
     delegate: T.MenuItem {
         id: item
 
+        Accessible.name: text
         implicitWidth: 212
         implicitHeight: 32
         leftPadding: Theme.space.m

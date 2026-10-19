@@ -7,6 +7,9 @@ T.TextField {
 
     property string iconName: ""
 
+    // The screen reader name. A field with a label above it sets the label.
+    Accessible.name: placeholderText
+
     implicitWidth: 240
     implicitHeight: 34
     leftPadding: iconName !== "" ? Theme.space.s + 15 + Theme.space.s : Theme.space.s

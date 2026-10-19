@@ -78,6 +78,7 @@ Pane {
 
         TextField {
             width: parent.width
+            Accessible.name: field.label
             text: inspector.fields[field.key] ?? ""
             onEditingFinished: inspector.save(field.key, text)
         }
@@ -87,6 +88,12 @@ Pane {
     // accent ring for revised, and an accent dot for final.
     component StatusChoice: T.ItemDelegate {
         id: choice
+
+        Accessible.name: label
+        Accessible.role: Accessible.RadioButton
+        Accessible.checkable: true
+        Accessible.checked: chosen
+        focusPolicy: Qt.StrongFocus
 
         required property string status
         required property string label
@@ -100,6 +107,11 @@ Pane {
             radius: Theme.radius.small
             color: choice.chosen ? Theme.color.selection
                  : choice.hovered ? Qt.alpha(Theme.color.selection, 0.5) : "transparent"
+
+            FocusRing {
+                anchors.margins: 0
+                visible: choice.visualFocus
+            }
         }
 
         contentItem: Item {
@@ -174,6 +186,7 @@ Pane {
 
                 TextArea {
                     width: parent.width
+                    Accessible.name: "Synopsis"
                     text: inspector.fields.synopsis ?? ""
                     placeholderText: "What happens in this scene"
                     font.family: Theme.type.reading
@@ -309,6 +322,7 @@ Pane {
                 TextField {
                     width: parent.width
                     placeholderText: "No target"
+                    Accessible.name: "Word target"
                     text: (inspector.fields.target ?? 0) > 0 ? String(inspector.fields.target) : ""
                     validator: IntValidator {
                         bottom: 0
@@ -329,6 +343,7 @@ Pane {
                 TextField {
                     width: parent.width
                     placeholderText: "Tags, split by commas"
+                    Accessible.name: "Tags"
                     text: (inspector.fields.tags ?? []).join(", ")
                     onEditingFinished: inspector.save("tags", text.split(",").map(t => t.trim()).filter(t => t !== ""))
                 }
@@ -379,6 +394,7 @@ Pane {
 
                         width: parent.width - takeButton.width - parent.spacing
                         placeholderText: "Title (optional)"
+                        Accessible.name: "Title of the snapshot"
                         onAccepted: takeButton.clicked()
                     }
 
@@ -460,6 +476,7 @@ Pane {
                     width: parent.width
                     text: inspector.fields.notes ?? ""
                     placeholderText: "Notes for this item"
+                    Accessible.name: "Notes"
                     font.family: Theme.type.reading
                     font.pixelSize: Theme.type.large - 1
                     onEditingFinished: inspector.save("notes", text)

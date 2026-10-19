@@ -11,6 +11,9 @@ T.Button {
     property string iconName: ""
     // Puts the icon after the text, as for a menu arrow.
     property bool iconAfterText: false
+    // The screen reader name. Qt fills it from the text only while a screen
+    // reader runs, so the button sets it.
+    Accessible.name: text
     readonly property color foreground: kind === "primary" ? Theme.color.paper : Theme.color.ink
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,

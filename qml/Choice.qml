@@ -8,6 +8,12 @@ T.ItemDelegate {
     required property string label
     required property bool chosen
 
+    Accessible.name: label
+    Accessible.role: Accessible.RadioButton
+    Accessible.checkable: true
+    Accessible.checked: chosen
+    // The template takes no focus, so Tab could not reach a choice.
+    focusPolicy: Qt.StrongFocus
     implicitWidth: optionText.implicitWidth + 2 * Theme.space.s
     implicitHeight: 30
 
@@ -15,6 +21,11 @@ T.ItemDelegate {
         radius: Theme.radius.small
         color: option.chosen ? Theme.color.selection
              : option.hovered ? Qt.alpha(Theme.color.selection, 0.5) : "transparent"
+
+        FocusRing {
+            anchors.margins: 0
+            visible: option.visualFocus
+        }
     }
 
     contentItem: Item {

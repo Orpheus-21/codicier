@@ -10,6 +10,9 @@ T.ItemDelegate {
     property string trailing: ""
     property int depth: 0
 
+    Accessible.name: text
+    // The template takes no focus, so Tab could not reach an item.
+    focusPolicy: Qt.StrongFocus
     implicitWidth: 280
     implicitHeight: 32
     leftPadding: Theme.space.s + depth * Theme.space.l

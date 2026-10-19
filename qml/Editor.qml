@@ -98,6 +98,8 @@ Item {
             id: textEdit
 
             objectName: "editor"
+            Accessible.name: "Text of the page"
+            Accessible.multiLine: true
             document: editorArea.document
             availableWidth: page.width - 2 * Theme.space.xl
             y: Theme.space.xxxl

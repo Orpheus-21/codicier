@@ -122,6 +122,33 @@ Item {
             binder.startRename(id);
     }
 
+    // Moves the focus to the next open pane: the binder, the page, then the
+    // inspector. Tab stays a key of the text, so F6 reaches the page.
+    function nextPane() {
+        const focused = Window.activeFocusItem;
+        const inside = pane => {
+            for (let item = focused; item; item = item.parent) {
+                if (item === pane)
+                    return true;
+            }
+            return false;
+        };
+        let panes = [];
+        if (binderPane.visible)
+            panes.push(binderPane);
+        panes.push(editor);
+        if (inspectorPane.visible)
+            panes.push(inspectorPane);
+        const at = panes.findIndex(inside);
+        const next = panes[(at + 1) % panes.length];
+        if (next === editor)
+            editor.focusText();
+        else if (next === binderPane)
+            binder.forceActiveFocus();
+        else
+            inspectorPane.nextItemInFocusChain(true).forceActiveFocus();
+    }
+
     // Every command of the view, with its default key. The key map in
     // keys.ini can change each key. The command palette lists the commands,
     // except a hidden one, and each command with a key gets a shortcut.
@@ -139,6 +166,7 @@ Item {
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
         { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
+        { id: "pane.next", name: "Move to the next pane", sequence: "F6", run: () => view.nextPane() },
         { id: "binder", name: "Show or hide the binder", sequence: "Ctrl+Shift+B", run: () => view.binderOpen = !view.binderOpen },
         { id: "inspector", name: "Show or hide the inspector", sequence: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },

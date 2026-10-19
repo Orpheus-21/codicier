@@ -101,6 +101,7 @@ T.Popup {
                 required property int index
 
                 width: ListView.view.width
+                Accessible.name: modelData === "" ? picker.defaultFamily : modelData
                 implicitHeight: 36
                 leftPadding: Theme.space.s
                 rightPadding: Theme.space.s

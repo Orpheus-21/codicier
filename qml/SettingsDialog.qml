@@ -69,6 +69,10 @@ T.Popup {
     component Select: T.Button {
         id: select
 
+        // What the box chooses, such as "Font of the text".
+        required property string label
+
+        Accessible.name: label + ": " + text
         implicitWidth: 236
         implicitHeight: 34
         leftPadding: Theme.space.s
@@ -258,6 +262,7 @@ T.Popup {
 
                         Select {
                             objectName: "readingFontButton"
+                            label: "Font of the text"
                             text: Theme.type.reading
                             font.family: Theme.type.reading
                             font.pixelSize: Theme.type.body + 1
@@ -269,6 +274,7 @@ T.Popup {
                         label: "Font of the menus"
 
                         Select {
+                            label: "Font of the menus"
                             text: Theme.type.ui
                             font.family: Theme.type.ui
                             font.pixelSize: Theme.type.body
@@ -357,6 +363,7 @@ T.Popup {
                     TextField {
                         width: form.width - chooseButton.width - Theme.space.xs
                         readOnly: true
+                        Accessible.name: "Backup folder"
                         text: Settings.backupFolder
                     }
 
@@ -373,6 +380,7 @@ T.Popup {
 
                     TextField {
                         width: 120
+                        Accessible.name: "Backups to keep for each project"
                         text: String(Settings.backupsToKeep)
                         validator: IntValidator {
                             bottom: 1

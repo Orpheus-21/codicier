@@ -63,6 +63,10 @@ T.ItemDelegate {
     leftPadding: Theme.space.s + depth * Theme.space.l
     rightPadding: Theme.space.s
     Accessible.name: title
+    Accessible.role: isSection ? Accessible.Heading : Accessible.TreeItem
+    Accessible.selected: current
+    Accessible.expandable: hasChildren
+    Accessible.expanded: expanded
 
     contentItem: Item {
         // A section heading: small capitals with an arrow.

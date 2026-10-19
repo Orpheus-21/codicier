@@ -77,6 +77,11 @@ Item {
 
         width: parent.width
         height: 64
+        Accessible.name: row.title + ", " + row.kindLabel
+        // Tab reaches each project, and Enter opens it, as a click does.
+        focusPolicy: Qt.StrongFocus
+        Keys.onReturnPressed: clicked()
+        Keys.onEnterPressed: clicked()
         onClicked: home.projectActivated(row.folder)
 
         background: Rectangle {

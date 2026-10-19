@@ -5,6 +5,8 @@ import QtQuick.Templates as T
 T.TextArea {
     id: control
 
+    // The screen reader name. A field with a label above it sets the label.
+    Accessible.name: placeholderText
     implicitWidth: 240
     implicitHeight: Math.max(72, contentHeight + topPadding + bottomPadding)
     padding: Theme.space.s
