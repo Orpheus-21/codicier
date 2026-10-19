@@ -21,7 +21,7 @@ TestCase {
     }
 
     function cleanup() {
-        Theme.choice = "system";
+        Settings.theme = "system";
         Theme.motion.reduced = false;
     }
 
@@ -65,13 +65,13 @@ TestCase {
     }
 
     function test_choiceSelectsPalette() {
-        Theme.choice = "sepia";
+        Settings.theme = "sepia";
         compare(Theme.name, "sepia");
         compare(Theme.color.paper, Theme.palettes.sepia.paper);
     }
 
     function test_systemFollowsColorScheme() {
-        Theme.choice = "system";
+        Settings.theme = "system";
         const dark = Application.styleHints.colorScheme === Qt.ColorScheme.Dark;
         compare(Theme.name, dark ? "dark" : "light");
     }

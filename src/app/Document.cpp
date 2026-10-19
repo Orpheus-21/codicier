@@ -43,7 +43,6 @@ QString writeAtomically(const QString &path, const QByteArray &bytes)
 Document::Document(QObject *parent) : QObject(parent)
 {
     timer.setSingleShot(true);
-    timer.setInterval(saveDelayMs);
     connect(&timer, &QTimer::timeout, this, &Document::save);
     // ponytail: counts the whole text 250 ms after the last edit; count only
     // the changed paragraph if a very long scene makes this slow.
@@ -187,7 +186,7 @@ void Document::edited()
     if (loading || path.isEmpty() || (document != nullptr && !document->isModified()))
         return;
     setDirty(true);
-    timer.start();
+    timer.start(saveDelayMs);
     countTimer.start();
 }
 

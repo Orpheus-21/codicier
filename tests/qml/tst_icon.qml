@@ -58,11 +58,11 @@ TestCase {
 
     function test_colourFollowsTheme() {
         const icon = makeIcon("search");
-        Theme.choice = "dark";
+        Settings.theme = "dark";
         compare(icon.color, Qt.color(Theme.palettes.dark.ink));
-        Theme.choice = "light";
+        Settings.theme = "light";
         compare(icon.color, Qt.color(Theme.palettes.light.ink));
-        Theme.choice = "system";
+        Settings.theme = "system";
     }
 
     function test_sizeSetsBounds() {

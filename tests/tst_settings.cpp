@@ -1,3 +1,4 @@
+#include "Document.h"
 #include "KeyMap.h"
 #include "Settings.h"
 #include "Workspaces.h"
@@ -108,6 +109,44 @@ private slots:
         QCOMPARE(result.value("warnings").toStringList(),
                  QStringList {
                      "Ctrl+N is the key of New scene and Focus mode. Only New scene uses it." });
+    }
+
+    void viewSettingsSurviveARestartAndClamp()
+    {
+        {
+            Settings settings;
+            QCOMPARE(settings.theme(), QStringLiteral("system"));
+            QCOMPARE(settings.readingSize(), 19);
+            QCOMPARE(settings.measure(), 66);
+            QCOMPARE(settings.autosaveDelay(), 1000);
+            QSignalSpy changed(&settings, &Settings::changed);
+            settings.setTheme("sepia");
+            settings.setTheme("purple");
+            settings.setReadingFont("DejaVu Serif");
+            settings.setUiFont("DejaVu Sans");
+            settings.setReadingSize(40);
+            settings.setMeasure(10);
+            settings.setAutosaveDelay(2000);
+            settings.setReducedMotion(true);
+            QCOMPARE(changed.size(), 7);
+            QCOMPARE(Document::saveDelayMs, 2000);
+        }
+        Document::saveDelayMs = 1000;
+        const Settings again;
+        QCOMPARE(again.theme(), QStringLiteral("sepia"));
+        QCOMPARE(again.readingFont(), QStringLiteral("DejaVu Serif"));
+        QCOMPARE(again.uiFont(), QStringLiteral("DejaVu Sans"));
+        QCOMPARE(again.readingSize(), 28);
+        QCOMPARE(again.measure(), 45);
+        QCOMPARE(again.autosaveDelay(), 2000);
+        QVERIFY(again.reducedMotion());
+        // The saved delay reaches the documents at the start.
+        QCOMPARE(Document::saveDelayMs, 2000);
+
+        // A theme name that the app does not know is the system theme.
+        QSettings(Workspaces::settingsPath(), QSettings::IniFormat).setValue("view/theme", "neon");
+        QCOMPARE(Settings().theme(), QStringLiteral("system"));
+        Document::saveDelayMs = 1000;
     }
 };
 

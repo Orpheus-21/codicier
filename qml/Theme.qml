@@ -9,7 +9,7 @@ QtObject {
     id: theme
 
     // The theme the author picked: "system", "light", "dark", or "sepia".
-    property string choice: "system"
+    property string choice: Settings.theme
     // "system" follows the light or dark setting of the desktop.
     readonly property string name: {
         if (choice !== "system")
@@ -69,16 +69,17 @@ QtObject {
     }
 
     component TypeScale: QtObject {
-        readonly property string reading: theme.readingFont.font.family
-        readonly property string ui: theme.uiFont.font.family
-        readonly property int readingSize: 19
+        // The fonts of the settings, or the fonts that come with the app.
+        readonly property string reading: Settings.readingFont || theme.readingFont.font.family
+        readonly property string ui: Settings.uiFont || theme.uiFont.font.family
+        readonly property int readingSize: Settings.readingSize
         readonly property real readingLineHeight: 1.5
         // The same line height in pixels. Text.lineHeight multiplies the line
         // spacing of the font, which is wider than the font size, so a Text
         // item must use Text.FixedHeight with this value.
         readonly property int readingLine: Math.round(readingSize * readingLineHeight)
         // Characters per line in the writing view.
-        readonly property int measure: 66
+        readonly property int measure: Settings.measure
         readonly property int small: 12
         readonly property int body: 14
         readonly property int large: 17
@@ -106,8 +107,8 @@ QtObject {
     readonly property Radii radius: Radii {}
 
     component Motion: QtObject {
-        // Qt 6.11 gives no system hint for less motion, so the app sets this.
-        property bool reduced: false
+        // Qt gives no system hint for less motion, so a setting sets this.
+        property bool reduced: Settings.reducedMotion
         readonly property int fast: reduced ? 0 : 150
         readonly property int normal: reduced ? 0 : 200
         readonly property int slow: reduced ? 0 : 250

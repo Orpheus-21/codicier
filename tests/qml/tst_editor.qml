@@ -37,16 +37,16 @@ TestCase {
     }
 
     function cleanup() {
-        Theme.choice = "system";
+        Settings.theme = "system";
     }
 
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
-        Theme.choice = "dark";
+        Settings.theme = "dark";
         verify(Qt.colorEqual(document.markColor, Theme.palettes.dark.mark));
         verify(Qt.colorEqual(document.accentColor, Theme.palettes.dark.accent));
-        Theme.choice = "sepia";
+        Settings.theme = "sepia";
         verify(Qt.colorEqual(document.markColor, Theme.palettes.sepia.mark));
         verify(document.lineDistance >= 0);
     }
@@ -409,8 +409,58 @@ TestCase {
         const model = view.session.binder;
         view.session.currentId = model.data(model.index(1, 0), BinderModel.IdRole);
         compare(view.session.document.file, "manuscript/opening.md");
-        Theme.choice = "dark";
-        Theme.choice = "light";
+        Settings.theme = "dark";
+        Settings.theme = "light";
         compare(view.session.document.dirty, false);
+    }
+
+    Component {
+        id: settingsComponent
+
+        SettingsDialog {}
+    }
+
+    function test_settingsApplyLive() {
+        const dialog = createTemporaryObject(settingsComponent, testCase) as SettingsDialog;
+        dialog.open();
+        tryVerify(() => dialog.opened);
+        const size = Settings.readingSize;
+        const dark = findChild(dialog.contentItem, "theme-dark") as Item;
+        mouseClick(dark);
+        compare(Theme.name, "dark");
+        const stepper = findChild(dialog.contentItem, "sizeStepper") as Item;
+        mouseClick(stepper, stepper.width - 10, stepper.height / 2);
+        compare(Settings.readingSize, size + 1);
+        compare(Theme.type.readingSize, size + 1);
+        const measure = Settings.measure;
+        const width = findChild(dialog.contentItem, "measureStepper") as Item;
+        mouseClick(width, 10, width.height / 2);
+        compare(Theme.type.measure, measure - 2);
+        mouseClick(findChild(dialog.contentItem, "motionOff") as Item);
+        verify(Theme.motion.reduced);
+        compare(Theme.motion.fast, 0);
+        mouseClick(findChild(dialog.contentItem, "autosave-2000") as Item);
+        compare(Settings.autosaveDelay, 2000);
+
+        // The font picker lists the font of the app first and sets a font.
+        mouseClick(findChild(dialog.contentItem, "readingFontButton") as Item);
+        const list = findChild(dialog.T.Overlay.overlay, "fontList") as ListView;
+        tryVerify(() => list && list.visible && list.count > 0);
+        compare(list.model[0], "");
+        if (list.count > 1) {
+            const family = list.model[1];
+            keyClick(Qt.Key_Down);
+            keyClick(Qt.Key_Return);
+            compare(Settings.readingFont, family);
+            compare(Theme.type.reading, family);
+        }
+
+        Settings.theme = "system";
+        Settings.readingSize = size;
+        Settings.measure = measure;
+        Settings.reducedMotion = false;
+        Settings.autosaveDelay = 1000;
+        Settings.readingFont = "";
+        compare(Theme.type.reading, Theme.readingFont.font.family);
     }
 }

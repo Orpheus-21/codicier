@@ -115,7 +115,7 @@ TestCase {
     }
 
     function cleanup() {
-        Theme.choice = "system";
+        Settings.theme = "system";
     }
 
     function test_everyComponentHasSize_data() {
@@ -135,14 +135,14 @@ TestCase {
     }
 
     function test_primaryButtonFillsWithAccent() {
-        Theme.choice = "light";
+        Settings.theme = "light";
         const button = make(buttonComponent, { kind: "primary" }) as Button;
         verify(Qt.colorEqual(pixelAt(button, 4, button.height / 2), Theme.color.accent));
         compare(button.foreground, Qt.color(Theme.color.paper));
     }
 
     function test_quietButtonHasNoFill() {
-        Theme.choice = "light";
+        Settings.theme = "light";
         const button = make(buttonComponent) as Button;
         verify(!Qt.colorEqual(pixelAt(button, 4, button.height / 2), Theme.color.accent));
         compare(button.foreground, Qt.color(Theme.color.ink));
@@ -200,28 +200,28 @@ TestCase {
     }
 
     function test_textFieldFocusUsesFocusColour() {
-        Theme.choice = "light";
+        Settings.theme = "light";
         const field = make(textFieldComponent);
         field.forceActiveFocus();
         verify(Qt.colorEqual(pixelAt(field, field.width / 2, 0), Theme.color.focus));
     }
 
     function test_highlightedListItemUsesSelection() {
-        Theme.choice = "light";
+        Settings.theme = "light";
         const item = make(listItemComponent, { highlighted: true });
         verify(Qt.colorEqual(pixelAt(item, item.width / 2, 2), Theme.color.selection));
     }
 
     function test_paneFollowsTheme() {
         const pane = make(paneComponent);
-        Theme.choice = "light";
+        Settings.theme = "light";
         verify(Qt.colorEqual(pixelAt(pane, 50, 50), Theme.palettes.light.surface));
-        Theme.choice = "dark";
+        Settings.theme = "dark";
         verify(Qt.colorEqual(pixelAt(pane, 50, 50), Theme.palettes.dark.surface));
     }
 
     function test_splitterDrawsARule() {
-        Theme.choice = "light";
+        Settings.theme = "light";
         const splitter = make(splitterComponent);
         compare(splitter.count, 2);
         const first = splitter.itemAt(0);
@@ -243,7 +243,7 @@ TestCase {
     }
 
     function test_splitterRuleFacesTheOuterPane() {
-        Theme.choice = "light";
+        Settings.theme = "light";
         const splitter = make(splitterComponent);
         splitter.itemAt(0).T.SplitView.preferredWidth = 220;
         waitForRendering(splitter);

@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Workspaces.h"
+
 #include <QObject>
+#include <QSettings>
 #include <QString>
 #include <QtQml/qqmlregistration.h>
 
@@ -15,6 +18,19 @@ class Settings : public QObject
     Q_PROPERTY(QString backupFolder READ backupFolder WRITE setBackupFolder NOTIFY changed)
     // The number of backups to keep for each project, 1 to 1000.
     Q_PROPERTY(int backupsToKeep READ backupsToKeep WRITE setBackupsToKeep NOTIFY changed)
+    // "system", "light", "dark", or "sepia".
+    Q_PROPERTY(QString theme READ theme WRITE setTheme NOTIFY changed)
+    // A font family, or "" for the font that comes with the app.
+    Q_PROPERTY(QString readingFont READ readingFont WRITE setReadingFont NOTIFY changed)
+    Q_PROPERTY(QString uiFont READ uiFont WRITE setUiFont NOTIFY changed)
+    // The size of the text on the page in pixels, 14 to 28.
+    Q_PROPERTY(int readingSize READ readingSize WRITE setReadingSize NOTIFY changed)
+    // The width of the page in characters, 45 to 90.
+    Q_PROPERTY(int measure READ measure WRITE setMeasure NOTIFY changed)
+    // The wait before an autosave in milliseconds, 250 to 10000.
+    Q_PROPERTY(int autosaveDelay READ autosaveDelay WRITE setAutosaveDelay NOTIFY changed)
+    // True turns every animation off.
+    Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
 
 public:
     static constexpr int defaultBackupsToKeep = 10;
@@ -27,6 +43,20 @@ public:
     void setBackupFolder(const QString &value);
     int backupsToKeep() const { return keep; }
     void setBackupsToKeep(int value);
+    QString theme() const { return themeName; }
+    void setTheme(const QString &value);
+    QString readingFont() const { return readingFamily; }
+    void setReadingFont(const QString &value) { change(readingFamily, value, "view/readingFont"); }
+    QString uiFont() const { return uiFamily; }
+    void setUiFont(const QString &value) { change(uiFamily, value, "view/uiFont"); }
+    int readingSize() const { return size; }
+    void setReadingSize(int value);
+    int measure() const { return columns; }
+    void setMeasure(int value);
+    int autosaveDelay() const { return delay; }
+    void setAutosaveDelay(int value);
+    bool reducedMotion() const { return lessMotion; }
+    void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
     // The same for a URL from a folder dialog.
     Q_INVOKABLE void setBackupFolderUrl(const QUrl &url);
 
@@ -36,6 +66,23 @@ signals:
 private:
     QString folder;
     int keep = defaultBackupsToKeep;
+    QString themeName = QStringLiteral("system");
+    QString readingFamily;
+    QString uiFamily;
+    int size = 19;
+    int columns = 66;
+    int delay = 1000;
+    bool lessMotion = false;
+
+    // Sets a value, writes it to the settings file, and tells the views.
+    template <typename T> void change(T &member, const T &value, const char *key)
+    {
+        if (member == value)
+            return;
+        member = value;
+        QSettings(Workspaces::settingsPath(), QSettings::IniFormat).setValue(key, value);
+        emit changed();
+    }
 
     void store() const;
 };
