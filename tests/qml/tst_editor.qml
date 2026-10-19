@@ -283,6 +283,35 @@ TestCase {
         compare(view.session.fields(view.session.currentId).kind, "chapter");
     }
 
+    function test_layoutComesBackWhenTheProjectOpens() {
+        let view = makeView();
+        const folder = view.folder;
+        const model = view.session.binder;
+        const first = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = first;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        // Drag the handle between the binder and the page 60 pixels right.
+        const binderPane = findChild(view, "binderPane") as Item;
+        const before = binderPane.width;
+        mouseDrag(view, binderPane.width + 3, view.height / 2, 60, 0);
+        tryVerify(() => Math.abs(binderPane.width - before - 60) <= 2);
+        view.forceActiveFocus();
+        keyClick(Qt.Key_B, Qt.ControlModifier | Qt.ShiftModifier);
+        verify(!view.binderOpen);
+        view.destroy();
+        wait(0);
+
+        view = createTemporaryObject(viewComponent, testCase, { folder: folder }) as ProjectView;
+        compare(view.session.currentId, first);
+        verify(!view.binderOpen);
+        verify(view.inspectorOpen);
+        view.binderOpen = true;
+        waitForRendering(view);
+        const pane = findChild(view, "binderPane") as Item;
+        verify(Math.abs(pane.width - before - 60) <= 2, pane.width);
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;

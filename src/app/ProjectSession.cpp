@@ -15,6 +15,7 @@
 #include <QSet>
 
 #include <functional>
+#include <sstream>
 #include <utility>
 
 ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
@@ -761,6 +762,65 @@ QVariantList ProjectSession::textsUnder(const QString &id) const
     };
     walk(index);
     return list;
+}
+
+QVariantMap ProjectSession::viewState() const
+{
+    QVariantMap map;
+    if (project.folder.isEmpty())
+        return map;
+    QFile file(QDir(project.folder).filePath(QStringLiteral(".codicier/state.toml")));
+    if (!file.open(QIODevice::ReadOnly))
+        return map;
+    const QByteArray bytes = file.readAll();
+    // The app can lose this file with no harm, so a bad file is no state.
+    toml::table table;
+    try {
+        table = toml::parse(std::string_view(bytes.constData(), bytes.size()));
+    } catch (const toml::parse_error &) {
+        return map;
+    }
+    for (const auto &[key, node] : table) {
+        const QString name
+            = QString::fromUtf8(key.str().data(), static_cast<qsizetype>(key.str().size()));
+        if (const auto *text = node.as_string())
+            map.insert(name, QString::fromStdString(text->get()));
+        else if (const auto *flag = node.as_boolean())
+            map.insert(name, flag->get());
+        else if (const auto *number = node.as_integer())
+            map.insert(name, static_cast<int>(number->get()));
+    }
+    return map;
+}
+
+bool ProjectSession::saveViewState(const QVariantMap &state)
+{
+    if (project.folder.isEmpty() || !loadError.isEmpty())
+        return false;
+    if (!ProjectStore::makeAppFolder(project.folder).isEmpty())
+        return false;
+    const QDir dir(project.folder);
+    toml::table table;
+    for (auto it = state.cbegin(); it != state.cend(); ++it) {
+        const std::string key = it.key().toStdString();
+        switch (it.value().typeId()) {
+        case QMetaType::Bool:
+            table.insert(key, it.value().toBool());
+            break;
+        case QMetaType::Int:
+        case QMetaType::LongLong:
+        case QMetaType::Double:
+            table.insert(key, static_cast<std::int64_t>(it.value().toDouble()));
+            break;
+        default:
+            table.insert(key, it.value().toString().toStdString());
+        }
+    }
+    std::ostringstream out;
+    out << table << '\n';
+    const QByteArray bytes = QByteArray::fromStdString(out.str());
+    QSaveFile file(dir.filePath(QStringLiteral(".codicier/state.toml")));
+    return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
 }
 
 QVariantList ProjectSession::items() const

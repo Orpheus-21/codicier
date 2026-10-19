@@ -23,8 +23,48 @@ Item {
     // The author asked to go back to the workspace home.
     signal closeRequested
 
-    // The inspector pane on the right.
+    // The binder pane on the left and the inspector pane on the right.
+    property bool binderOpen: true
     property bool inspectorOpen: false
+
+    // The layout and the open item come back from .codicier/state.toml.
+    function restoreState() {
+        const state = session.viewState();
+        if (typeof state.binder === "boolean")
+            binderOpen = state.binder;
+        if (typeof state.inspector === "boolean")
+            inspectorOpen = state.inspector;
+        if (state["binder-width"] > 0)
+            binderPane.T.SplitView.preferredWidth = state["binder-width"];
+        if (state["inspector-width"] > 0)
+            inspectorPane.T.SplitView.preferredWidth = state["inspector-width"];
+        if (state.item && session.fields(state.item).title !== undefined)
+            session.currentId = state.item;
+    }
+
+    function saveState() {
+        stateTimer.stop();
+        session.saveViewState({
+            "item": session.currentId,
+            "binder": binderOpen,
+            "binder-width": Math.round(binderPane.T.SplitView.preferredWidth),
+            "inspector": inspectorOpen,
+            "inspector-width": Math.round(inspectorPane.T.SplitView.preferredWidth)
+        });
+    }
+
+    // A change of the layout saves the state half a second later.
+    Timer {
+        id: stateTimer
+
+        interval: 500
+        onTriggered: view.saveState()
+    }
+
+    onBinderOpenChanged: stateTimer.restart()
+    onInspectorOpenChanged: stateTimer.restart()
+    Component.onCompleted: restoreState()
+    Component.onDestruction: saveState()
     // The snapshot that the compare view shows, or "".
     property string comparePath: ""
     property string compareLabel: ""
@@ -34,6 +74,7 @@ Item {
 
         function onCurrentIdChanged() {
             view.comparePath = "";
+            stateTimer.restart();
             // A saved search opens its results.
             const fields = view.session.fields(view.session.currentId);
             if (fields.kind === "search") {
@@ -98,6 +139,7 @@ Item {
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
         { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
+        { id: "binder", name: "Show or hide the binder", sequence: "Ctrl+Shift+B", run: () => view.binderOpen = !view.binderOpen },
         { id: "inspector", name: "Show or hide the inspector", sequence: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
         { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() }
@@ -141,6 +183,7 @@ Item {
 
     // Saves the open text, then asks to go back to the workspace.
     function close() {
+        view.saveState();
         view.session.backup();
         view.closeRequested();
     }
@@ -182,7 +225,11 @@ Item {
 
         // The binder.
         Pane {
-            visible: !view.focusMode
+            id: binderPane
+
+            objectName: "binderPane"
+            visible: view.binderOpen && !view.focusMode
+            T.SplitView.onPreferredWidthChanged: stateTimer.restart()
             T.SplitView.preferredWidth: 320
             T.SplitView.minimumWidth: 220
             padding: Theme.space.m
@@ -336,6 +383,12 @@ Item {
                     spacing: Theme.space.xs
 
                     IconButton {
+                        iconName: "panel-left"
+                        label: "Binder"
+                        onClicked: view.binderOpen = !view.binderOpen
+                    }
+
+                    IconButton {
                         iconName: "maximize-2"
                         label: "Focus mode"
                         onClicked: view.setFocusMode(true)
@@ -351,7 +404,10 @@ Item {
         }
 
         Inspector {
+            id: inspectorPane
+
             visible: view.inspectorOpen && !view.focusMode
+            T.SplitView.onPreferredWidthChanged: stateTimer.restart()
             onCompareRequested: (path, label) => {
                 view.compareLabel = label;
                 view.comparePath = path;

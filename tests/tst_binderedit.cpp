@@ -729,6 +729,35 @@ private slots:
         QVERIFY(!ids.contains("y0z1a2b3c4"));
     }
 
+    void viewStateSurvivesAReopen()
+    {
+        QVERIFY(session->viewState().isEmpty());
+        QVERIFY(session->saveViewState({ { "item", "t6v4h9r2mz" },
+                                         { "binder", false },
+                                         { "binder-width", 280 },
+                                         { "inspector-width", 351.6 } }));
+        // The folder stays out of git, also with no search index.
+        QCOMPARE(readFile(".codicier/.gitignore"), QByteArray("*\n"));
+
+        ProjectSession again;
+        again.setFolder(dir.path());
+        const QVariantMap state = again.viewState();
+        QCOMPARE(state.value("item").toString(), QStringLiteral("t6v4h9r2mz"));
+        QCOMPARE(state.value("binder").typeId(), QMetaType::Bool);
+        QCOMPARE(state.value("binder").toBool(), false);
+        QCOMPARE(state.value("binder-width").toInt(), 280);
+        QCOMPARE(state.value("inspector-width").toInt(), 351);
+
+        // A bad file is no state, and the app can still write a new one.
+        QFile file(QDir(dir.path()).filePath(".codicier/state.toml"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("binder = [unclosed");
+        file.close();
+        QVERIFY(again.viewState().isEmpty());
+        QVERIFY(again.saveViewState({ { "binder", true } }));
+        QCOMPARE(again.viewState().value("binder").toBool(), true);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
