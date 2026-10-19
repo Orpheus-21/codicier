@@ -197,9 +197,21 @@ Snapshots are not in `.codicier/`, because the app cannot build them again. Git 
 | Path | Meaning |
 |---|---|
 | `.codicier/index.db` | The search index. The app builds it again from the files when it is missing. |
-| `.codicier/state.toml` | The state of the window: the open item, the place of the cursor, and the sizes of the panels. |
+| `.codicier/state.toml` | The state of the window: the open item and the panes. See "The state file". |
 | `.codicier/recovered/` | Copies of unsaved text. When another program changes a file while the app has unsaved text, and the author chooses the version on disk, the app first writes its own version here. |
 | `.codicier/.gitignore` | One line, `*`, so git ignores the folder. |
+
+### The state file
+
+`state.toml` has these keys. Each key is optional. The app uses the default for a missing key, and ignores a file that it cannot read.
+
+| Key | Type | Meaning |
+|---|---|---|
+| `item` | string | The id of the open item. |
+| `binder` | boolean | True if the binder pane is open. The default is true. |
+| `binder-width` | integer | The width of the binder pane, in pixels. |
+| `inspector` | boolean | True if the inspector pane is open. The default is false. |
+| `inspector-width` | integer | The width of the inspector pane, in pixels. |
 
 The author can delete `.codicier/` at any time. The app then builds the index again and opens with the default window state.
 
