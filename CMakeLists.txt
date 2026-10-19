@@ -53,6 +53,7 @@ qt_add_qml_module(codicier_ui
         src/app/Document.cpp src/app/Document.h
         src/app/MarkdownHighlighter.cpp src/app/MarkdownHighlighter.h
         src/app/Settings.cpp src/app/Settings.h
+        src/app/KeyMap.cpp src/app/KeyMap.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

@@ -81,26 +81,37 @@ Item {
             binder.startRename(id);
     }
 
-    // Every command of the view. The command palette lists them, except a
-    // hidden one, and each command with a key sequence gets a shortcut.
-    readonly property var commands: [
-        { name: "Find a command or an item", sequence: "Ctrl+Shift+P", run: () => commandPalette.open(), hidden: true },
-        { name: "New scene", sequence: "Ctrl+N", run: () => binder.addItem("scene") },
-        { name: "New chapter", sequence: "", run: () => binder.addItem("chapter") },
-        { name: "New part", sequence: "", run: () => binder.addItem("part") },
-        { name: "New note", sequence: "", run: () => binder.addItem("note") },
-        { name: "New page", sequence: "", run: () => binder.addItem("page") },
-        { name: "Rename the item", sequence: "", run: () => binder.startRename(session.currentId) },
-        { name: "Split the scene at the cursor", sequence: "Ctrl+K", run: () => view.split() },
-        { name: "Merge with the next scene", sequence: "", run: () => session.mergeWithNext(session.currentId) },
-        { name: "Move the item to the trash", sequence: "", run: () => session.moveToTrash(session.currentId) },
-        { name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
-        { name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
-        { name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
-        { name: "Show or hide the inspector", sequence: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
-        { name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
-        { name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() }
+    // Every command of the view, with its default key. The key map in
+    // keys.ini can change each key. The command palette lists the commands,
+    // except a hidden one, and each command with a key gets a shortcut.
+    readonly property var defaultCommands: [
+        { id: "palette", name: "Find a command or an item", sequence: "Ctrl+Shift+P", run: () => commandPalette.open(), hidden: true },
+        { id: "scene.new", name: "New scene", sequence: "Ctrl+N", run: () => binder.addItem("scene") },
+        { id: "chapter.new", name: "New chapter", sequence: "Ctrl+Shift+N", run: () => binder.addItem("chapter") },
+        { id: "part.new", name: "New part", sequence: "Ctrl+Alt+N", run: () => binder.addItem("part") },
+        { id: "note.new", name: "New note", sequence: "Ctrl+Alt+M", run: () => binder.addItem("note") },
+        { id: "page.new", name: "New page", sequence: "Ctrl+Alt+P", run: () => binder.addItem("page") },
+        { id: "item.rename", name: "Rename the item", sequence: "F2", run: () => binder.startRename(session.currentId) },
+        { id: "scene.split", name: "Split the scene at the cursor", sequence: "Ctrl+K", run: () => view.split() },
+        { id: "scene.merge", name: "Merge with the next scene", sequence: "Ctrl+Shift+J", run: () => session.mergeWithNext(session.currentId) },
+        { id: "item.trash", name: "Move the item to the trash", sequence: "Ctrl+Shift+Del", run: () => session.moveToTrash(session.currentId) },
+        { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
+        { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
+        { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
+        { id: "inspector", name: "Show or hide the inspector", sequence: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
+        { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
+        { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() }
     ]
+
+    KeyMap {
+        id: keyMap
+    }
+
+    // The keys from the key map, read when the view opens.
+    readonly property var keys: keyMap.resolve(defaultCommands.map(
+        command => ({ id: command.id, name: command.name, sequence: command.sequence })))
+    readonly property var commands: defaultCommands.map(
+        command => Object.assign({}, command, { sequence: keys.sequences[command.id] }))
 
     Instantiator {
         model: view.commands
@@ -396,6 +407,13 @@ Item {
                 visible: view.session.error === ""
                 text: "Book " + statusBar.number(view.session.manuscriptWords)
                       + (view.session.goalWords > 0 ? " of " + statusBar.number(view.session.goalWords) : "")
+            }
+
+            Count {
+                objectName: "keyWarnings"
+                visible: view.keys.warnings.length > 0
+                text: "Key map: " + view.keys.warnings.join(" ")
+                color: Theme.color.accent
             }
 
             Count {

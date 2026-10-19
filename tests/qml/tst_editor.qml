@@ -264,6 +264,25 @@ TestCase {
         tryVerify(() => !field.visible);
     }
 
+    function test_everyCommandHasAKey() {
+        const view = makeView();
+        let seen = {};
+        for (const command of view.commands) {
+            verify(command.sequence !== "", command.id);
+            verify(!seen[command.sequence], command.sequence);
+            seen[command.sequence] = true;
+        }
+        const warnings = findChild(view, "keyWarnings") as Text;
+        verify(!warnings.visible);
+
+        // A key that was new in T50 runs its command.
+        const before = view.session.items().length;
+        view.forceActiveFocus();
+        keyClick(Qt.Key_N, Qt.ControlModifier | Qt.ShiftModifier);
+        compare(view.session.items().length, before + 1);
+        compare(view.session.fields(view.session.currentId).kind, "chapter");
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;
