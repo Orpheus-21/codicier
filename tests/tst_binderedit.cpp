@@ -709,6 +709,26 @@ private slots:
         QVERIFY(texts.size() > 0);
     }
 
+    void itemsListsTheBinderWithPaths()
+    {
+        QVERIFY(session->moveToTrash("y0z1a2b3c4"));
+        QStringList paths;
+        QStringList ids;
+        for (const QVariant &each : session->items()) {
+            const QVariantMap item = each.toMap();
+            ids.append(item.value("id").toString());
+            if (item.value("id") == QStringLiteral("t6v4h9r2mz")) {
+                QCOMPARE(item.value("title").toString(), QStringLiteral("A Date She Did Not Know"));
+                QCOMPARE(item.value("kind").toString(), QStringLiteral("scene"));
+                paths.append(item.value("path").toString());
+            }
+        }
+        QCOMPARE(paths, QStringList { "Part One / The Letter" });
+        QVERIFY(ids.contains("a1b2c3d4e5"));
+        // An item in the trash is not in the list.
+        QVERIFY(!ids.contains("y0z1a2b3c4"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

@@ -110,6 +110,9 @@ public:
     // The text items below the item, in binder order, as maps with id,
     // title, and file. For the composite view.
     Q_INVOKABLE QVariantList textsUnder(const QString &id) const;
+    // Every item outside the trash, in binder order: the id, the title, the
+    // kind, and the path of titles above it, as "Part One / The Letter".
+    Q_INVOKABLE QVariantList items() const;
     // Connects a document of the composite view, for the item id, to the
     // watcher and to the live word counts, as the editor document is.
     Q_INVOKABLE void trackDocument(Document *document, const QString &id);

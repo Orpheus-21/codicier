@@ -219,6 +219,51 @@ TestCase {
         tryCompare(results, "count", 0, 3000);
     }
 
+    function test_paletteRunsCommandsAndOpensItems() {
+        const view = makeView();
+        const model = view.session.binder;
+        const first = model.data(model.index(1, 0), BinderModel.IdRole);
+        view.session.currentId = first;
+        waitForRendering(view);
+
+        view.forceActiveFocus();
+        keyClick(Qt.Key_P, Qt.ControlModifier | Qt.ShiftModifier);
+        const field = findChild(view.T.Overlay.overlay, "paletteField") as TextField;
+        const results = findChild(view.T.Overlay.overlay, "paletteResults") as ListView;
+        verify(field && results);
+        tryVerify(() => field.activeFocus);
+        // With no text, the list shows every command and every item.
+        verify(results.count >= view.commands.length - 1);
+        verify(results.model[0].name !== "Find a command or an item");
+
+        for (const c of "snap")
+            keyClick(c);
+        compare(results.model[0].name, "Take a snapshot");
+        keyClick(Qt.Key_Return);
+        compare(view.session.snapshots(first).length, 1);
+
+        // An item opens by its title. The letters in order also match.
+        view.session.currentId = "";
+        keyClick(Qt.Key_P, Qt.ControlModifier | Qt.ShiftModifier);
+        tryVerify(() => field.activeFocus);
+        for (const c of "opng")
+            keyClick(c);
+        verify(results.count > 0);
+        compare(results.model[0].id, first);
+        keyClick(Qt.Key_Return);
+        compare(view.session.currentId, first);
+
+        // No match shows an empty list, and Escape closes the palette.
+        keyClick(Qt.Key_P, Qt.ControlModifier | Qt.ShiftModifier);
+        tryVerify(() => field.activeFocus);
+        for (const c of "zzqx")
+            keyClick(c);
+        compare(results.count, 0);
+        keyClick(Qt.Key_Return);
+        keyClick(Qt.Key_Escape);
+        tryVerify(() => !field.visible);
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;

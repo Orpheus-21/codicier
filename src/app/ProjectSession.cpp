@@ -763,6 +763,27 @@ QVariantList ProjectSession::textsUnder(const QString &id) const
     return list;
 }
 
+QVariantList ProjectSession::items() const
+{
+    QVariantList list;
+    const std::function<void(int, const QString &)> walk = [&](int at, const QString &path) {
+        const ProjectItem &item = project.items.at(at);
+        list.append(QVariantMap { { QStringLiteral("id"), item.id },
+                                  { QStringLiteral("title"), item.title },
+                                  { QStringLiteral("kind"), item.kind },
+                                  { QStringLiteral("path"), path } });
+        const QString below
+            = path.isEmpty() ? item.title : path + QStringLiteral(" / ") + item.title;
+        for (const int child : item.children)
+            walk(child, below);
+    };
+    for (const int root : project.roots) {
+        if (project.items.at(root).section != QLatin1String("trash"))
+            walk(root, QString());
+    }
+    return list;
+}
+
 void ProjectSession::trackDocument(Document *document, const QString &id)
 {
     if (document == nullptr)

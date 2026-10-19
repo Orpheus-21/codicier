@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import QtQml
 import QtQuick
 import QtQuick.Templates as T
 
@@ -53,21 +54,6 @@ Item {
         search.start();
     }
 
-    Shortcut {
-        sequence: "Ctrl+Shift+F"
-        onActivated: view.openSearch(false)
-    }
-
-    Shortcut {
-        sequence: "Ctrl+H"
-        onActivated: view.openSearch(true)
-    }
-
-    Shortcut {
-        sequence: "Ctrl+I"
-        onActivated: view.inspectorOpen = !view.inspectorOpen
-    }
-
     // Focus mode: full screen with only the page, and typewriter scroll.
     property bool focusMode: false
     // The window state before focus mode, to restore it after.
@@ -89,24 +75,51 @@ Item {
 
     // Splits the open scene at the cursor, and starts the rename of the new
     // scene.
-    Shortcut {
-        sequence: "Ctrl+K"
-        onActivated: {
-            const id = view.session.split(view.session.currentId, editor.cursorPosition);
-            if (id !== "")
-                binder.startRename(id);
+    function split() {
+        const id = session.split(session.currentId, editor.cursorPosition);
+        if (id !== "")
+            binder.startRename(id);
+    }
+
+    // Every command of the view. The command palette lists them, except a
+    // hidden one, and each command with a key sequence gets a shortcut.
+    readonly property var commands: [
+        { name: "Find a command or an item", sequence: "Ctrl+Shift+P", run: () => commandPalette.open(), hidden: true },
+        { name: "New scene", sequence: "Ctrl+N", run: () => binder.addItem("scene") },
+        { name: "New chapter", sequence: "", run: () => binder.addItem("chapter") },
+        { name: "New part", sequence: "", run: () => binder.addItem("part") },
+        { name: "New note", sequence: "", run: () => binder.addItem("note") },
+        { name: "New page", sequence: "", run: () => binder.addItem("page") },
+        { name: "Rename the item", sequence: "", run: () => binder.startRename(session.currentId) },
+        { name: "Split the scene at the cursor", sequence: "Ctrl+K", run: () => view.split() },
+        { name: "Merge with the next scene", sequence: "", run: () => session.mergeWithNext(session.currentId) },
+        { name: "Move the item to the trash", sequence: "", run: () => session.moveToTrash(session.currentId) },
+        { name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
+        { name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
+        { name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
+        { name: "Show or hide the inspector", sequence: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
+        { name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
+        { name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() }
+    ]
+
+    Instantiator {
+        model: view.commands
+
+        delegate: Shortcut {
+            required property var modelData
+
+            sequence: modelData.sequence
+            enabled: modelData.sequence !== ""
+            onActivated: modelData.run()
         }
     }
 
-    // Takes a snapshot of the open text.
-    Shortcut {
-        sequence: "Ctrl+Shift+S"
-        onActivated: view.session.takeSnapshot(view.session.currentId, "")
-    }
+    CommandPalette {
+        id: commandPalette
 
-    Shortcut {
-        sequence: "F11"
-        onActivated: view.setFocusMode(!view.focusMode)
+        parent: T.Overlay.overlay
+        session: view.session
+        commands: view.commands
     }
 
     Shortcut {
@@ -119,16 +132,6 @@ Item {
     function close() {
         view.session.backup();
         view.closeRequested();
-    }
-
-    Shortcut {
-        sequence: "Ctrl+W"
-        onActivated: view.close()
-    }
-
-    Shortcut {
-        sequence: "Ctrl+N"
-        onActivated: binder.addItem("scene")
     }
 
     // A project that did not load: the error and the way back.
