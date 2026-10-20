@@ -28,12 +28,13 @@ The project is in development. Not all features are complete.
 - CMake 3.21 or later.
 - Qt 6.8 or later, with the Qt Base and Qt Declarative modules.
 - toml++ 3 or later.
+- git, for the versions of a project.
 - Hunspell and pkg-config. For the spell check, also a Hunspell dictionary, such as `hunspell-en_us` or `hunspell-en_gb`.
 
 On Arch Linux, install the requirements with this command:
 
 ```
-sudo pacman -S --needed gcc make cmake pkgconf qt6-base qt6-declarative tomlplusplus hunspell hunspell-en_us
+sudo pacman -S --needed gcc make cmake git pkgconf qt6-base qt6-declarative tomlplusplus hunspell hunspell-en_us
 ```
 
 The fonts Literata and Inter are in the repo. The app has them inside the program file.
@@ -140,6 +141,15 @@ The inspector of an entity shows these parts:
 To add fields to a type, or to make a new type such as "Ships", choose "Types and fields" in the + menu of the codex panel. The app saves the types and their fields in `project.toml`.
 
 To link to an entity, type `[[` on the page. A list of entities opens under the cursor and filters as you type. Press Enter or Tab to insert the link, such as `[[Mara Vell]]`. Press Escape to close the list. Ctrl+click a link to open the entity. A link also finds an entity by an alias.
+
+### Versions
+
+A project can keep versions of all its files. Choose "Turn on versions" in the project menu, or press Ctrl+Alt+V. The app makes a git repository in the project folder, or uses the repository that already holds the folder, and saves a first version. You do not need to know git: the app runs it for you, and never uses the network.
+
+- Press Ctrl+Alt+S to save a version with a short message. By default, the app also saves a version when a project with changes closes.
+- Press Ctrl+Alt+H to see the versions of the project. The inspector of a text lists the versions of that text.
+- Click "Compare" next to a version in the inspector to see the changes since that version, word by word.
+- Restore a text from the compare view, or the whole project from the list of versions. Before a restore, the app saves a version of the state before, so you can undo a restore.
 
 ### Spelling and style
 
