@@ -93,7 +93,8 @@ Item {
     // What the editor area shows: "page", "board" for the corkboard,
     // "outline" for the outliner, "beats" for the beat board, "grid" for the
     // plot grid, "timeline" for the timeline, "relations" for the
-    // relationship graph, or "family" for the family tree.
+    // relationship graph, "family" for the family tree, or "insights" for
+    // the figures of the manuscript.
     property string viewMode: "page"
 
     function toggleViewMode(mode: string) {
@@ -264,6 +265,7 @@ Item {
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "calendar", name: "Edit the calendar of the story", sequence: "Ctrl+Alt+C", run: () => calendarDialog.open() },
+        { id: "insights", name: "Show or hide the insights", sequence: "Ctrl+Alt+I", run: () => view.toggleViewMode("insights") },
         { id: "family", name: "Show or hide the family tree", sequence: "Ctrl+Alt+F", run: () => view.toggleViewMode("family") },
         { id: "relations", name: "Show or hide the relationship graph", sequence: "Ctrl+Alt+R", run: () => view.toggleViewMode("relations") },
         { id: "timeline", name: "Show or hide the timeline", sequence: "Ctrl+Alt+T", run: () => view.toggleViewMode("timeline") },
@@ -602,6 +604,17 @@ Item {
                 z: 4
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
+            }
+
+            Insights {
+                objectName: "insightsView"
+                visible: view.viewMode === "insights"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
                 onOpened: id => view.openText(id)
             }
 

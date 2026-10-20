@@ -838,4 +838,16 @@ TestCase {
         mouseClick(moved, moved.width / 2, 12);
         compare(view.session.currentId, port);
     }
+
+    function test_insightsShowTheLengths() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_I, Qt.ControlModifier | Qt.AltModifier);
+        compare(view.viewMode, "insights");
+        const insightsView = findChild(view, "insightsView") as Insights;
+        verify(insightsView.figures.chapters.length > 0);
+        waitForRendering(view);
+        compare(faults(insightsView), []);
+        verify(findChild(insightsView, "lengthChapter"));
+    }
 }

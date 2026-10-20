@@ -29,7 +29,10 @@ QtObject {
                 "inkMuted": "#62584a",
                 "mark": "#706b65",
                 "accent": "#94552a",
-                "focus": "#94552a"
+                "focus": "#94552a",
+                // The chart series, in fixed order. dataviz validate_palette passes
+                // them on this paper; the light ones need labels or a table.
+                "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
             },
             "dark": {
                 "paper": "#1c1a17",
@@ -40,7 +43,10 @@ QtObject {
                 "inkMuted": "#aea596",
                 "mark": "#8f8a83",
                 "accent": "#d4935f",
-                "focus": "#d4935f"
+                "focus": "#d4935f",
+                // The chart series, in fixed order. dataviz validate_palette passes
+                // them on this paper; the light ones need labels or a table.
+                "series": ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181"]
             },
             "sepia": {
                 "paper": "#f2e8d2",
@@ -51,7 +57,10 @@ QtObject {
                 "inkMuted": "#5e4d39",
                 "mark": "#6c6051",
                 "accent": "#83491f",
-                "focus": "#83491f"
+                "focus": "#83491f",
+                // The chart series, in fixed order. dataviz validate_palette passes
+                // them on this paper; the light ones need labels or a table.
+                "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
             }
         })
     readonly property var color: palettes[name]

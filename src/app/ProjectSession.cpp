@@ -480,6 +480,61 @@ QUrl ProjectSession::fileUrl(const QString &id) const
     return QUrl::fromLocalFile(QDir(project.folder).filePath(project.items.at(index).file));
 }
 
+QVariantMap ProjectSession::insights()
+{
+    // The figures read the files, so the latest typing goes to disk first.
+    saveAll();
+    // A group is an item that holds scenes directly, such as a chapter, in
+    // binder order. Scenes at the top of the manuscript form one group.
+    struct Group
+    {
+        QString id;
+        QString title;
+        QList<int> scenes;
+    };
+    QList<Group> groups;
+    Group loose { QString(), QStringLiteral("Manuscript"), { } };
+    const std::function<void(int)> walk = [&](int at) {
+        const ProjectItem &item = project.items.at(at);
+        Group group { item.id, item.title, { } };
+        for (const int child : item.children) {
+            if (project.items.at(child).kind == QLatin1String("scene"))
+                group.scenes.append(child);
+        }
+        if (!group.scenes.isEmpty())
+            groups.append(group);
+        for (const int child : item.children)
+            walk(child);
+    };
+    for (const int root : project.roots) {
+        if (project.items.at(root).section != QLatin1String("manuscript"))
+            continue;
+        if (project.items.at(root).kind == QLatin1String("scene"))
+            loose.scenes.append(root);
+        walk(root);
+    }
+    if (!loose.scenes.isEmpty())
+        groups.prepend(loose);
+    QVariantList chapters;
+    for (const Group &group : std::as_const(groups)) {
+        QVariantList scenes;
+        int words = 0;
+        for (const int index : group.scenes) {
+            const ProjectItem &scene = project.items.at(index);
+            const int count = binderModel.wordsOf(scene.id);
+            words += count;
+            scenes.append(QVariantMap { { QStringLiteral("id"), scene.id },
+                                        { QStringLiteral("title"), scene.title },
+                                        { QStringLiteral("words"), count } });
+        }
+        chapters.append(QVariantMap { { QStringLiteral("id"), group.id },
+                                      { QStringLiteral("title"), group.title },
+                                      { QStringLiteral("words"), words },
+                                      { QStringLiteral("scenes"), scenes } });
+    }
+    return { { QStringLiteral("chapters"), chapters } };
+}
+
 QVariantList ProjectSession::relations(const QString &id) const
 {
     QVariantList list;

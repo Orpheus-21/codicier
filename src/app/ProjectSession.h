@@ -121,6 +121,10 @@ public:
     // in binder.toml, from, to, their titles, the name, and parent. A
     // relation to an item in the trash does not show.
     Q_INVOKABLE QVariantList relations(const QString &id = QString()) const;
+    // The figures of the manuscript for the insights view: chapters, a list
+    // of the items that hold scenes in binder order, each with an id, a
+    // title, its words, and its scenes (id, title, and words of each).
+    Q_INVOKABLE QVariantMap insights();
     // Copies a local image into maps/ and adds it as a map in the codex.
     // Returns the new id, or "" with the reason in lastError.
     Q_INVOKABLE QString addMap(const QUrl &image);

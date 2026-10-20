@@ -1346,6 +1346,18 @@ private slots:
         QVERIFY(!session->removePin(0));
     }
 
+    void insightsGiveTheLengths()
+    {
+        const QVariantList chapters = session->insights().value("chapters").toList();
+        QCOMPARE(chapters.size(), 1);
+        const QVariantMap letter = chapters.first().toMap();
+        QCOMPARE(letter.value("title").toString(), QStringLiteral("The Letter"));
+        QCOMPARE(letter.value("words").toInt(), 28);
+        const QVariantList scenes = letter.value("scenes").toList();
+        QCOMPARE(scenes.size(), 2);
+        QCOMPARE(scenes.at(1).toMap().value("words").toInt(), 18);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
