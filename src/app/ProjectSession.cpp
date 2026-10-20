@@ -446,6 +446,58 @@ QString ProjectSession::entityAt(const QString &text, int position) const
     return { };
 }
 
+QVariantList ProjectSession::mentionsOf(const QString &id)
+{
+    QVariantList list;
+    const int index = indexOf(id);
+    if (index < 0 || !isEntity(project.items.at(index).kind))
+        return list;
+    QStringList names = strings(project.items.at(index).data.get("aliases"));
+    names.prepend(project.items.at(index).title);
+    QStringList escaped;
+    for (const QString &name : std::as_const(names)) {
+        if (!name.trimmed().isEmpty())
+            escaped.append(QRegularExpression::escape(name.trimmed()));
+    }
+    // The longest name first, so "Mara Vell" wins over "Mara".
+    std::ranges::sort(escaped,
+                      [](const QString &a, const QString &b) { return a.size() > b.size(); });
+    const QRegularExpression pattern(
+        QStringLiteral("(?<!\\w)(") + escaped.join(u'|') + QStringLiteral(")(?!\\w)"),
+        QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
+    // The texts on disk must hold the latest typing.
+    saveAll();
+    // ponytail: reads every manuscript file at each call; use the search
+    // index if a very long book makes this slow.
+    for (const int root : std::as_const(project.roots)) {
+        if (project.items.at(root).section != QLatin1String("manuscript"))
+            continue;
+        const std::function<void(int)> visit = [&](int at) {
+            const ProjectItem &item = project.items.at(at);
+            if (!item.file.isEmpty()) {
+                int count = 0;
+                QFile file(QDir(project.folder).filePath(item.file));
+                const QString text = file.open(QIODevice::ReadOnly)
+                    ? QString::fromUtf8(file.readAll())
+                    : QString();
+                QRegularExpressionMatchIterator it = pattern.globalMatch(text);
+                while (it.hasNext()) {
+                    it.next();
+                    ++count;
+                }
+                if (count > 0)
+                    list.append(QVariantMap { { QStringLiteral("id"), item.id },
+                                              { QStringLiteral("title"), item.title },
+                                              { QStringLiteral("count"), count } });
+            }
+            for (const int child : item.children)
+                visit(child);
+        };
+        visit(root);
+    }
+    return list;
+}
+
 bool ProjectSession::setEntityField(const QString &id, const QString &field, const QString &value)
 {
     const int index = indexOf(id);

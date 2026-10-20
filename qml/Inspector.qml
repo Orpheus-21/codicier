@@ -23,7 +23,11 @@ Pane {
     function refresh() {
         inspector.fields = session.fields(session.currentId);
         inspector.entityType = session.entityTypes().find(type => type.kind === inspector.fields.kind);
+        inspector.mentions = inspector.entityType ? session.mentionsOf(session.currentId) : [];
     }
+
+    // The texts that name the open entity, read when the entity opens.
+    property var mentions: []
 
     // Saves one field if its value changed. Returns true if it saved.
     function save(key: string, value: var): bool {
@@ -354,6 +358,38 @@ Pane {
                     Accessible.name: "Aliases"
                     text: (inspector.fields.aliases ?? []).join(", ")
                     onEditingFinished: inspector.save("aliases", text.split(",").map(t => t.trim()).filter(t => t !== ""))
+                }
+            }
+
+            Column {
+                visible: inspector.entityType !== undefined
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Mentions"
+                }
+
+                Text {
+                    visible: inspector.mentions.length === 0
+                    text: "No text of the manuscript names it yet."
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.body
+                    color: Theme.color.inkMuted
+                }
+
+                Repeater {
+                    model: inspector.mentions
+
+                    ListItem {
+                        required property var modelData
+
+                        objectName: "mention"
+                        width: parent.width
+                        text: modelData.title
+                        trailing: modelData.count
+                        onClicked: inspector.session.currentId = modelData.id
+                    }
                 }
             }
 

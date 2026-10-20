@@ -334,4 +334,26 @@ TestCase {
         mouseClick(text, rect.x + 2, rect.y + rect.height / 2, Qt.LeftButton, Qt.ControlModifier);
         compare(view.session.currentId, mara);
     }
+
+    function test_inspectorListsMentions() {
+        const view = makeView();
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        (findChild(view, "editor") as TextEdit).text = "Mara came in.";
+        const mara = view.session.add("character");
+        view.session.rename(mara, "Mara");
+        view.session.currentId = mara;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const row = findChild(view, "mention") as ListItem;
+        verify(row && row.visible);
+        compare(row.trailing, "1");
+        compare(faults(findChild(view, "inspector") as Item), []);
+        mouseClick(row);
+        compare(view.session.currentId, scene);
+    }
 }

@@ -85,6 +85,10 @@ public:
     Q_INVOKABLE QString entityByName(const QString &name) const;
     // The entity of the [[link]] at position in text, or "".
     Q_INVOKABLE QString entityAt(const QString &text, int position) const;
+    // The texts of the manuscript that name the entity, by its title or an
+    // alias, as whole words with no regard to case, in binder order. Each
+    // has an id, a title, and the count of mentions.
+    Q_INVOKABLE QVariantList mentionsOf(const QString &id);
     // Sets the value of one field of an entity. An empty value removes it.
     Q_INVOKABLE bool setEntityField(const QString &id, const QString &field, const QString &value);
     // Gives the item a new title and saves the binder.

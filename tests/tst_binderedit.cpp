@@ -855,6 +855,34 @@ private slots:
         QVERIFY(session->entityByName("Mara Vell").isEmpty());
     }
 
+    void mentionsFindTheTextsThatNameAnEntity()
+    {
+        const QString id = session->add("character");
+        QVERIFY(session->rename(id, "Mara Vell"));
+        QVERIFY(session->setField(id, "aliases", QStringList { "the clerk", "Mara" }));
+        QVERIFY(session->mentionsOf(id).isEmpty());
+
+        // The open text has typing that is not saved yet.
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor(&editor).insertText("Mara Vell met THE CLERK. Marathon. [[Mara]] ");
+        QFile other(QDir(dir.path()).filePath(onDisk(dir.path(), "m1n2p3q4r5").file));
+        QVERIFY(other.open(QIODevice::Append));
+        other.write("The clerk slept.\n");
+        other.close();
+
+        const QVariantList mentions = session->mentionsOf(id);
+        QCOMPARE(mentions.size(), 2);
+        // Binder order, and "Marathon" is not a mention.
+        QCOMPARE(mentions.at(0).toMap().value("id").toString(), QStringLiteral("m1n2p3q4r5"));
+        QCOMPARE(mentions.at(0).toMap().value("count").toInt(), 1);
+        QCOMPARE(mentions.at(1).toMap().value("id").toString(), QStringLiteral("t6v4h9r2mz"));
+        QCOMPARE(mentions.at(1).toMap().value("count").toInt(), 3);
+        // Only an entity has mentions.
+        QVERIFY(session->mentionsOf("t6v4h9r2mz").isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
