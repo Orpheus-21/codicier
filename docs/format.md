@@ -64,7 +64,7 @@ deadline = 2027-03-01
 | `goals.deadline` | date | no | The date to finish the work. |
 | `framework` | string | no | The plot framework of the beat board: `three-act`, `save-the-cat`, `heros-journey`, `kishotenketsu`, or `snowflake`. |
 | `calendar.month` | array of tables | no | The months of the calendar of the story, each with a `name` and `days` from 1 to 1000. With no months, the story uses the Gregorian calendar. |
-| `pass` | array of tables | no | The draft passes, in order, each with a `name`. When a pass starts, the app takes a snapshot titled "Pass N start" of each text. |
+| `pass` | array of tables | no | The draft passes, in order, each with a `name` and an optional `checks` list for the revision checklist. When a pass starts, the app takes a snapshot titled "Pass N start" of each text. |
 | `plotline` | array of tables | no | The plotlines, each with an `id` and a `name`, in order. |
 | `entity-type` | array of tables | no | The entity types of the author. See "Entity types". |
 
@@ -182,7 +182,7 @@ A short story or an essay can have scenes at the top of the manuscript, with no 
 
 A move to the trash changes only `binder.toml`. The item goes to the top level with `section = "trash"`. Its `restore` key keeps the id of its old parent. The file stays where it is. When the author empties the trash, the app deletes the files of the items in the trash.
 
-### Relations, comments, and pins
+### Relations, comments, ticks, and pins
 
 `binder.toml` can also hold these lists of tables, after the items:
 
@@ -190,6 +190,7 @@ A move to the trash changes only `binder.toml`. The item goes to the top level w
 |---|---|---|
 | `[[relation]]` | `from`, `to`, `name`, and `parent` | A link between two entities, such as `name = "sister of"`. With `parent = true`, `from` is a parent of `to`, for the family tree. The app writes `parent` only when it is true. |
 | `[[comment]]` | `item`, `quote`, `start`, `text`, and `resolved` | A comment on the words `quote` of a text, which were at the character `start` when the author wrote the comment. The app finds the quote at the place nearest `start`. The app writes `resolved` only when it is true. |
+| `[[tick]]` | `pass`, `check`, and `item` | A tick of the revision checklist: the check of the pass with that number is done for that chapter. |
 | `[[pin]]` | `map`, `place`, `x`, and `y` | An entity pinned to a map. `x` and `y` are parts of the width and the height of the image, from 0 to 1. |
 
 ### Keys that the app does not know
