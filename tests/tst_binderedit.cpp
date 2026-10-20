@@ -1079,6 +1079,18 @@ private slots:
                  QStringLiteral("Before the restore of the project"));
     }
 
+    void sessionListsTheFrameworks()
+    {
+        const QVariantList frameworks = session->frameworks();
+        QCOMPARE(frameworks.size(), 5);
+        const QVariantMap cat = frameworks.at(1).toMap();
+        QCOMPARE(cat.value("name").toString(), QStringLiteral("Save the Cat"));
+        const QVariantMap catalyst = cat.value("beats").toList().at(3).toMap();
+        QCOMPARE(catalyst.value("id").toString(), QStringLiteral("catalyst"));
+        QCOMPARE(catalyst.value("at").toDouble(), 0.1);
+        QVERIFY(!catalyst.value("description").toString().isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

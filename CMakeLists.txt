@@ -21,9 +21,11 @@ qt_standard_project_setup(REQUIRES 6.8)
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
     src/model/Naming.cpp src/model/Templates.cpp src/model/Watcher.cpp src/model/Snapshots.cpp
-    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp
+    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp src/model/Frameworks.cpp
     src/index/Index.cpp)
 target_include_directories(codicier_core PUBLIC src/model src/index)
+# The plot frameworks of the beat board.
+qt_add_resources(codicier_core "data" PREFIX "/" FILES data/frameworks.toml)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
 target_link_libraries(codicier_core PUBLIC Qt6::Core Qt6::Sql PRIVATE Qt6::CorePrivate)
 # Arch builds toml++ as a shared library. Use only its headers, in header-only

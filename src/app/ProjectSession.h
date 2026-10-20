@@ -97,6 +97,9 @@ public:
     // The entity types: the six of the app, then the types of project.toml.
     // Each has a kind, a name for the heading, its fields, and custom.
     Q_INVOKABLE QVariantList entityTypes() const;
+    // The plot frameworks: the id, the name, and the beats of each, with the
+    // id, name, description, and place of each beat.
+    Q_INVOKABLE QVariantList frameworks() const;
     // Sets the name and the fields of a type in project.toml. An empty kind
     // makes a new type from the name. Returns the kind, or "" on an error.
     Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,

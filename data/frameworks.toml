@@ -1,0 +1,287 @@
+# The plot frameworks of the beat board. Each beat has an id, a name, a
+# short description, and the place in the story where it usually falls, as a
+# part of the whole length from 0 to 1.
+
+[[framework]]
+id = "three-act"
+name = "Three acts"
+
+[[framework.beat]]
+id = "setup"
+name = "Setup"
+description = "The world, the hero, and what the hero wants before the story starts."
+at = 0.0
+
+[[framework.beat]]
+id = "inciting-incident"
+name = "Inciting incident"
+description = "An event breaks the normal life of the hero."
+at = 0.1
+
+[[framework.beat]]
+id = "first-turn"
+name = "First turning point"
+description = "The hero commits to the problem, and the second act starts."
+at = 0.25
+
+[[framework.beat]]
+id = "rising-action"
+name = "Rising action"
+description = "The hero tries, and the obstacles grow."
+at = 0.35
+
+[[framework.beat]]
+id = "midpoint"
+name = "Midpoint"
+description = "A change of direction: a win, a loss, or a new truth."
+at = 0.5
+
+[[framework.beat]]
+id = "second-turn"
+name = "Second turning point"
+description = "The worst moment, and the decision that starts the third act."
+at = 0.75
+
+[[framework.beat]]
+id = "climax"
+name = "Climax"
+description = "The final conflict, which the hero wins or loses."
+at = 0.9
+
+[[framework.beat]]
+id = "resolution"
+name = "Resolution"
+description = "The new normal after the conflict."
+at = 0.97
+
+[[framework]]
+id = "save-the-cat"
+name = "Save the Cat"
+
+[[framework.beat]]
+id = "opening-image"
+name = "Opening image"
+description = "One picture of the world and the hero before the change."
+at = 0.0
+
+[[framework.beat]]
+id = "theme-stated"
+name = "Theme stated"
+description = "Someone states the lesson that the hero must learn."
+at = 0.05
+
+[[framework.beat]]
+id = "set-up"
+name = "Set-up"
+description = "The life of the hero, and what is wrong with it."
+at = 0.08
+
+[[framework.beat]]
+id = "catalyst"
+name = "Catalyst"
+description = "An event that changes the life of the hero."
+at = 0.1
+
+[[framework.beat]]
+id = "debate"
+name = "Debate"
+description = "The hero doubts what to do."
+at = 0.15
+
+[[framework.beat]]
+id = "break-into-two"
+name = "Break into two"
+description = "The hero chooses to act, and enters a new world."
+at = 0.2
+
+[[framework.beat]]
+id = "b-story"
+name = "B story"
+description = "A second line, often a relationship, that carries the theme."
+at = 0.22
+
+[[framework.beat]]
+id = "fun-and-games"
+name = "Fun and games"
+description = "The promise of the premise: the hero in the new world."
+at = 0.3
+
+[[framework.beat]]
+id = "midpoint"
+name = "Midpoint"
+description = "A false win or a false loss raises the stakes."
+at = 0.5
+
+[[framework.beat]]
+id = "bad-guys-close-in"
+name = "Bad guys close in"
+description = "Pressure from outside and doubt from inside grow."
+at = 0.6
+
+[[framework.beat]]
+id = "all-is-lost"
+name = "All is lost"
+description = "The lowest point. Something or someone is lost."
+at = 0.75
+
+[[framework.beat]]
+id = "dark-night"
+name = "Dark night of the soul"
+description = "The hero mourns, and then finds the answer."
+at = 0.78
+
+[[framework.beat]]
+id = "break-into-three"
+name = "Break into three"
+description = "The hero has a new plan, from the lesson and the B story."
+at = 0.8
+
+[[framework.beat]]
+id = "finale"
+name = "Finale"
+description = "The hero acts on the plan and changes the world."
+at = 0.85
+
+[[framework.beat]]
+id = "final-image"
+name = "Final image"
+description = "One picture that mirrors the opening image and shows the change."
+at = 0.99
+
+[[framework]]
+id = "heros-journey"
+name = "Hero's Journey"
+
+[[framework.beat]]
+id = "ordinary-world"
+name = "Ordinary world"
+description = "The hero at home, before the adventure."
+at = 0.0
+
+[[framework.beat]]
+id = "call-to-adventure"
+name = "Call to adventure"
+description = "A problem or a challenge appears."
+at = 0.08
+
+[[framework.beat]]
+id = "refusal"
+name = "Refusal of the call"
+description = "The hero hesitates or says no."
+at = 0.12
+
+[[framework.beat]]
+id = "mentor"
+name = "Meeting the mentor"
+description = "A guide gives advice, training, or a gift."
+at = 0.17
+
+[[framework.beat]]
+id = "threshold"
+name = "Crossing the threshold"
+description = "The hero leaves the ordinary world."
+at = 0.25
+
+[[framework.beat]]
+id = "tests"
+name = "Tests, allies, enemies"
+description = "The hero learns the rules of the new world."
+at = 0.35
+
+[[framework.beat]]
+id = "approach"
+name = "Approach"
+description = "The hero prepares for the central danger."
+at = 0.45
+
+[[framework.beat]]
+id = "ordeal"
+name = "Ordeal"
+description = "The hero faces the greatest danger so far."
+at = 0.55
+
+[[framework.beat]]
+id = "reward"
+name = "Reward"
+description = "The hero takes the prize of the ordeal."
+at = 0.65
+
+[[framework.beat]]
+id = "road-back"
+name = "The road back"
+description = "The hero starts home, and the danger follows."
+at = 0.75
+
+[[framework.beat]]
+id = "resurrection"
+name = "Resurrection"
+description = "A final test, in which the hero changes for good."
+at = 0.88
+
+[[framework.beat]]
+id = "return"
+name = "Return with the elixir"
+description = "The hero comes home with something that helps the world."
+at = 0.97
+
+[[framework]]
+id = "kishotenketsu"
+name = "Kishōtenketsu"
+
+[[framework.beat]]
+id = "ki"
+name = "Ki: introduction"
+description = "The characters and the place."
+at = 0.0
+
+[[framework.beat]]
+id = "sho"
+name = "Shō: development"
+description = "The situation grows, with no big conflict."
+at = 0.25
+
+[[framework.beat]]
+id = "ten"
+name = "Ten: twist"
+description = "A surprise that shows the story from a new side."
+at = 0.5
+
+[[framework.beat]]
+id = "ketsu"
+name = "Ketsu: conclusion"
+description = "The parts come together in a new understanding."
+at = 0.75
+
+[[framework]]
+id = "snowflake"
+name = "Snowflake"
+
+[[framework.beat]]
+id = "setup"
+name = "Setup"
+description = "The world and the characters before the first disaster."
+at = 0.0
+
+[[framework.beat]]
+id = "first-disaster"
+name = "First disaster"
+description = "The end of the first quarter: the story cannot go back."
+at = 0.25
+
+[[framework.beat]]
+id = "second-disaster"
+name = "Second disaster"
+description = "The middle: the hero must change the approach."
+at = 0.5
+
+[[framework.beat]]
+id = "third-disaster"
+name = "Third disaster"
+description = "The end of the third quarter: it forces the ending."
+at = 0.75
+
+[[framework.beat]]
+id = "ending"
+name = "Ending"
+description = "How the story ends after the three disasters."
+at = 0.9

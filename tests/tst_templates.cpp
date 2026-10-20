@@ -1,3 +1,4 @@
+#include "Frameworks.h"
 #include "Naming.h"
 #include "Templates.h"
 
@@ -138,6 +139,32 @@ private slots:
             QVERIFY(!used.contains(id));
             used.insert(id);
         }
+    }
+
+    void frameworksComeWithTheApp()
+    {
+        const QList<Frameworks::Framework> &all = Frameworks::all();
+        QStringList ids;
+        QList<qsizetype> sizes;
+        for (const Frameworks::Framework &framework : all) {
+            ids.append(framework.id);
+            sizes.append(framework.beats.size());
+            QVERIFY(!framework.name.isEmpty());
+            QSet<QString> beatIds;
+            double last = -1;
+            for (const Frameworks::Beat &beat : framework.beats) {
+                QVERIFY2(!beat.name.isEmpty() && !beat.description.isEmpty(), qPrintable(beat.id));
+                // Each beat once, in the order of the story.
+                QVERIFY(!beatIds.contains(beat.id));
+                beatIds.insert(beat.id);
+                QVERIFY(beat.at >= last && beat.at <= 1);
+                last = beat.at;
+            }
+        }
+        QCOMPARE(ids,
+                 (QStringList { "three-act", "save-the-cat", "heros-journey", "kishotenketsu",
+                                "snowflake" }));
+        QCOMPARE(sizes, (QList<qsizetype> { 8, 15, 12, 4, 5 }));
     }
 };
 

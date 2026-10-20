@@ -2,6 +2,7 @@
 
 #include "Backup.h"
 #include "Diff.h"
+#include "Frameworks.h"
 #include "History.h"
 #include "Index.h"
 #include "Naming.h"
@@ -344,6 +345,23 @@ bool ProjectSession::commit(const QStringList &newFiles)
     teachSpelling();
     emit edited();
     return errors.isEmpty();
+}
+
+QVariantList ProjectSession::frameworks() const
+{
+    QVariantList list;
+    for (const Frameworks::Framework &framework : Frameworks::all()) {
+        QVariantList beats;
+        for (const Frameworks::Beat &beat : framework.beats)
+            beats.append(QVariantMap { { QStringLiteral("id"), beat.id },
+                                       { QStringLiteral("name"), beat.name },
+                                       { QStringLiteral("description"), beat.description },
+                                       { QStringLiteral("at"), beat.at } });
+        list.append(QVariantMap { { QStringLiteral("id"), framework.id },
+                                  { QStringLiteral("name"), framework.name },
+                                  { QStringLiteral("beats"), beats } });
+    }
+    return list;
 }
 
 QVariantList ProjectSession::entityTypes() const
