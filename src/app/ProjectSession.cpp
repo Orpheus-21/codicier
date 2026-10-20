@@ -408,6 +408,55 @@ QString ProjectSession::addPlotline(const QString &name)
     return commit({ }) ? id : QString();
 }
 
+QVariantList ProjectSession::timeline(const QString &groupBy) const
+{
+    const Calendar dates = calendar();
+    QMap<QString, QVariantList> tracks;
+    QHash<QString, QString> lineNames;
+    for (const QVariant &line : plotlines())
+        lineNames.insert(line.toMap().value(QStringLiteral("id")).toString(),
+                         line.toMap().value(QStringLiteral("name")).toString());
+    // The items with a valid date, outside the trash, by day.
+    QList<std::pair<qint64, int>> dated;
+    for (int i = 0; i < project.items.size(); ++i) {
+        const ProjectItem &item = project.items.at(i);
+        const auto day
+            = dates.dayOf(QString::fromStdString(item.data["date"].value_or(std::string())));
+        if (day && !binderModel.isInTrash(item.id))
+            dated.append({ *day, i });
+    }
+    std::ranges::stable_sort(dated, { }, &std::pair<qint64, int>::first);
+    for (const auto &[day, index] : std::as_const(dated)) {
+        const ProjectItem &item = project.items.at(index);
+        const QString date = QString::fromStdString(item.data["date"].value_or(std::string()));
+        const QVariantMap event { { QStringLiteral("id"), item.id },
+                                  { QStringLiteral("title"), item.title },
+                                  { QStringLiteral("kind"), item.kind },
+                                  { QStringLiteral("day"), day },
+                                  { QStringLiteral("label"), dates.label(date) } };
+        QStringList names;
+        if (groupBy == QLatin1String("plotline")) {
+            for (const QString &id : strings(item.data.get("plotlines")))
+                names.append(lineNames.value(id, id));
+            if (names.isEmpty())
+                names.append(isEntity(item.kind) ? QStringLiteral("Codex")
+                                                 : QStringLiteral("No plotline"));
+        } else {
+            const QString pov = QString::fromStdString(item.data["pov"].value_or(std::string()));
+            names.append(!pov.isEmpty()            ? pov
+                             : isEntity(item.kind) ? QStringLiteral("Codex")
+                                                   : QStringLiteral("No POV"));
+        }
+        for (const QString &name : std::as_const(names))
+            tracks[name].append(event);
+    }
+    QVariantList list;
+    for (auto it = tracks.cbegin(); it != tracks.cend(); ++it)
+        list.append(QVariantMap { { QStringLiteral("name"), it.key() },
+                                  { QStringLiteral("events"), it.value() } });
+    return list;
+}
+
 Calendar ProjectSession::calendar() const
 {
     return { };

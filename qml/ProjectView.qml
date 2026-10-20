@@ -90,8 +90,8 @@ Item {
     property bool searchOpen: false
 
     // What the editor area shows: "page", "board" for the corkboard,
-    // "outline" for the outliner, "beats" for the beat board, or "grid" for
-    // the plot grid.
+    // "outline" for the outliner, "beats" for the beat board, "grid" for the
+    // plot grid, or "timeline" for the timeline.
     property string viewMode: "page"
 
     function toggleViewMode(mode: string) {
@@ -258,6 +258,7 @@ Item {
         { id: "item.trash", name: "Move the item to the trash", sequence: "Ctrl+Shift+Del", run: () => session.moveToTrash(session.currentId) },
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
+        { id: "timeline", name: "Show or hide the timeline", sequence: "Ctrl+Alt+T", run: () => view.toggleViewMode("timeline") },
         { id: "grid", name: "Show or hide the plot grid", sequence: "Ctrl+Alt+G", run: () => view.toggleViewMode("grid") },
         { id: "beats", name: "Show or hide the beat board", sequence: "Ctrl+Alt+B", run: () => view.toggleViewMode("beats") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
@@ -564,6 +565,17 @@ Item {
                 z: 4
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
+            }
+
+            Timeline {
+                objectName: "timelineView"
+                visible: view.viewMode === "timeline"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
                 onOpened: id => view.openText(id)
             }
 

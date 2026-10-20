@@ -670,4 +670,42 @@ TestCase {
         mouseRelease(view, from.x, from.y + 40);
         compare(view.session.fields(scene).plotlines, [b]);
     }
+
+    function test_timelinePlacesEventsByDate() {
+        const view = makeView();
+        const scenes = view.session.plotGrid();
+        view.session.setField(scenes[0].id, "date", "1847-03-04");
+        view.session.setField(scenes[0].id, "pov", "Mara");
+        const old = view.session.add("character");
+        view.session.rename(old, "Old Vell");
+        view.session.setField(old, "date", "1801-06-12");
+        view.forceActiveFocus();
+        keyClick(Qt.Key_T, Qt.ControlModifier | Qt.AltModifier);
+        compare(view.viewMode, "timeline");
+        const timelineView = findChild(view, "timelineView") as Timeline;
+        compare(timelineView.tracks.length, 2);
+        waitForRendering(view);
+        const tracks = findChild(view, "timelineTracks") as Flickable;
+        const events = [];
+        const walk = item => {
+            for (let i = 0; i < item.children.length; ++i) {
+                const child = item.children[i];
+                if (child.objectName === "timelineEvent")
+                    events.push(child);
+                walk(child);
+            }
+        };
+        walk(tracks.contentItem);
+        compare(events.length, 2);
+        // The older event is on the left, at the start of the time line.
+        events.sort((a, b) => a.x - b.x);
+        compare(events[0].Accessible.name, "Old Vell, 12 June 1801");
+        compare(events[0].x, timelineView.nameWidth);
+        verify(events[1].x > events[0].x);
+        verify(events[1].x <= timelineView.nameWidth + timelineView.usable);
+        compare(faults(timelineView), []);
+        mouseClick(events[1]);
+        compare(view.session.currentId, scenes[0].id);
+        compare(view.viewMode, "page");
+    }
 }

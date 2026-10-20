@@ -116,6 +116,11 @@ public:
     // The scenes of the manuscript in binder order, for the plot grid: the
     // id, the title, and the plotline ids of each.
     Q_INVOKABLE QVariantList plotGrid() const;
+    // The items with a date in story time, outside the trash, as tracks by
+    // "pov" or by "plotline", in name order: the name and the events of
+    // each track, by day. Each event has an id, title, kind, day number,
+    // and a label of its date.
+    Q_INVOKABLE QVariantList timeline(const QString &groupBy) const;
     // Sets the name and the fields of a type in project.toml. An empty kind
     // makes a new type from the name. Returns the kind, or "" on an error.
     Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,

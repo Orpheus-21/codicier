@@ -1163,6 +1163,35 @@ private slots:
         QVERIFY(!readFile("binder.toml").contains("date = "));
     }
 
+    void timelineGroupsDatedItems()
+    {
+        QVERIFY(session->timeline("pov").isEmpty());
+        QVERIFY(session->setField("t6v4h9r2mz", "date", "1847-03-04"));
+        QVERIFY(session->setField("m1n2p3q4r5", "date", "1847-03-01"));
+        const QString line = session->addPlotline("The ledger");
+        QVERIFY(session->setField("t6v4h9r2mz", "plotlines", QStringList { line }));
+
+        // Both scenes have the POV Mara, the earlier one first.
+        const QVariantList byPov = session->timeline("pov");
+        QCOMPARE(byPov.size(), 1);
+        const QVariantMap mara = byPov.first().toMap();
+        QCOMPARE(mara.value("name").toString(), QStringLiteral("Mara"));
+        const QVariantList events = mara.value("events").toList();
+        QCOMPARE(events.size(), 2);
+        QCOMPARE(events.first().toMap().value("id").toString(), QStringLiteral("m1n2p3q4r5"));
+        QCOMPARE(events.first().toMap().value("label").toString(), QStringLiteral("1 March 1847"));
+
+        const QVariantList byLine = session->timeline("plotline");
+        QStringList names;
+        for (const QVariant &track : byLine)
+            names.append(track.toMap().value("name").toString());
+        QCOMPARE(names, (QStringList { "No plotline", "The ledger" }));
+
+        // An item in the trash leaves the timeline.
+        QVERIFY(session->moveToTrash("m1n2p3q4r5"));
+        QCOMPARE(session->timeline("pov").first().toMap().value("events").toList().size(), 1);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
