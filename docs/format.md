@@ -61,6 +61,7 @@ deadline = 2027-03-01
 | `goals.words` | integer | no | The word goal for the whole work. |
 | `goals.daily` | integer | no | The word goal for each day. |
 | `goals.deadline` | date | no | The date to finish the work. |
+| `framework` | string | no | The plot framework of the beat board: `three-act`, `save-the-cat`, `heros-journey`, `kishotenketsu`, or `snowflake`. |
 | `entity-type` | array of tables | no | The entity types of the author. See "Entity types". |
 
 ### Entity types
@@ -133,6 +134,7 @@ Do not say so yet."""
 | `pov` | string | scenes | The point of view character. |
 | `place` | string | scenes | Where the scene happens. |
 | `time` | string | scenes | When the scene happens, in free text. |
+| `beat` | string | scenes | The id of the beat of the framework that the scene is on. |
 | `synopsis` | string | text items | A short summary. |
 | `aliases` | array of strings | entities | Other names of the entity, such as a nickname or a title. |
 | `fields` | table of strings | entities | The values of the fields of the entity type, by field name, such as `Captain = "Ahab"`. The app writes the table under the item as `[item.fields]`. |
