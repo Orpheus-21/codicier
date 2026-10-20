@@ -417,6 +417,67 @@ bool ProjectSession::addRelation(const QString &from, const QString &to, const Q
     return commit({ });
 }
 
+QVariantMap ProjectSession::familyTree() const
+{
+    // The parent links, and every person in one.
+    QList<std::pair<QString, QString>> links;
+    QStringList people;
+    for (const QVariant &each : relations()) {
+        const QVariantMap relation = each.toMap();
+        if (!relation.value(QStringLiteral("parent")).toBool())
+            continue;
+        const QString parent = relation.value(QStringLiteral("from")).toString();
+        const QString child = relation.value(QStringLiteral("to")).toString();
+        links.append({ parent, child });
+        for (const QString &id : { parent, child }) {
+            if (!people.contains(id))
+                people.append(id);
+        }
+    }
+    // A generation is one more than the deepest parent. The passes stop
+    // after one pass for each person, so a loop of links cannot hang.
+    QHash<QString, int> generation;
+    for (const QString &id : std::as_const(people))
+        generation.insert(id, 0);
+    for (qsizetype pass = 0; pass < people.size(); ++pass) {
+        bool changed = false;
+        for (const auto &[parent, child] : std::as_const(links)) {
+            if (generation.value(child) < generation.value(parent) + 1
+                && generation.value(parent) < people.size()) {
+                generation[child] = generation.value(parent) + 1;
+                changed = true;
+            }
+        }
+        if (!changed)
+            break;
+    }
+    QList<QVariantList> rows;
+    for (const QString &id : std::as_const(people)) {
+        const int row = generation.value(id);
+        while (rows.size() <= row)
+            rows.append(QVariantList());
+        rows[row].append(
+            QVariantMap { { QStringLiteral("id"), id },
+                          { QStringLiteral("title"), project.items.at(indexOf(id)).title } });
+    }
+    QVariantList generations;
+    for (QVariantList &row : rows) {
+        std::ranges::sort(row, [](const QVariant &a, const QVariant &b) {
+            return a.toMap()
+                       .value(QStringLiteral("title"))
+                       .toString()
+                       .localeAwareCompare(b.toMap().value(QStringLiteral("title")).toString())
+                < 0;
+        });
+        generations.append(QVariant(row));
+    }
+    QVariantList edges;
+    for (const auto &[parent, child] : std::as_const(links))
+        edges.append(
+            QVariantMap { { QStringLiteral("from"), parent }, { QStringLiteral("to"), child } });
+    return { { QStringLiteral("generations"), generations }, { QStringLiteral("links"), edges } };
+}
+
 bool ProjectSession::removeRelation(int index)
 {
     toml::array *relations = project.binderData.get_as<toml::array>("relation");

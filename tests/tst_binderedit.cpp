@@ -1257,6 +1257,31 @@ private slots:
         QVERIFY(!session->removeRelation(7));
     }
 
+    void familyTreeFromParentLinks()
+    {
+        QStringList ids;
+        for (const char *name : { "Old Vell", "Ilse", "Mara", "Abel" }) {
+            ids.append(session->add("character"));
+            QVERIFY(session->rename(ids.last(), name));
+        }
+        QVERIFY(session->addRelation(ids[0], ids[1], { }, true));
+        QVERIFY(session->addRelation(ids[1], ids[2], { }, true));
+        // A grandparent link puts Mara one row below Ilse, not one row below Old Vell.
+        QVERIFY(session->addRelation(ids[0], ids[2], { }, true));
+        QVERIFY(session->addRelation(ids[2], ids[3], "rival of", false));
+
+        const QVariantMap tree = session->familyTree();
+        const QVariantList generations = tree.value("generations").toList();
+        QCOMPARE(generations.size(), 3);
+        QCOMPARE(generations.at(2).toList().first().toMap().value("title").toString(),
+                 QStringLiteral("Mara"));
+        QCOMPARE(tree.value("links").toList().size(), 3);
+
+        // A loop of parent links does not hang the tree.
+        QVERIFY(session->addRelation(ids[2], ids[0], { }, true));
+        QVERIFY(!session->familyTree().value("generations").toList().isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

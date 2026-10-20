@@ -126,6 +126,10 @@ public:
     Q_INVOKABLE bool addRelation(const QString &from, const QString &to, const QString &name,
                                  bool parent);
     Q_INVOKABLE bool removeRelation(int index);
+    // The family tree from the parent links: generations (a list of rows,
+    // oldest first, each a list of people with an id and a title, in title
+    // order) and links (each with from, the parent, and to, the child).
+    Q_INVOKABLE QVariantMap familyTree() const;
     // The items with a date in story time, outside the trash, as tracks by
     // "pov" or by "plotline", in name order: the name and the events of
     // each track, by day. Each event has an id, title, kind, day number,

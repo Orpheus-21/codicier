@@ -780,4 +780,22 @@ TestCase {
         verify(view.session.currentId === mara || view.session.currentId === port);
         compare(view.viewMode, "page");
     }
+
+    function test_familyTreeShowsGenerations() {
+        const view = makeView();
+        const ilse = view.session.add("character");
+        view.session.rename(ilse, "Ilse");
+        const mara = view.session.add("character");
+        view.session.rename(mara, "Mara");
+        view.session.addRelation(ilse, mara, "", true);
+        view.forceActiveFocus();
+        keyClick(Qt.Key_F, Qt.ControlModifier | Qt.AltModifier);
+        compare(view.viewMode, "family");
+        const treeView = findChild(view, "familyTree") as FamilyTree;
+        compare(treeView.generations.length, 2);
+        waitForRendering(view);
+        compare(faults(treeView), []);
+        mouseClick(findChild(treeView, "treePerson") as Item);
+        compare(view.viewMode, "page");
+    }
 }

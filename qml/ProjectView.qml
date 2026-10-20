@@ -91,8 +91,8 @@ Item {
 
     // What the editor area shows: "page", "board" for the corkboard,
     // "outline" for the outliner, "beats" for the beat board, "grid" for the
-    // plot grid, "timeline" for the timeline, or "relations" for the
-    // relationship graph.
+    // plot grid, "timeline" for the timeline, "relations" for the
+    // relationship graph, or "family" for the family tree.
     property string viewMode: "page"
 
     function toggleViewMode(mode: string) {
@@ -260,6 +260,7 @@ Item {
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "calendar", name: "Edit the calendar of the story", sequence: "Ctrl+Alt+C", run: () => calendarDialog.open() },
+        { id: "family", name: "Show or hide the family tree", sequence: "Ctrl+Alt+F", run: () => view.toggleViewMode("family") },
         { id: "relations", name: "Show or hide the relationship graph", sequence: "Ctrl+Alt+R", run: () => view.toggleViewMode("relations") },
         { id: "timeline", name: "Show or hide the timeline", sequence: "Ctrl+Alt+T", run: () => view.toggleViewMode("timeline") },
         { id: "grid", name: "Show or hide the plot grid", sequence: "Ctrl+Alt+G", run: () => view.toggleViewMode("grid") },
@@ -576,6 +577,17 @@ Item {
                 z: 4
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
+            }
+
+            FamilyTree {
+                objectName: "familyTree"
+                visible: view.viewMode === "family"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
                 onOpened: id => view.openText(id)
             }
 
