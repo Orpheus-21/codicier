@@ -52,6 +52,8 @@ class ProjectSession : public QObject
     Q_PROPERTY(QString dictionary READ dictionary NOTIFY spellChanged)
     // The style checks of the open texts, as MarkdownHighlighter flags.
     Q_PROPERTY(int styleChecks MEMBER checksOfStyle WRITE setStyleChecks NOTIFY spellChanged)
+    // True if a git repository holds the project, so it has versions.
+    Q_PROPERTY(bool versionsOn READ versionsOn NOTIFY versionsChanged)
     // The word goal from project.toml, or 0.
     Q_PROPERTY(int goalWords READ goalWords NOTIFY wordsChanged)
     // The deadline of the project as yyyy-MM-dd, or "".
@@ -210,6 +212,10 @@ public:
     int manuscriptWords() const { return binderModel.manuscriptWords(); }
     int sessionWords() const { return std::max(0, manuscriptWords() - sessionStart); }
     int streak() const;
+    bool versionsOn() const;
+    // Turns on versions for the project and saves a first version. Returns
+    // an error text, or "".
+    Q_INVOKABLE QString turnOnVersions();
     bool spellCheck() const { return checkSpelling; }
     void setSpellCheck(bool on);
     QString dictionary() const;
@@ -240,6 +246,7 @@ signals:
     void snapshotsChanged();
     void backupChanged();
     void spellChanged();
+    void versionsChanged();
     // A text file changed: the app saved it, or another program changed it.
     void textsChanged();
 

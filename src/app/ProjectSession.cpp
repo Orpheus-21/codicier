@@ -8,6 +8,7 @@
 #include "ProjectStore.h"
 #include "Snapshots.h"
 #include "SpellChecker.h"
+#include "Versions.h"
 
 #include <QDate>
 #include <QDir>
@@ -109,6 +110,7 @@ void ProjectSession::setFolder(const QString &folder)
     teachSpelling();
     applySpelling();
     emit spellChanged();
+    emit versionsChanged();
     emit wordsChanged();
 }
 
@@ -869,6 +871,24 @@ void ProjectSession::applySpelling()
             document->setStyleChecks(checksOfStyle);
         }
     }
+}
+
+bool ProjectSession::versionsOn() const
+{
+    return !project.folder.isEmpty() && loadError.isEmpty() && Versions(project.folder).isOn();
+}
+
+QString ProjectSession::turnOnVersions()
+{
+    if (project.folder.isEmpty() || !loadError.isEmpty() || project.readOnly)
+        return QStringLiteral("This project cannot change.");
+    // The version holds the latest typing.
+    saveAll();
+    const QString error
+        = Versions(project.folder)
+              .turnOn(QString::fromStdString(project.data["author"].value_or(std::string())));
+    emit versionsChanged();
+    return error;
 }
 
 int ProjectSession::streak() const

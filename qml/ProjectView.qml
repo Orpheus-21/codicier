@@ -97,6 +97,14 @@ Item {
         viewMode = viewMode === mode ? "page" : mode;
     }
 
+    // The result of the last action on versions, for the status bar.
+    property string versionsMessage: ""
+
+    function turnOnVersions() {
+        const error = session.turnOnVersions();
+        versionsMessage = error !== "" ? error : "Versions are on. The first version is saved.";
+    }
+
     // Opens a text from the board or the outliner on the page.
     function openText(id: string) {
         viewMode = "page";
@@ -233,6 +241,7 @@ Item {
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
+        { id: "versions.on", name: "Turn on versions", sequence: "Ctrl+Alt+V", run: () => view.turnOnVersions() },
         { id: "progress", name: "Goals and progress", sequence: "Ctrl+Shift+G", run: () => progressDialog.open() },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+E", run: () => view.openCodex() },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
@@ -387,6 +396,12 @@ Item {
                 T.Action {
                     text: "Search"
                     onTriggered: view.openSearch(false)
+                }
+
+                T.Action {
+                    enabled: !view.session.versionsOn
+                    text: view.session.versionsOn ? "Versions are on" : "Turn on versions"
+                    onTriggered: view.turnOnVersions()
                 }
 
                 T.Action {
@@ -685,6 +700,12 @@ Item {
             Count {
                 visible: view.session.dailyNeeded >= 0
                 text: statusBar.number(view.session.dailyNeeded) + " a day to the deadline"
+            }
+
+            Count {
+                objectName: "versionsMessage"
+                visible: view.versionsMessage !== ""
+                text: view.versionsMessage
             }
 
             Count {

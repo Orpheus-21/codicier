@@ -1,3 +1,4 @@
+#include "KeyMap.h"
 #include "SpellChecker.h"
 #include "Workspaces.h"
 
@@ -19,6 +20,7 @@ public slots:
     {
         QStandardPaths::setTestModeEnabled(true);
         QFile::remove(Workspaces::settingsPath());
+        QFile::remove(KeyMap().file());
         // The tests use the small dictionary of the fixtures, not the system.
         SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") };
     }

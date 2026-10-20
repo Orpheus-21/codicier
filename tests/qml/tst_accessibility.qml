@@ -537,4 +537,14 @@ TestCase {
         keyClick(Qt.Key_Return);
         compare(text.text.slice(0, 10), "The letter");
     }
+
+    function test_turnOnVersions() {
+        const view = makeView();
+        verify(!view.session.versionsOn);
+        view.forceActiveFocus();
+        keyClick(Qt.Key_V, Qt.ControlModifier | Qt.AltModifier);
+        verify(view.session.versionsOn);
+        const message = findChild(view, "versionsMessage") as Text;
+        compare(message.text, "Versions are on. The first version is saved.");
+    }
 }
