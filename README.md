@@ -110,6 +110,10 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Alt+R | Show or hide the relationship graph. |
 | Ctrl+Alt+F | Show or hide the family tree. |
 | Ctrl+Alt+I | Show or hide the insights. |
+| Ctrl+Alt+D | Draft passes. |
+| Ctrl+Alt+L | Show or hide the revision checklist. |
+| Ctrl+Alt+K | Comment on the selected words. |
+| Ctrl+Alt+O | Show the open comments. |
 | Ctrl+Shift+G | Open goals and progress. |
 | Ctrl+Shift+T | Start or stop a sprint. |
 | Ctrl+Shift+F | Search the project. |
@@ -192,6 +196,14 @@ A project can keep versions of all its files. Choose "Turn on versions" in the p
 The page underlines each word that the dictionary does not know. The app uses the Hunspell dictionary for the `language` of the project, and works offline. Right-click an underlined word to see suggestions, or to add the word to the project dictionary, `dictionary.txt` in the project folder. The names and aliases of the codex count as known words.
 
 The settings can also mark repeated words, filter words such as "just" and "seemed", adverbs that end in -ly, and passive voice. Each mark is a soft tint. These marks are off by default.
+
+### Revision
+
+A draft pass is one round of revision. Press Ctrl+Alt+D, name the pass, and start it. The app keeps a snapshot of each text at the start of each pass. With "Tint the passes" on, the page gives the words of each pass a soft background in the color of that pass.
+
+Press Ctrl+Alt+L for the revision checklist. Choose a pass, add checks such as "Cut filter words", and tick each check for each chapter.
+
+Select words on the page and press Ctrl+Alt+K to add a comment. A dotted line marks the commented words. Press Ctrl+Alt+O to see every open comment. Click a comment to open its text with the words selected, and click "Resolve" when it is done. The comments are in `binder.toml`, so the Markdown files stay prose only.
 
 ### Search and replace
 
