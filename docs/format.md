@@ -64,6 +64,7 @@ deadline = 2027-03-01
 | `goals.deadline` | date | no | The date to finish the work. |
 | `framework` | string | no | The plot framework of the beat board: `three-act`, `save-the-cat`, `heros-journey`, `kishotenketsu`, or `snowflake`. |
 | `calendar.month` | array of tables | no | The months of the calendar of the story, each with a `name` and `days` from 1 to 1000. With no months, the story uses the Gregorian calendar. |
+| `pass` | array of tables | no | The draft passes, in order, each with a `name`. When a pass starts, the app takes a snapshot titled "Pass N start" of each text. |
 | `plotline` | array of tables | no | The plotlines, each with an `id` and a `name`, in order. |
 | `entity-type` | array of tables | no | The entity types of the author. See "Entity types". |
 
