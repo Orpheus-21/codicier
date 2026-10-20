@@ -11,6 +11,9 @@ Item {
     required property ProjectSession session
     required property string itemId
 
+    // A click on a card asks to open the item.
+    signal opened(id: string)
+
     property var cards: []
     // The card that the drag holds, and the card under the pointer.
     property string dragId: ""
@@ -153,7 +156,7 @@ Item {
 
                 // A click with no drag opens the item.
                 TapHandler {
-                    onTapped: board.session.currentId = cell.modelData.id
+                    onTapped: board.opened(cell.modelData.id)
                 }
 
                 DragHandler {

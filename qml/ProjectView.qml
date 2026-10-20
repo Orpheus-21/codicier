@@ -87,11 +87,18 @@ Item {
     // The search panel takes the place of the binder list.
     property bool searchOpen: false
 
-    // What the editor area shows: "page", or "board" for the corkboard.
+    // What the editor area shows: "page", "board" for the corkboard, or
+    // "outline" for the outliner.
     property string viewMode: "page"
 
     function toggleViewMode(mode: string) {
         viewMode = viewMode === mode ? "page" : mode;
+    }
+
+    // Opens a text from the board or the outliner on the page.
+    function openText(id: string) {
+        viewMode = "page";
+        session.currentId = id;
     }
 
     // The codex panel also takes the place of the binder list.
@@ -183,6 +190,7 @@ Item {
         { id: "item.trash", name: "Move the item to the trash", sequence: "Ctrl+Shift+Del", run: () => session.moveToTrash(session.currentId) },
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
+        { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+E", run: () => view.openCodex() },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
         { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
@@ -432,6 +440,19 @@ Item {
                 z: 4
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
+            }
+
+            Outliner {
+                objectName: "outlinerView"
+                visible: view.viewMode === "outline"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
+                itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
             }
 
             CompareView {
@@ -473,6 +494,12 @@ Item {
                     anchors.rightMargin: Theme.space.l
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Theme.space.xs
+
+                    IconButton {
+                        iconName: "list-tree"
+                        label: "Outliner"
+                        onClicked: view.toggleViewMode("outline")
+                    }
 
                     IconButton {
                         iconName: "layout-grid"

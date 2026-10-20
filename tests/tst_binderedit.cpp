@@ -897,6 +897,29 @@ private slots:
         QVERIFY(session->childrenOf("m1n2p3q4r5").isEmpty());
     }
 
+    void outlineOfGivesTheRows()
+    {
+        const QVariantList rows = session->outlineOf("a1b2c3d4e5");
+        QCOMPARE(rows.size(), 2);
+        const QVariantMap second = rows.at(1).toMap();
+        QCOMPARE(second.value("id").toString(), QStringLiteral("t6v4h9r2mz"));
+        QCOMPARE(second.value("status").toString(), QStringLiteral("revised"));
+        QCOMPARE(second.value("pov").toString(), QStringLiteral("Mara"));
+        QCOMPARE(second.value("place").toString(), QStringLiteral("The river office"));
+        QCOMPARE(second.value("words").toInt(), 18);
+        QVERIFY(session->outlineOf("nothere").isEmpty());
+
+        // An entity with custom fields gives its values too.
+        QCOMPARE(session->saveEntityType(QString(), "Ships", { "Captain" }),
+                 QStringLiteral("ships"));
+        const QString ship = session->add("ships");
+        QVERIFY(session->setEntityField(ship, "Captain", "Ahab"));
+        const QVariantList own = session->outlineOf(ship);
+        QCOMPARE(own.size(), 1);
+        QCOMPARE(own.first().toMap().value("fields").toMap().value("Captain").toString(),
+                 QStringLiteral("Ahab"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

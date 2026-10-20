@@ -130,6 +130,10 @@ public:
     // The direct children of an item, in binder order: the id, title, kind,
     // synopsis, status, and words of each. For the corkboard and outliner.
     Q_INVOKABLE QVariantList childrenOf(const QString &id) const;
+    // The texts of an item and of all items under it, in binder order: the
+    // id, title, status, pov, place, time, words, and the values of custom
+    // fields of each. For the outliner.
+    Q_INVOKABLE QVariantList outlineOf(const QString &id) const;
     // Every item outside the trash, in binder order: the id, the title, the
     // kind, and the path of titles above it, as "Part One / The Letter".
     Q_INVOKABLE QVariantList items() const;

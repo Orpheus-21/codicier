@@ -1033,6 +1033,46 @@ QVariantList ProjectSession::childrenOf(const QString &id) const
     return list;
 }
 
+QVariantList ProjectSession::outlineOf(const QString &id) const
+{
+    QVariantList list;
+    const int index = indexOf(id);
+    if (index < 0)
+        return list;
+    const auto text = [this](const ProjectItem &item, const char *key) {
+        return QString::fromStdString(item.data[key].value_or(std::string()));
+    };
+    const std::function<void(int)> walk = [&](int at) {
+        const ProjectItem &item = project.items.at(at);
+        if (!item.file.isEmpty() && item.kind != QLatin1String("file")) {
+            QVariantMap values;
+            if (const toml::table *fields = item.data.get_as<toml::table>("fields")) {
+                for (const auto &[key, value] : *fields)
+                    values.insert(QString::fromUtf8(key.str().data(),
+                                                    static_cast<qsizetype>(key.str().size())),
+                                  QString::fromStdString(value.value_or(std::string())));
+            }
+            const QString status = text(item, "status");
+            list.append(QVariantMap {
+                { QStringLiteral("id"), item.id },
+                { QStringLiteral("title"), item.title },
+                { QStringLiteral("status"),
+                  status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
+                                                                          : status },
+                { QStringLiteral("pov"), text(item, "pov") },
+                { QStringLiteral("place"), text(item, "place") },
+                { QStringLiteral("time"), text(item, "time") },
+                { QStringLiteral("words"), binderModel.wordsOf(item.id) },
+                { QStringLiteral("fields"), values },
+            });
+        }
+        for (const int child : item.children)
+            walk(child);
+    };
+    walk(index);
+    return list;
+}
+
 QVariantList ProjectSession::textsUnder(const QString &id) const
 {
     QVariantList list;

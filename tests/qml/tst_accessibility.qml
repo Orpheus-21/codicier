@@ -394,7 +394,43 @@ TestCase {
         const card = grid.itemAtIndex(0);
         mouseClick(card, card.width / 2, card.height / 2);
         compare(view.session.currentId, after[0]);
+        compare(view.viewMode, "page");
         keyClick(Qt.Key_K, Qt.ControlModifier | Qt.ShiftModifier);
+        compare(view.viewMode, "board");
+    }
+
+    function test_outlinerSortsAndOpens() {
+        const view = makeView();
+        let part = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "part" && part === "")
+                part = item.id;
+        }
+        verify(part !== "");
+        view.session.currentId = view.session.outlineOf(part)[0].id;
+        view.session.add("scene");
+        const rows = view.session.outlineOf(part);
+        verify(rows.length >= 2);
+        view.session.setField(rows[0].id, "pov", "Zed");
+        view.session.setField(rows[1].id, "pov", "Abel");
+        view.session.currentId = part;
+        view.forceActiveFocus();
+        keyClick(Qt.Key_O, Qt.ControlModifier | Qt.ShiftModifier);
+        compare(view.viewMode, "outline");
+        const list = findChild(view, "outlinerRows") as ListView;
+        tryCompare(list, "count", rows.length);
+        waitForRendering(view);
+        compare(faults(findChild(view, "outlinerView") as Item), []);
+
+        const header = findChild(view, "header-pov") as Item;
+        mouseClick(header);
+        compare(list.model[0].pov, "Abel");
+        mouseClick(header);
+        compare(list.model[0].pov, "Zed");
+
+        const first = list.itemAtIndex(0);
+        mouseClick(first);
+        compare(view.session.currentId, rows[0].id);
         compare(view.viewMode, "page");
     }
 }
