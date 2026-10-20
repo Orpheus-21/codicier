@@ -33,6 +33,8 @@ class Settings : public QObject
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
     // The word target of one writing session, 0 for none, up to 100000.
     Q_PROPERTY(int sessionTarget READ sessionTarget WRITE setSessionTarget NOTIFY changed)
+    // The length of a writing sprint in minutes, 1 to 240.
+    Q_PROPERTY(int sprintMinutes READ sprintMinutes WRITE setSprintMinutes NOTIFY changed)
 
 public:
     static constexpr int defaultBackupsToKeep = 10;
@@ -61,6 +63,8 @@ public:
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
     int sessionTarget() const { return target; }
     void setSessionTarget(int value);
+    int sprintMinutes() const { return sprint; }
+    void setSprintMinutes(int value);
     // The same for a URL from a folder dialog.
     Q_INVOKABLE void setBackupFolderUrl(const QUrl &url);
 
@@ -78,6 +82,7 @@ private:
     int delay = 1000;
     bool lessMotion = false;
     int target = 0;
+    int sprint = 25;
 
     // Sets a value, writes it to the settings file, and tells the views.
     template <typename T> void change(T &member, const T &value, const char *key)

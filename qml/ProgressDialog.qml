@@ -9,6 +9,9 @@ T.Popup {
     id: dialog
 
     required property ProjectSession session
+    // True while a sprint runs. The view owns the timer.
+    property bool sprintRunning: false
+    signal sprintRequested
     property string goalError: ""
 
     function saveGoal() {
@@ -173,6 +176,41 @@ T.Popup {
                         + dialog.session.dailyNeeded.toLocaleString(Qt.locale("en_GB"), "f", 0) + " words each day."
                     : "Set a word goal and a deadline to see the words to write each day."
                 color: dialog.goalError !== "" ? Theme.color.accent : Theme.color.inkMuted
+            }
+
+            Heading {
+                text: "Sprint"
+            }
+
+            Row {
+                spacing: Theme.space.s
+
+                TextField {
+                    objectName: "sprintMinutes"
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 80
+                    Accessible.name: "Minutes of a sprint"
+                    text: String(Settings.sprintMinutes)
+                    validator: IntValidator {
+                        bottom: 1
+                        top: 240
+                    }
+                    onEditingFinished: Settings.sprintMinutes = parseInt(text)
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "minutes"
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.body
+                    color: Theme.color.inkMuted
+                }
+
+                Button {
+                    objectName: "sprintButton"
+                    text: dialog.sprintRunning ? "Stop the sprint" : "Start a sprint"
+                    onClicked: dialog.sprintRequested()
+                }
             }
 
             Heading {

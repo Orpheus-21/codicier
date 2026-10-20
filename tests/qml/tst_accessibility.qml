@@ -497,4 +497,23 @@ TestCase {
         const streak = findChild(overlay, "streak") as Text;
         compare(streak.text, "0 days in a row with words.");
     }
+
+    function test_sprintCountsWordsUntilTheEnd() {
+        const view = makeView();
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        view.startSprint(2);
+        const status = findChild(view, "sprintStatus") as Text;
+        verify(status.visible);
+        verify(status.text.startsWith("Sprint 0:0"), status.text);
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = text.text + " three new words";
+        tryCompare(view, "sprintWords", 3, 2000);
+        tryCompare(view, "sprintEnd", 0, 4000);
+        compare(status.text, "Sprint: 3 words in 0 minutes");
+    }
 }

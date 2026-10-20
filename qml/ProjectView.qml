@@ -101,6 +101,45 @@ Item {
         session.currentId = id;
     }
 
+    // A writing sprint: the end time in milliseconds (0 when no sprint
+    // runs), the manuscript words at the start, the seconds left, and the
+    // result of the last sprint.
+    property double sprintEnd: 0
+    property int sprintStartWords: 0
+    property int sprintSeconds: 0
+    property int sprintLength: 0
+    property string sprintResult: ""
+    readonly property int sprintWords: Math.max(0, session.manuscriptWords - sprintStartWords)
+
+    function startSprint(seconds: int) {
+        sprintStartWords = session.manuscriptWords;
+        sprintLength = seconds;
+        sprintEnd = Date.now() + seconds * 1000;
+        sprintSeconds = seconds;
+        sprintResult = "";
+        sprintTimer.start();
+    }
+
+    function stopSprint() {
+        sprintTimer.stop();
+        const minutes = Math.round((sprintLength - sprintSeconds) / 60);
+        sprintResult = "Sprint: " + sprintWords + (sprintWords === 1 ? " word" : " words") + " in "
+                     + minutes + (minutes === 1 ? " minute" : " minutes");
+        sprintEnd = 0;
+    }
+
+    Timer {
+        id: sprintTimer
+
+        interval: 250
+        repeat: true
+        onTriggered: {
+            view.sprintSeconds = Math.max(0, Math.ceil((view.sprintEnd - Date.now()) / 1000));
+            if (view.sprintSeconds === 0)
+                view.stopSprint();
+        }
+    }
+
     // The codex panel also takes the place of the binder list.
     property bool codexOpen: false
 
@@ -191,6 +230,7 @@ Item {
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
+        { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
         { id: "progress", name: "Goals and progress", sequence: "Ctrl+Shift+G", run: () => progressDialog.open() },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+E", run: () => view.openCodex() },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
@@ -227,6 +267,8 @@ Item {
     ProgressDialog {
         id: progressDialog
 
+        sprintRunning: view.sprintEnd > 0
+        onSprintRequested: view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60)
         parent: T.Overlay.overlay
         anchors.centerIn: parent
         session: view.session
@@ -626,6 +668,16 @@ Item {
                         color: Theme.color.accent
                     }
                 }
+            }
+
+            Count {
+                objectName: "sprintStatus"
+                visible: view.sprintEnd > 0 || view.sprintResult !== ""
+                text: view.sprintEnd > 0
+                      ? "Sprint " + Math.floor(view.sprintSeconds / 60) + ":"
+                        + String(view.sprintSeconds % 60).padStart(2, "0") + ", " + statusBar.number(view.sprintWords) + " words"
+                      : view.sprintResult
+                color: view.sprintEnd > 0 ? Theme.color.accent : Theme.color.inkMuted
             }
 
             Count {
