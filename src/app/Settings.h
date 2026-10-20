@@ -42,6 +42,8 @@ class Settings : public QObject
     // The style checks that are on: 1 repeated words, 2 filter words,
     // 4 adverbs, and 8 passive voice. 0 turns all off.
     Q_PROPERTY(int styleChecks READ styleChecks WRITE setStyleChecks NOTIFY changed)
+    // True saves a version when a project with versions closes.
+    Q_PROPERTY(bool versionOnClose READ versionOnClose WRITE setVersionOnClose NOTIFY changed)
 
 public:
     static constexpr int defaultBackupsToKeep = 10;
@@ -73,6 +75,8 @@ public:
     int sprintMinutes() const { return sprint; }
     bool spellCheck() const { return spelling; }
     int styleChecks() const { return style; }
+    bool versionOnClose() const { return closeVersion; }
+    void setVersionOnClose(bool value) { change(closeVersion, value, "versions/onClose"); }
     void setStyleChecks(int value)
     {
         change(style, std::clamp(value, 0, 255) % 16, "edit/styleChecks");
@@ -99,6 +103,7 @@ private:
     int sprint = 25;
     bool spelling = true;
     int style = 0;
+    bool closeVersion = true;
 
     // Sets a value, writes it to the settings file, and tells the views.
     template <typename T> void change(T &member, const T &value, const char *key)

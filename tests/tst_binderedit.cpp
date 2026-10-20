@@ -7,6 +7,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QProcess>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -1004,6 +1005,30 @@ private slots:
         again.setFolder(dir.path());
         QVERIFY(again.isWordCorrect("Brindle"));
         QVERIFY(again.isWordCorrect("Zork"));
+    }
+
+    void saveVersionCommitsTheLatestTyping()
+    {
+        QCOMPARE(session->saveVersion("Too soon"), QStringLiteral("Turn on versions first."));
+        QCOMPARE(session->turnOnVersions(), QString());
+        QVERIFY(session->versionsOn());
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor(&editor).insertText("New words. ");
+        QCOMPARE(session->saveVersion(" Draft two "), QString());
+        QProcess git;
+        git.start("git", { "-C", dir.path(), "log", "--format=%s" });
+        git.waitForFinished();
+        const QStringList subjects
+            = QString::fromUtf8(git.readAllStandardOutput()).trimmed().split('\n');
+        QCOMPARE(subjects.first(), QStringLiteral("Draft two"));
+        QCOMPARE(subjects.last(), QStringLiteral("Versions on"));
+        QTextCursor(&editor).insertText("More. ");
+        QCOMPARE(session->saveVersion(QString()), QString());
+        git.start("git", { "-C", dir.path(), "log", "-1", "--format=%s" });
+        git.waitForFinished();
+        QVERIFY(QString::fromUtf8(git.readAllStandardOutput()).startsWith("Version of "));
     }
 
     void readOnlyProjectRefusesEdits()

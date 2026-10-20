@@ -100,6 +100,12 @@ Item {
     // The result of the last action on versions, for the status bar.
     property string versionsMessage: ""
 
+    // A version when the project closes, if the author wants it.
+    function versionOnClose() {
+        if (Settings.versionOnClose && session.versionsOn)
+            session.saveVersion("Closed the project");
+    }
+
     function turnOnVersions() {
         const error = session.turnOnVersions();
         versionsMessage = error !== "" ? error : "Versions are on. The first version is saved.";
@@ -241,6 +247,7 @@ Item {
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
+        { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
         { id: "versions.on", name: "Turn on versions", sequence: "Ctrl+Alt+V", run: () => view.turnOnVersions() },
         { id: "progress", name: "Goals and progress", sequence: "Ctrl+Shift+G", run: () => progressDialog.open() },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+E", run: () => view.openCodex() },
@@ -275,6 +282,15 @@ Item {
         }
     }
 
+    VersionDialog {
+        id: versionDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
+        onSaved: message => view.versionsMessage = message
+    }
+
     ProgressDialog {
         id: progressDialog
 
@@ -302,6 +318,7 @@ Item {
     // Saves the open text, then asks to go back to the workspace.
     function close() {
         view.saveState();
+        view.versionOnClose();
         view.session.backup();
         view.closeRequested();
     }
@@ -396,6 +413,12 @@ Item {
                 T.Action {
                     text: "Search"
                     onTriggered: view.openSearch(false)
+                }
+
+                T.Action {
+                    enabled: view.session.versionsOn
+                    text: "Save a version"
+                    onTriggered: versionDialog.open()
                 }
 
                 T.Action {

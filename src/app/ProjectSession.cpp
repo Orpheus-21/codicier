@@ -11,6 +11,7 @@
 #include "Versions.h"
 
 #include <QDate>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QLocale>
@@ -887,6 +888,24 @@ QString ProjectSession::turnOnVersions()
     const QString error
         = Versions(project.folder)
               .turnOn(QString::fromStdString(project.data["author"].value_or(std::string())));
+    emit versionsChanged();
+    return error;
+}
+
+QString ProjectSession::saveVersion(const QString &message)
+{
+    if (!versionsOn() || project.readOnly)
+        return QStringLiteral("Turn on versions first.");
+    saveAll();
+    const QString text = message.trimmed().isEmpty()
+        ? QStringLiteral("Version of %1")
+              .arg(
+                  QLocale(QLocale::English, QLocale::UnitedKingdom)
+                      .toString(QDateTime::currentDateTime(), QStringLiteral("d MMMM yyyy, HH:mm")))
+        : message.trimmed();
+    const QString error
+        = Versions(project.folder)
+              .save(text, QString::fromStdString(project.data["author"].value_or(std::string())));
     emit versionsChanged();
     return error;
 }

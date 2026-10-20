@@ -379,6 +379,24 @@ T.Popup {
                     }
                 }
 
+                Setting {
+                    label: "Save a version when a project closes"
+
+                    Choice {
+                        objectName: "versionOnCloseOn"
+                        label: "Yes"
+                        chosen: Settings.versionOnClose
+                        onClicked: Settings.versionOnClose = true
+                    }
+
+                    Choice {
+                        objectName: "versionOnCloseOff"
+                        label: "No"
+                        chosen: !Settings.versionOnClose
+                        onClicked: Settings.versionOnClose = false
+                    }
+                }
+
                 Heading {
                     text: "Backups"
                 }

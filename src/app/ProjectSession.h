@@ -216,6 +216,9 @@ public:
     // Turns on versions for the project and saves a first version. Returns
     // an error text, or "".
     Q_INVOKABLE QString turnOnVersions();
+    // Saves a version of the project with a message, or with the date and
+    // time for an empty message. Returns an error text, or "".
+    Q_INVOKABLE QString saveVersion(const QString &message);
     bool spellCheck() const { return checkSpelling; }
     void setSpellCheck(bool on);
     QString dictionary() const;

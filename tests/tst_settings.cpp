@@ -164,10 +164,13 @@ private slots:
             QCOMPARE(settings.styleChecks(), 0);
             settings.setStyleChecks(73);
             QCOMPARE(settings.styleChecks(), 9);
+            QVERIFY(settings.versionOnClose());
+            settings.setVersionOnClose(false);
         }
         QCOMPARE(Settings().sessionTarget(), 750);
         QCOMPARE(Settings().sprintMinutes(), 15);
         QCOMPARE(Settings().styleChecks(), 9);
+        QVERIFY(!Settings().versionOnClose());
     }
 };
 

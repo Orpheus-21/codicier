@@ -547,4 +547,29 @@ TestCase {
         const message = findChild(view, "versionsMessage") as Text;
         compare(message.text, "Versions are on. The first version is saved.");
     }
+
+    function test_saveAVersionAndOnClose() {
+        const view = makeView();
+        view.turnOnVersions();
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        (findChild(view, "editor") as TextEdit).text = "Changed text.";
+        view.forceActiveFocus();
+        keyClick(Qt.Key_S, Qt.ControlModifier | Qt.AltModifier);
+        const overlay = view.T.Overlay.overlay;
+        const field = findChild(overlay, "versionMessage") as TextField;
+        tryVerify(() => field && field.activeFocus);
+        compare(faults(field.parent), []);
+        for (const c of "New ending")
+            keyClick(c);
+        keyClick(Qt.Key_Return);
+        compare((findChild(view, "versionsMessage") as Text).text, "Version saved.");
+        // Nothing changed since, so the close saves no empty version.
+        view.versionOnClose();
+        compare(view.session.saveVersion(""), "");
+    }
 }
