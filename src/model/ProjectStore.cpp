@@ -292,6 +292,21 @@ private:
             }
         }
         loadEntityTypes(*table, file);
+        // The plotlines: [[plotline]] with an id and a name.
+        if (checkType(*table, "plotline", toml::node_type::array, file)) {
+            if (const toml::array *lines = table->get_as<toml::array>("plotline")) {
+                for (const toml::node &node : *lines) {
+                    const toml::table *line = node.as_table();
+                    if (line == nullptr) {
+                        error(file, lineOf(node),
+                              QStringLiteral("`plotline` must be a list of tables"));
+                        continue;
+                    }
+                    string(*line, "id", file, lineOf(node), true);
+                    string(*line, "name", file, lineOf(node), true);
+                }
+            }
+        }
         result.project.data = *table;
     }
 
@@ -364,6 +379,7 @@ private:
                   QStringLiteral("`status` must be draft, revised, or final"));
         checkStrings(entry, "tags", file);
         checkStrings(entry, "aliases", file);
+        checkStrings(entry, "plotlines", file);
         // The values of the fields of an entity type: text only.
         const toml::table *fields = entry.get_as<toml::table>("fields");
         if (checkType(entry, "fields", toml::node_type::table, file) && fields != nullptr) {
@@ -485,11 +501,11 @@ constexpr std::array<std::string_view, 8> projectOrder { "format",  "title",    
                                                          "created", "framework" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 20> itemOrder { "id",       "kind",    "section", "parent",
-                                                       "title",    "file",    "status",  "include",
-                                                       "pov",      "place",   "time",    "beat",
-                                                       "synopsis", "aliases", "tags",    "target",
-                                                       "query",    "regex",   "restore", "notes" };
+constexpr std::array<std::string_view, 21> itemOrder {
+    "id",        "kind", "section", "parent", "title", "file",     "status",
+    "include",   "pov",  "place",   "time",   "beat",  "synopsis", "aliases",
+    "plotlines", "tags", "target",  "query",  "regex", "restore",  "notes"
+};
 
 TomlWriter::Order orderFor(std::string_view path)
 {

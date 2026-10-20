@@ -347,6 +347,46 @@ bool ProjectSession::commit(const QStringList &newFiles)
     return errors.isEmpty();
 }
 
+QVariantList ProjectSession::plotlines() const
+{
+    QVariantList list;
+    if (const toml::array *lines = project.data.get_as<toml::array>("plotline")) {
+        for (const toml::node &node : *lines) {
+            if (const toml::table *line = node.as_table())
+                list.append(QVariantMap {
+                    { QStringLiteral("id"),
+                      QString::fromStdString((*line)["id"].value_or(std::string())) },
+                    { QStringLiteral("name"),
+                      QString::fromStdString((*line)["name"].value_or(std::string())) } });
+        }
+    }
+    return list;
+}
+
+QString ProjectSession::addPlotline(const QString &name)
+{
+    const QString clean = name.trimmed();
+    if (project.readOnly || clean.isEmpty())
+        return { };
+    // The id comes from the name, with a number if the id is taken.
+    QString base = clean.toLower();
+    base.replace(QRegularExpression(QStringLiteral("[^a-z0-9]+")), QStringLiteral("-"));
+    base.remove(QRegularExpression(QStringLiteral("^-+|-+$")));
+    if (base.isEmpty())
+        base = QStringLiteral("plotline");
+    QStringList taken;
+    for (const QVariant &line : plotlines())
+        taken.append(line.toMap().value(QStringLiteral("id")).toString());
+    QString id = base;
+    for (int n = 2; taken.contains(id); ++n)
+        id = base + u'-' + QString::number(n);
+    if (project.data.get_as<toml::array>("plotline") == nullptr)
+        project.data.insert_or_assign("plotline", toml::array { });
+    project.data.get_as<toml::array>("plotline")
+        ->push_back(toml::table { { "id", id.toStdString() }, { "name", clean.toStdString() } });
+    return commit({ }) ? id : QString();
+}
+
 QString ProjectSession::framework() const
 {
     return QString::fromStdString(project.data["framework"].value_or(std::string()));
@@ -1311,6 +1351,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
             aliases.append(QString::fromStdString(alias.value_or(std::string())));
     }
     map.insert(QStringLiteral("aliases"), aliases);
+    map.insert(QStringLiteral("plotlines"), strings(item.data.get("plotlines")));
     // The values of the fields of the entity type, by field name.
     QVariantMap values;
     if (const toml::table *fields = item.data.get_as<toml::table>("fields")) {
@@ -1336,7 +1377,8 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
         return false;
     toml::table &data = project.items[index].data;
     const std::string name = key.toStdString();
-    if (key == QLatin1String("tags") || key == QLatin1String("aliases")) {
+    if (key == QLatin1String("tags") || key == QLatin1String("aliases")
+        || key == QLatin1String("plotlines")) {
         // A list of names: trimmed, no empty names, no copies, in the order given.
         QStringList tags;
         for (const QString &tag : value.toStringList()) {

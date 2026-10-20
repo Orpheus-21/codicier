@@ -108,6 +108,10 @@ public:
     // each beat of the framework, with the id, name, description, and the
     // scenes (id and title) of each. Empty with no framework.
     Q_INVOKABLE QVariantList beatBoard() const;
+    // The plotlines of the project, in order: the id and the name of each.
+    Q_INVOKABLE QVariantList plotlines() const;
+    // Adds a plotline with a name. Returns its new id, or "" on an error.
+    Q_INVOKABLE QString addPlotline(const QString &name);
     // Sets the name and the fields of a type in project.toml. An empty kind
     // makes a new type from the name. Returns the kind, or "" on an error.
     Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,

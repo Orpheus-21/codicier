@@ -24,6 +24,16 @@ Pane {
         inspector.fields = session.fields(session.currentId);
         inspector.entityType = session.entityTypes().find(type => type.kind === inspector.fields.kind);
         inspector.mentions = inspector.entityType ? session.mentionsOf(session.currentId) : [];
+        inspector.plotlines = session.plotlines();
+    }
+
+    // The plotlines of the project, read again after each change.
+    property var plotlines: []
+
+    // Puts the open scene on a plotline, or takes it off.
+    function togglePlotline(id: string) {
+        const now = inspector.fields.plotlines ?? [];
+        save("plotlines", now.includes(id) ? now.filter(each => each !== id) : now.concat([id]));
     }
 
     // The texts that name the open entity, read when the entity opens.
@@ -358,6 +368,48 @@ Pane {
                     Accessible.name: "Aliases"
                     text: (inspector.fields.aliases ?? []).join(", ")
                     onEditingFinished: inspector.save("aliases", text.split(",").map(t => t.trim()).filter(t => t !== ""))
+                }
+            }
+
+            Column {
+                objectName: "plotlineSection"
+                visible: inspector.fields.kind === "scene"
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Plotlines"
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: Theme.space.xs
+
+                    Repeater {
+                        model: inspector.plotlines
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "plotline-" + modelData.id
+                            label: modelData.name
+                            chosen: (inspector.fields.plotlines ?? []).includes(modelData.id)
+                            onClicked: inspector.togglePlotline(modelData.id)
+                        }
+                    }
+                }
+
+                TextField {
+                    objectName: "newPlotline"
+                    width: parent.width
+                    Accessible.name: "New plotline"
+                    placeholderText: "New plotline, such as \"The romance\""
+                    onAccepted: {
+                        const id = inspector.session.addPlotline(text);
+                        text = "";
+                        if (id !== "")
+                            inspector.togglePlotline(id);
+                    }
                 }
             }
 

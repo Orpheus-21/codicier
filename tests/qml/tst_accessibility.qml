@@ -623,4 +623,25 @@ TestCase {
         compare(columns[2].scenes.length, 1);
         compare(columns[2].id, "sho");
     }
+
+    function test_inspectorAddsPlotlines() {
+        const view = makeView();
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const field = findChild(view, "newPlotline") as TextField;
+        field.forceActiveFocus();
+        for (const c of "Main")
+            keyClick(c);
+        keyClick(Qt.Key_Return);
+        compare(view.session.fields(scene).plotlines, ["main"]);
+        compare(faults(findChild(view, "plotlineSection") as Item), []);
+        (findChild(view, "plotline-main") as Choice).clicked();
+        compare(view.session.fields(scene).plotlines, []);
+    }
 }

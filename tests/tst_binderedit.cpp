@@ -1117,6 +1117,26 @@ private slots:
         QVERIFY(session->fields("m1n2p3q4r5").value("beat").toString().isEmpty());
     }
 
+    void plotlinesHoldScenes()
+    {
+        QVERIFY(session->plotlines().isEmpty());
+        QCOMPARE(session->addPlotline(" The Romance "), QStringLiteral("the-romance"));
+        QCOMPARE(session->addPlotline("The romance!"), QStringLiteral("the-romance-2"));
+        QCOMPARE(session->addPlotline("???"), QStringLiteral("plotline"));
+        QVERIFY(session->addPlotline("  ").isEmpty());
+        QCOMPARE(session->plotlines().first().toMap().value("name").toString(),
+                 QStringLiteral("The Romance"));
+        QVERIFY(session->setField("m1n2p3q4r5", "plotlines",
+                                  QStringList { "the-romance", "plotline" }));
+        QCOMPARE(session->fields("m1n2p3q4r5").value("plotlines").toStringList(),
+                 (QStringList { "the-romance", "plotline" }));
+        // Both files load again and come back byte for byte.
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY(result.ok());
+        QCOMPARE(ProjectStore::projectFile(result.project), readFile("project.toml"));
+        QCOMPARE(ProjectStore::binderFile(result.project), readFile("binder.toml"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
