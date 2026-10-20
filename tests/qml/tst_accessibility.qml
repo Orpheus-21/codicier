@@ -594,6 +594,9 @@ TestCase {
         const versions = findChild(view, "textVersions") as Item;
         verify(versions.visible);
         compare(faults(versions), []);
+        // The button can sit below the visible part of the inspector.
+        (findChild(versions, "compareVersion") as Button).clicked();
+        verify(view.comparePath.startsWith("version:"));
         keyClick(Qt.Key_Escape);
     }
 }

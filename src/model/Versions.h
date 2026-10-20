@@ -35,6 +35,9 @@ public:
     // whole project folder for an empty path. path is relative to the
     // project folder.
     QList<Entry> log(const QString &path = QString(), int limit = 500) const;
+    // The text of a file in a version, or "" with ok false when the version
+    // does not hold the file. path is relative to the project folder.
+    QString fileAt(const QString &hash, const QString &path, bool *ok = nullptr) const;
 
 private:
     QString folder;

@@ -1,6 +1,7 @@
 #include "Versions.h"
 
 #include <QProcess>
+#include <QRegularExpression>
 #include <QStandardPaths>
 
 #include <utility>
@@ -46,6 +47,18 @@ QList<Versions::Entry> Versions::log(const QString &path, int limit) const
             entries.append({ fields.at(0), fields.at(1), fields.at(2) });
     }
     return entries;
+}
+
+QString Versions::fileAt(const QString &hash, const QString &path, bool *ok) const
+{
+    QString out;
+    // A hash has only hex digits, so no option can hide in it.
+    static const QRegularExpression hex(QStringLiteral("^[0-9a-f]{7,40}$"));
+    const bool found = hex.match(hash).hasMatch() && !path.contains(QStringLiteral(".."))
+        && git({ QStringLiteral("show"), hash + QStringLiteral(":./") + path }, &out) == 0;
+    if (ok != nullptr)
+        *ok = found;
+    return found ? out : QString();
 }
 
 bool Versions::isOn() const

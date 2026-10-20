@@ -176,7 +176,8 @@ public:
     Q_INVOKABLE bool restoreSnapshot(const QString &id, const QString &path);
     // The word difference from a snapshot to the current text of the item:
     // a map with segments (each a map with kind "same", "added", or
-    // "removed", and text), addedWords, and removedWords.
+    // "removed", and text), addedWords, and removedWords. snapshotPath can
+    // also be "version:<hash>" for the text in a saved version.
     Q_INVOKABLE QVariantMap compare(const QString &id, const QString &snapshotPath) const;
     // The number of items in the trash, with the items below them.
     Q_INVOKABLE int trashCount() const;

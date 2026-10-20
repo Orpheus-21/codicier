@@ -1031,6 +1031,25 @@ private slots:
         QVERIFY(QString::fromUtf8(git.readAllStandardOutput()).startsWith("Version of "));
     }
 
+    void compareWithASavedVersion()
+    {
+        QCOMPARE(session->turnOnVersions(), QString());
+        const QString hash
+            = session->versions("t6v4h9r2mz").first().toMap().value("hash").toString();
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor cursor(&editor);
+        cursor.movePosition(QTextCursor::End);
+        cursor.insertText(" Then rain came.");
+        const QVariantMap result = session->compare("t6v4h9r2mz", "version:" + hash);
+        QCOMPARE(result.value("addedWords").toInt(), 3);
+        QCOMPARE(result.value("removedWords").toInt(), 0);
+        // A bad hash or a file that the version does not hold gives nothing.
+        QVERIFY(session->compare("t6v4h9r2mz", "version:--help").isEmpty());
+        QVERIFY(session->compare("t6v4h9r2mz", "version:0000000").isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

@@ -1508,12 +1508,18 @@ bool ProjectSession::restoreSnapshot(const QString &id, const QString &path)
 QVariantMap ProjectSession::compare(const QString &id, const QString &snapshotPath) const
 {
     const int index = indexOf(id);
-    if (index < 0 || !snapshotPath.startsWith(QStringLiteral("snapshots/") + id + u'/')
-        || snapshotPath.contains(QStringLiteral("..")))
+    const bool version = snapshotPath.startsWith(QStringLiteral("version:"));
+    if (index < 0
+        || (!version
+            && (!snapshotPath.startsWith(QStringLiteral("snapshots/") + id + u'/')
+                || snapshotPath.contains(QStringLiteral("..")))))
         return { };
     const QDir dir(project.folder);
     bool ok = false;
-    const QString before = readTextFile(dir.filePath(snapshotPath), &ok);
+    // A saved version: the text of the file in that version.
+    const QString before = version
+        ? Versions(project.folder).fileAt(snapshotPath.mid(8), project.items.at(index).file, &ok)
+        : readTextFile(dir.filePath(snapshotPath), &ok);
     if (!ok)
         return { };
     // The open text is newer than its file while edits wait for the save.

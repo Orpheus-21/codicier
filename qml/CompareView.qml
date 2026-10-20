@@ -77,6 +77,8 @@ Rectangle {
             spacing: Theme.space.s
 
             Button {
+                // This button restores a snapshot, not a saved version.
+                visible: !compare.snapshotPath.startsWith("version:")
                 text: "Restore this version"
                 onClicked: {
                     compare.session.restoreSnapshot(compare.itemId, compare.snapshotPath);

@@ -612,11 +612,27 @@ Pane {
                             color: Theme.color.ink
                         }
 
-                        Text {
-                            text: versionRow.modelData.label
-                            font.family: Theme.type.ui
-                            font.pixelSize: Theme.type.small
-                            color: Theme.color.inkMuted
+                        Item {
+                            width: parent.width
+                            height: compareVersion.height
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: versionRow.modelData.label
+                                font.family: Theme.type.ui
+                                font.pixelSize: Theme.type.small
+                                color: Theme.color.inkMuted
+                            }
+
+                            Button {
+                                id: compareVersion
+
+                                objectName: "compareVersion"
+                                anchors.right: parent.right
+                                text: "Compare"
+                                onClicked: inspector.compareRequested("version:" + versionRow.modelData.hash,
+                                                                      versionRow.modelData.label)
+                            }
                         }
                     }
                 }
