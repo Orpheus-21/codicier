@@ -50,6 +50,8 @@ class ProjectSession : public QObject
     Q_PROPERTY(bool spellCheck READ spellCheck WRITE setSpellCheck NOTIFY spellChanged)
     // The name of the dictionary, such as "en_GB", or "" if none was found.
     Q_PROPERTY(QString dictionary READ dictionary NOTIFY spellChanged)
+    // The style checks of the open texts, as MarkdownHighlighter flags.
+    Q_PROPERTY(int styleChecks MEMBER checksOfStyle WRITE setStyleChecks NOTIFY spellChanged)
     // The word goal from project.toml, or 0.
     Q_PROPERTY(int goalWords READ goalWords NOTIFY wordsChanged)
     // The deadline of the project as yyyy-MM-dd, or "".
@@ -260,6 +262,8 @@ private:
     std::unique_ptr<History> history;
     std::unique_ptr<SpellChecker> spell;
     bool checkSpelling = true;
+    int checksOfStyle = 0;
+    void setStyleChecks(int checks);
     // Gives the checker, or none, to the open text and the tracked texts.
     void applySpelling();
     // Teaches the checker the words of dictionary.txt and of the names of

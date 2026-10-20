@@ -77,6 +77,8 @@ public:
     void setSpellChecker(const SpellChecker *checker);
     // Checks the whole text again, after the checker learned new words.
     void recheckSpelling();
+    // The style checks, as MarkdownHighlighter::StyleCheck flags.
+    void setStyleChecks(int checks);
     // Reads the file again, if there are no unsaved edits.
     void reloadIfClean();
     // The watcher saw an outside edit while the text was not saved.
@@ -102,6 +104,7 @@ private:
     QPointer<QTextDocument> document;
     QPointer<MarkdownHighlighter> highlighter;
     const SpellChecker *spell = nullptr;
+    int styleChecks = 0;
     QColor mark { 0x70, 0x6b, 0x65 };
     QColor accent { 0x94, 0x55, 0x2a };
     qreal distance = 0;

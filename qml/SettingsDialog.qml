@@ -362,6 +362,23 @@ T.Popup {
                     }
                 }
 
+                Setting {
+                    label: "Mark on the page"
+
+                    Repeater {
+                        model: [[1, "Repeated words"], [2, "Filter words"], [4, "Adverbs"], [8, "Passive voice"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "style-" + modelData[0]
+                            label: modelData[1]
+                            chosen: (Settings.styleChecks & modelData[0]) !== 0
+                            onClicked: Settings.styleChecks = Settings.styleChecks ^ modelData[0]
+                        }
+                    }
+                }
+
                 Heading {
                     text: "Backups"
                 }

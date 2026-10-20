@@ -140,6 +140,38 @@ private slots:
         highlighter.setSpellChecker(nullptr);
         QCOMPARE(formatAt(document, 4).underlineStyle(), QTextCharFormat::NoUnderline);
     }
+
+    void styleChecksTintTheirWords()
+    {
+        QTextDocument document;
+        //            0         1         2         3         4         5         6
+        //            0123456789012345678901234567890123456789012345678901234567890123456
+        document.setPlainText("She just ran quickly. The the letter was taken. Only family came.");
+        MarkdownHighlighter highlighter(&document);
+        const auto tinted = [&document](int position) {
+            return formatAt(document, position).hasProperty(QTextFormat::BackgroundBrush);
+        };
+        QVERIFY(!tinted(4));
+        highlighter.setStyleChecks(MarkdownHighlighter::Filters);
+        QVERIFY(tinted(4));
+        QVERIFY(!tinted(13));
+        highlighter.setStyleChecks(MarkdownHighlighter::Adverbs);
+        QVERIFY(tinted(13));
+        QVERIFY(!tinted(4));
+        // "Only" and "family" end in -ly but are not adverbs.
+        QVERIFY(!tinted(48));
+        QVERIFY(!tinted(53));
+        highlighter.setStyleChecks(MarkdownHighlighter::Repeats);
+        QVERIFY(tinted(22));
+        QVERIFY(tinted(26));
+        QVERIFY(!tinted(30));
+        highlighter.setStyleChecks(MarkdownHighlighter::Passive);
+        QVERIFY(tinted(37));
+        QVERIFY(tinted(42));
+        QVERIFY(!tinted(30));
+        highlighter.setStyleChecks(0);
+        QVERIFY(!tinted(37));
+    }
 };
 
 QTEST_MAIN(TestHighlighter)

@@ -81,6 +81,7 @@ void Document::attach(QTextDocument *value)
     // The document owns the highlighter.
     highlighter = new MarkdownHighlighter(document);
     highlighter->setSpellChecker(spell);
+    highlighter->setStyleChecks(styleChecks);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
     showText();
 }
@@ -90,6 +91,13 @@ void Document::setSpellChecker(const SpellChecker *checker)
     spell = checker;
     if (highlighter != nullptr)
         highlighter->setSpellChecker(checker);
+}
+
+void Document::setStyleChecks(int checks)
+{
+    styleChecks = checks;
+    if (highlighter != nullptr)
+        highlighter->setStyleChecks(checks);
 }
 
 void Document::recheckSpelling()

@@ -24,6 +24,7 @@ MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
     footnoteFormat.setForeground(QColor(0x94, 0x55, 0x2a));
     footnoteFormat.setVerticalAlignment(QTextCharFormat::AlignSuperScript);
     linkFormat.setForeground(QColor(0x94, 0x55, 0x2a));
+    styleFormat.setBackground(QColor(0x94, 0x55, 0x2a, 0x30));
 }
 
 void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
@@ -33,6 +34,9 @@ void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
     markFormat.setForeground(mark);
     footnoteFormat.setForeground(accent);
     linkFormat.setForeground(accent);
+    QColor tint = accent;
+    tint.setAlpha(0x30);
+    styleFormat.setBackground(tint);
     rehighlight();
 }
 
@@ -61,6 +65,76 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
     styleSpans(text, footnote, 0, footnoteFormat);
     styleSpans(text, link, 2, linkFormat);
     checkSpelling(text);
+    checkStyle(text);
+}
+
+void MarkdownHighlighter::setStyleChecks(int checks)
+{
+    const auto flags = static_cast<unsigned>(std::max(0, checks));
+    if (styleChecks == flags)
+        return;
+    styleChecks = flags;
+    rehighlight();
+}
+
+void MarkdownHighlighter::checkStyle(const QString &text)
+{
+    if (styleChecks == 0U)
+        return;
+    // Words that tell the reader what to think, or say nothing.
+    static const QStringList filters { "just",     "really",   "very",      "quite",    "rather",
+                                       "somewhat", "actually", "basically", "simply",   "literally",
+                                       "suddenly", "felt",     "seemed",    "realized", "realised",
+                                       "noticed",  "wondered", "began",     "started",  "decided" };
+    // Words that end in -ly but are not adverbs.
+    static const QStringList notAdverbs { "only",   "family", "reply",   "early",    "likely",
+                                          "holy",   "ugly",   "belly",   "ally",     "rally",
+                                          "supply", "apply",  "daily",   "friendly", "lonely",
+                                          "lovely", "silly",  "elderly", "costly",   "deadly",
+                                          "lily",   "jelly" };
+    static const QRegularExpression passive(
+        QStringLiteral("\\b(am|is|are|was|were|be|been|being)\\s+(\\w+ly\\s+)?"
+                       "(\\w+ed|taken|given|seen|done|made|written|broken|chosen|driven|"
+                       "eaten|forgotten|hidden|known|shown|spoken|stolen|thrown|born|built|"
+                       "caught|found|held|kept|left|lost|paid|sent|sold|told|brought|bought)\\b"),
+        QRegularExpression::CaseInsensitiveOption);
+    const auto tint = [this](qsizetype start, qsizetype length) {
+        QTextCharFormat merged = format(static_cast<int>(start));
+        merged.setBackground(styleFormat.background());
+        setFormat(static_cast<int>(start), static_cast<int>(length), merged);
+    };
+    QList<QRegularExpressionMatch> words;
+    auto matches = word.globalMatch(text);
+    while (matches.hasNext())
+        words.append(matches.next());
+    for (qsizetype i = 0; i < words.size(); ++i) {
+        const QString lower = words.at(i).captured().toLower();
+        const qsizetype start = words.at(i).capturedStart();
+        const qsizetype length = words.at(i).capturedLength();
+        if (has(Filters) && filters.contains(lower))
+            tint(start, length);
+        if (has(Adverbs) && lower.size() > 4 && lower.endsWith(QStringLiteral("ly"))
+            && !notAdverbs.contains(lower))
+            tint(start, length);
+        // The same word again in the next ten words: "the the", or an echo
+        // of a long word.
+        if (has(Repeats)) {
+            for (qsizetype j = i + 1; j < std::min(words.size(), i + 11); ++j) {
+                const bool close = j == i + 1 || lower.size() >= 5;
+                if (close && words.at(j).captured().toLower() == lower) {
+                    tint(start, length);
+                    tint(words.at(j).capturedStart(), words.at(j).capturedLength());
+                }
+            }
+        }
+    }
+    if (has(Passive)) {
+        auto found = passive.globalMatch(text);
+        while (found.hasNext()) {
+            const QRegularExpressionMatch match = found.next();
+            tint(match.capturedStart(), match.capturedLength());
+        }
+    }
 }
 
 void MarkdownHighlighter::setSpellChecker(const SpellChecker *checker)

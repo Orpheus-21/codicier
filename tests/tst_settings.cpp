@@ -161,9 +161,13 @@ private slots:
             settings.setSprintMinutes(0);
             QCOMPARE(settings.sprintMinutes(), 1);
             settings.setSprintMinutes(15);
+            QCOMPARE(settings.styleChecks(), 0);
+            settings.setStyleChecks(73);
+            QCOMPARE(settings.styleChecks(), 9);
         }
         QCOMPARE(Settings().sessionTarget(), 750);
         QCOMPARE(Settings().sprintMinutes(), 15);
+        QCOMPARE(Settings().styleChecks(), 9);
     }
 };
 

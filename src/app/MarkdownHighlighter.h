@@ -5,6 +5,8 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 
+#include <cstdint>
+
 // Styles Markdown in place: headings, strong and emphasis, footnote marks,
 // and links to the codex. The marks stay in the text, in a pale colour, so the file on disk
 // is the text on screen.
@@ -21,6 +23,15 @@ public:
     // Underlines the words that the checker does not know. Null turns the
     // check off. A change styles the whole text again.
     void setSpellChecker(const SpellChecker *checker);
+
+    // The style checks, as flags. Each marks its words with a soft tint.
+    enum StyleCheck : std::uint8_t {
+        Repeats = 1,
+        Filters = 2,
+        Adverbs = 4,
+        Passive = 8,
+    };
+    void setStyleChecks(int checks);
 
 protected:
     void highlightBlock(const QString &text) override;
@@ -44,4 +55,9 @@ private:
     QRegularExpression word;
     // Underlines the unknown words, but not in links and footnote marks.
     void checkSpelling(const QString &text);
+    unsigned styleChecks = 0;
+    bool has(StyleCheck check) const { return (styleChecks & static_cast<unsigned>(check)) != 0U; }
+    QTextCharFormat styleFormat;
+    // Tints the words of the style checks that are on.
+    void checkStyle(const QString &text);
 };

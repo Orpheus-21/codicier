@@ -849,13 +849,25 @@ bool ProjectSession::addToDictionary(const QString &word)
     return true;
 }
 
+void ProjectSession::setStyleChecks(int checks)
+{
+    if (checksOfStyle == checks)
+        return;
+    checksOfStyle = checks;
+    applySpelling();
+    emit spellChanged();
+}
+
 void ProjectSession::applySpelling()
 {
     const SpellChecker *checker = checkSpelling ? spell.get() : nullptr;
     text.setSpellChecker(checker);
+    text.setStyleChecks(checksOfStyle);
     for (const QPointer<Document> &document : std::as_const(tracked)) {
-        if (document)
+        if (document) {
             document->setSpellChecker(checker);
+            document->setStyleChecks(checksOfStyle);
+        }
     }
 }
 
@@ -1356,6 +1368,7 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
     tracked.removeAll(nullptr);
     tracked.append(document);
     document->setSpellChecker(checkSpelling ? spell.get() : nullptr);
+    document->setStyleChecks(checksOfStyle);
     connect(document, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);

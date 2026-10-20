@@ -3,9 +3,11 @@
 #include "Workspaces.h"
 
 #include <QObject>
+
 #include <QSettings>
 #include <QString>
 #include <QtQml/qqmlregistration.h>
+#include <algorithm>
 
 // The settings of the app that are not about one workspace, in the same
 // settings.ini as the workspaces.
@@ -37,6 +39,9 @@ class Settings : public QObject
     Q_PROPERTY(int sprintMinutes READ sprintMinutes WRITE setSprintMinutes NOTIFY changed)
     // True underlines the words that the dictionary does not know.
     Q_PROPERTY(bool spellCheck READ spellCheck WRITE setSpellCheck NOTIFY changed)
+    // The style checks that are on: 1 repeated words, 2 filter words,
+    // 4 adverbs, and 8 passive voice. 0 turns all off.
+    Q_PROPERTY(int styleChecks READ styleChecks WRITE setStyleChecks NOTIFY changed)
 
 public:
     static constexpr int defaultBackupsToKeep = 10;
@@ -67,6 +72,11 @@ public:
     void setSessionTarget(int value);
     int sprintMinutes() const { return sprint; }
     bool spellCheck() const { return spelling; }
+    int styleChecks() const { return style; }
+    void setStyleChecks(int value)
+    {
+        change(style, std::clamp(value, 0, 255) % 16, "edit/styleChecks");
+    }
     void setSpellCheck(bool value) { change(spelling, value, "edit/spellCheck"); }
     void setSprintMinutes(int value);
     // The same for a URL from a folder dialog.
@@ -88,6 +98,7 @@ private:
     int target = 0;
     int sprint = 25;
     bool spelling = true;
+    int style = 0;
 
     // Sets a value, writes it to the settings file, and tells the views.
     template <typename T> void change(T &member, const T &value, const char *key)
