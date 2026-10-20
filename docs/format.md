@@ -25,6 +25,7 @@ the-salt-ledger/
     notes/              one Markdown file for each note
     research/           any files: images, PDF files, and other documents
     snapshots/          copies of a text at a moment, one folder for each item
+    history.toml        the words that the author wrote on each day
     .codicier/          app data that the app can build again or lose with no harm
 ```
 
@@ -187,6 +188,18 @@ The app writes `project.toml` and `binder.toml` in one fixed layout:
 4. One empty line before each header.
 
 The items of the binder come in tree order: each item, then its children. A string with a line break is a multi-line string. A file in this layout does not change when the app loads it and saves it again. A file that an author edits by hand takes this layout at the next save.
+
+## history.toml
+
+The app writes the net words that the author added to the manuscript on each day. A day of cuts can have a negative value. The table has one line for each day, in date order:
+
+```toml
+[days]
+2026-10-19 = 812
+2026-10-20 = 435
+```
+
+The file is not in `.codicier/`, because the app cannot build it again. A file that the app cannot read counts as an empty history.
 
 ## Item ids
 
