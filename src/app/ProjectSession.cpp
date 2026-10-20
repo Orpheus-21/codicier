@@ -81,6 +81,9 @@ void ProjectSession::setFolder(const QString &folder)
     project.folder = folder;
     changedSinceBackup = false;
     reload();
+    // The session counts the words added from now on.
+    sessionStart = manuscriptWords();
+    emit wordsChanged();
 }
 
 void ProjectSession::reload()

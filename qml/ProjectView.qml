@@ -191,6 +191,7 @@ Item {
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
+        { id: "progress", name: "Goals and progress", sequence: "Ctrl+Shift+G", run: () => progressDialog.open() },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+E", run: () => view.openCodex() },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
         { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
@@ -221,6 +222,14 @@ Item {
             enabled: modelData.sequence !== ""
             onActivated: modelData.run()
         }
+    }
+
+    ProgressDialog {
+        id: progressDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
     }
 
     CommandPalette {
@@ -588,6 +597,35 @@ Item {
                 visible: view.session.error === ""
                 text: "Book " + statusBar.number(view.session.manuscriptWords)
                       + (view.session.goalWords > 0 ? " of " + statusBar.number(view.session.goalWords) : "")
+            }
+
+            // The session words, against the session target if there is one.
+            Row {
+                objectName: "sessionCount"
+                visible: view.session.error === ""
+                spacing: Theme.space.s
+
+                Count {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Session " + statusBar.number(view.session.sessionWords)
+                          + (Settings.sessionTarget > 0 ? " of " + statusBar.number(Settings.sessionTarget) : "")
+                }
+
+                Rectangle {
+                    visible: Settings.sessionTarget > 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 72
+                    height: 4
+                    radius: 2
+                    color: Theme.color.rule
+
+                    Rectangle {
+                        width: parent.width * Math.min(1, view.session.sessionWords / Math.max(1, Settings.sessionTarget))
+                        height: parent.height
+                        radius: 2
+                        color: Theme.color.accent
+                    }
+                }
             }
 
             Count {

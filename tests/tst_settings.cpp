@@ -148,6 +148,18 @@ private slots:
         QCOMPARE(Settings().theme(), QStringLiteral("system"));
         Document::saveDelayMs = 1000;
     }
+
+    void sessionTargetSurvivesARestart()
+    {
+        {
+            Settings settings;
+            QCOMPARE(settings.sessionTarget(), 0);
+            settings.setSessionTarget(500000);
+            QCOMPARE(settings.sessionTarget(), 100000);
+            settings.setSessionTarget(750);
+        }
+        QCOMPARE(Settings().sessionTarget(), 750);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSettings)

@@ -39,6 +39,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     columns = std::clamp(settings.value("view/measure", columns).toInt(), 45, 90);
     delay = std::clamp(settings.value("edit/autosaveDelay", delay).toInt(), 250, 10000);
     lessMotion = settings.value("view/reducedMotion", false).toBool();
+    target = std::clamp(settings.value("goals/sessionTarget", 0).toInt(), 0, 100000);
     Document::saveDelayMs = delay;
 }
 
@@ -46,6 +47,11 @@ void Settings::setTheme(const QString &value)
 {
     if (isTheme(value))
         change(themeName, value, "view/theme");
+}
+
+void Settings::setSessionTarget(int value)
+{
+    change(target, std::clamp(value, 0, 100000), "goals/sessionTarget");
 }
 
 void Settings::setReadingSize(int value)

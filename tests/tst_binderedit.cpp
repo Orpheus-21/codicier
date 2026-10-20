@@ -920,6 +920,19 @@ private slots:
                  QStringLiteral("Ahab"));
     }
 
+    void sessionCountsTheAddedWords()
+    {
+        QCOMPARE(session->sessionWords(), 0);
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor(&editor).insertText("Four new words here. ");
+        QTRY_COMPARE(session->sessionWords(), 4);
+        // Fewer words than at the start count as 0.
+        editor.setPlainText("Short.");
+        QTRY_COMPARE(session->sessionWords(), 0);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

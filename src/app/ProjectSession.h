@@ -12,6 +12,7 @@
 #include <QVariantMap>
 
 #include <QtQml/qqmlregistration.h>
+#include <algorithm>
 #include <memory>
 
 class Index;
@@ -39,6 +40,8 @@ class ProjectSession : public QObject
     Q_PROPERTY(int sceneWords READ sceneWords NOTIFY wordsChanged)
     Q_PROPERTY(int chapterWords READ chapterWords NOTIFY wordsChanged)
     Q_PROPERTY(int manuscriptWords READ manuscriptWords NOTIFY wordsChanged)
+    // The words added to the manuscript since the project opened, 0 or more.
+    Q_PROPERTY(int sessionWords READ sessionWords NOTIFY wordsChanged)
     // The word goal from project.toml, or 0.
     Q_PROPERTY(int goalWords READ goalWords NOTIFY loaded)
     // Where a zip backup goes when the project closes, and how many to keep.
@@ -190,6 +193,7 @@ public:
     int sceneWords() const { return text.file().isEmpty() ? 0 : text.words(); }
     int chapterWords() const;
     int manuscriptWords() const { return binderModel.manuscriptWords(); }
+    int sessionWords() const { return std::max(0, manuscriptWords() - sessionStart); }
     int goalWords() const;
 
 signals:
@@ -217,6 +221,8 @@ private:
     int backupsToKeep = 10;
     // A file changed since the project opened or since the last backup.
     bool changedSinceBackup = false;
+    // The manuscript words when the project opened.
+    int sessionStart = 0;
     // The search index builds at the first search after a load or a binder
     // edit. Between those, only the files that changed are read again.
     std::unique_ptr<Index> index;

@@ -433,4 +433,25 @@ TestCase {
         compare(view.session.currentId, rows[0].id);
         compare(view.viewMode, "page");
     }
+
+    function test_sessionTargetShowsInTheStatusBar() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_G, Qt.ControlModifier | Qt.ShiftModifier);
+        const overlay = view.T.Overlay.overlay;
+        const field = findChild(overlay, "sessionTarget") as TextField;
+        tryVerify(() => field && field.visible);
+        compare(faults(field.parent.parent), []);
+        field.forceActiveFocus();
+        field.selectAll();
+        for (const c of "500")
+            keyClick(c);
+        keyClick(Qt.Key_Tab);
+        compare(Settings.sessionTarget, 500);
+        keyClick(Qt.Key_Escape);
+        const count = findChild(view, "sessionCount") as Item;
+        verify(count.visible);
+        verify((count.children[0] as Text).text.includes("of 500"));
+        Settings.sessionTarget = 0;
+    }
 }

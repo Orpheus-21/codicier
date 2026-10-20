@@ -31,6 +31,8 @@ class Settings : public QObject
     Q_PROPERTY(int autosaveDelay READ autosaveDelay WRITE setAutosaveDelay NOTIFY changed)
     // True turns every animation off.
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
+    // The word target of one writing session, 0 for none, up to 100000.
+    Q_PROPERTY(int sessionTarget READ sessionTarget WRITE setSessionTarget NOTIFY changed)
 
 public:
     static constexpr int defaultBackupsToKeep = 10;
@@ -57,6 +59,8 @@ public:
     void setAutosaveDelay(int value);
     bool reducedMotion() const { return lessMotion; }
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
+    int sessionTarget() const { return target; }
+    void setSessionTarget(int value);
     // The same for a URL from a folder dialog.
     Q_INVOKABLE void setBackupFolderUrl(const QUrl &url);
 
@@ -73,6 +77,7 @@ private:
     int columns = 66;
     int delay = 1000;
     bool lessMotion = false;
+    int target = 0;
 
     // Sets a value, writes it to the settings file, and tells the views.
     template <typename T> void change(T &member, const T &value, const char *key)
