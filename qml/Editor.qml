@@ -62,9 +62,11 @@ Item {
             return;
         wordStart = start;
         wordEnd = end;
-        wordSuggestions = session.suggestions(text.slice(start, end)).slice(0, 7);
-        if (wordSuggestions.length > 0)
-            spellMenu.popup(textEdit, x, y);
+        const word = text.slice(start, end);
+        if (session.isWordCorrect(word))
+            return;
+        wordSuggestions = session.suggestions(word).slice(0, 7);
+        spellMenu.popup(textEdit, x, y);
     }
 
     function replaceWord(word: string) {
@@ -90,6 +92,11 @@ Item {
 
             onObjectAdded: (index, action) => spellMenu.insertAction(index, action as T.Action)
             onObjectRemoved: (index, action) => spellMenu.removeAction(action as T.Action)
+        }
+
+        T.Action {
+            text: "Add to the project dictionary"
+            onTriggered: editorArea.session.addToDictionary(textEdit.text.slice(editorArea.wordStart, editorArea.wordEnd))
         }
     }
 

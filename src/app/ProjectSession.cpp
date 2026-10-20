@@ -106,6 +106,7 @@ void ProjectSession::setFolder(const QString &folder)
     if (!folder.isEmpty() && loadError.isEmpty())
         spell = std::make_unique<SpellChecker>(
             QString::fromStdString(project.data["language"].value_or(std::string("en_US"))));
+    teachSpelling();
     applySpelling();
     emit spellChanged();
     emit wordsChanged();
@@ -336,6 +337,8 @@ bool ProjectSession::commit(const QStringList &newFiles)
             watcher->noteSaved(file);
     }
     binderModel.setProject(project);
+    // A new or renamed entity is a word of the story.
+    teachSpelling();
     emit edited();
     return errors.isEmpty();
 }
@@ -787,6 +790,63 @@ QString ProjectSession::dictionary() const
 QStringList ProjectSession::suggestions(const QString &word) const
 {
     return spell ? spell->suggestions(word) : QStringList();
+}
+
+bool ProjectSession::isWordCorrect(const QString &word) const
+{
+    return !spell || spell->isCorrect(word);
+}
+
+void ProjectSession::teachSpelling()
+{
+    if (!spell)
+        return;
+    QFile file(QDir(project.folder).filePath(QStringLiteral("dictionary.txt")));
+    if (file.open(QIODevice::ReadOnly)) {
+        for (const QString &line : QString::fromUtf8(file.readAll()).split(u'\n'))
+            spell->addWord(line.trimmed());
+    }
+    // The names of the codex are words of the story.
+    static const QRegularExpression notLetters(QStringLiteral("[^\\p{L}'’]+"),
+                                               QRegularExpression::UseUnicodePropertiesOption);
+    for (const ProjectItem &item : std::as_const(project.items)) {
+        if (!isEntity(item.kind))
+            continue;
+        QStringList names = strings(item.data.get("aliases"));
+        names.prepend(item.title);
+        for (const QString &name : std::as_const(names)) {
+            for (const QString &part : name.split(notLetters, Qt::SkipEmptyParts))
+                spell->addWord(part);
+        }
+    }
+}
+
+bool ProjectSession::addToDictionary(const QString &word)
+{
+    const QString clean = word.trimmed();
+    if (!spell || clean.isEmpty() || clean.contains(u'\n') || project.readOnly)
+        return false;
+    const QString path = QDir(project.folder).filePath(QStringLiteral("dictionary.txt"));
+    QStringList words;
+    QFile in(path);
+    if (in.open(QIODevice::ReadOnly))
+        words = QString::fromUtf8(in.readAll()).split(u'\n', Qt::SkipEmptyParts);
+    in.close();
+    if (!words.contains(clean)) {
+        words.append(clean);
+        words.sort(Qt::CaseInsensitive);
+        QSaveFile out(path);
+        const QByteArray bytes = (words.join(u'\n') + u'\n').toUtf8();
+        if (!out.open(QIODevice::WriteOnly) || out.write(bytes) != bytes.size() || !out.commit())
+            return false;
+    }
+    spell->addWord(clean);
+    text.recheckSpelling();
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document)
+            document->recheckSpelling();
+    }
+    return true;
 }
 
 void ProjectSession::applySpelling()

@@ -1,5 +1,6 @@
 #include "ProjectSession.h"
 #include "ProjectStore.h"
+#include "SpellChecker.h"
 
 #include <QDate>
 #include <QDir>
@@ -64,6 +65,9 @@ class TestBinderEdit : public QObject
     std::unique_ptr<ProjectSession> session;
 
 private slots:
+    // The small dictionary of the fixtures, not the dictionaries of the system.
+    void initTestCase() { SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") }; }
+
     void init()
     {
         QDir(dir.path()).removeRecursively();
@@ -973,6 +977,33 @@ private slots:
         // The save of the text writes the history too.
         QVERIFY(session->document()->save());
         QVERIFY(readFile("history.toml").contains(" = 5\n"));
+    }
+
+    void projectDictionaryAndCodexNames()
+    {
+        QCOMPARE(session->dictionary(), QStringLiteral("en_TEST"));
+        QVERIFY(session->isWordCorrect("letter"));
+        QVERIFY(!session->isWordCorrect("Zork"));
+        // A name of the codex is a word of the story.
+        const QString id = session->add("character");
+        QVERIFY(session->rename(id, "Zork Vale"));
+        QVERIFY(session->isWordCorrect("Zork"));
+        QVERIFY(session->setField(id, "aliases", QStringList { "the Quellmar" }));
+        QVERIFY(session->isWordCorrect("Quellmar"));
+
+        QVERIFY(!session->isWordCorrect("Brindle"));
+        QVERIFY(session->addToDictionary(" Brindle "));
+        QVERIFY(session->addToDictionary("Aldous"));
+        QVERIFY(session->addToDictionary("Brindle"));
+        QVERIFY(!session->addToDictionary("  "));
+        QVERIFY(session->isWordCorrect("Brindle"));
+        QCOMPARE(readFile("dictionary.txt"), QByteArray("Aldous\nBrindle\n"));
+
+        // A new session reads the word list.
+        ProjectSession again;
+        again.setFolder(dir.path());
+        QVERIFY(again.isWordCorrect("Brindle"));
+        QVERIFY(again.isWordCorrect("Zork"));
     }
 
     void readOnlyProjectRefusesEdits()

@@ -75,6 +75,8 @@ public:
     Q_INVOKABLE bool save();
     // The checker for the underlines of unknown words, or null for none.
     void setSpellChecker(const SpellChecker *checker);
+    // Checks the whole text again, after the checker learned new words.
+    void recheckSpelling();
     // Reads the file again, if there are no unsaved edits.
     void reloadIfClean();
     // The watcher saw an outside edit while the text was not saved.

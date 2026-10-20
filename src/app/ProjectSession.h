@@ -213,6 +213,11 @@ public:
     QString dictionary() const;
     // The spelling suggestions for a word, or none with no dictionary.
     Q_INVOKABLE QStringList suggestions(const QString &word) const;
+    // True for a word that the dictionary or the project knows.
+    Q_INVOKABLE bool isWordCorrect(const QString &word) const;
+    // Adds a word to dictionary.txt of the project and checks the texts
+    // again. Returns false on an error.
+    Q_INVOKABLE bool addToDictionary(const QString &word);
     // The net words of the last count days, oldest first, up to today: the
     // date as yyyy-MM-dd and the words of each.
     Q_INVOKABLE QVariantList historyDays(int count) const;
@@ -257,6 +262,9 @@ private:
     bool checkSpelling = true;
     // Gives the checker, or none, to the open text and the tracked texts.
     void applySpelling();
+    // Teaches the checker the words of dictionary.txt and of the names of
+    // the codex.
+    void teachSpelling();
     int historyTotal = 0;
     // The search index builds at the first search after a load or a binder
     // edit. Between those, only the files that changed are read again.

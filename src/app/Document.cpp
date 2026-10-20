@@ -92,6 +92,12 @@ void Document::setSpellChecker(const SpellChecker *checker)
         highlighter->setSpellChecker(checker);
 }
 
+void Document::recheckSpelling()
+{
+    if (highlighter != nullptr && spell != nullptr)
+        highlighter->rehighlight();
+}
+
 void Document::setMarkColor(const QColor &color)
 {
     if (color == mark)
