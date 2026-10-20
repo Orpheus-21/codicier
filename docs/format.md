@@ -133,7 +133,7 @@ Do not say so yet."""
 | `time` | string | scenes | When the scene happens, in free text. |
 | `synopsis` | string | text items | A short summary. |
 | `aliases` | array of strings | entities | Other names of the entity, such as a nickname or a title. |
-| `fields` | table of strings | entities | The values of the fields of the entity type, by field name: `fields = { Captain = "Ahab" }`. |
+| `fields` | table of strings | entities | The values of the fields of the entity type, by field name, such as `Captain = "Ahab"`. The app writes the table under the item as `[item.fields]`. |
 | `tags` | array of strings | text items | Tags. |
 | `target` | integer | text items | The word target. |
 | `include` | boolean | text items | False leaves the item out of the manuscript: no total counts its words. The default is true, and the app writes the key only when it is false. |
