@@ -112,6 +112,9 @@ public:
     Q_INVOKABLE QVariantList plotlines() const;
     // Adds a plotline with a name. Returns its new id, or "" on an error.
     Q_INVOKABLE QString addPlotline(const QString &name);
+    // The scenes of the manuscript in binder order, for the plot grid: the
+    // id, the title, and the plotline ids of each.
+    Q_INVOKABLE QVariantList plotGrid() const;
     // Sets the name and the fields of a type in project.toml. An empty kind
     // makes a new type from the name. Returns the kind, or "" on an error.
     Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,

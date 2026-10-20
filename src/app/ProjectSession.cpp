@@ -363,6 +363,26 @@ QVariantList ProjectSession::plotlines() const
     return list;
 }
 
+QVariantList ProjectSession::plotGrid() const
+{
+    QVariantList scenes;
+    const std::function<void(int)> walk = [&](int at) {
+        const ProjectItem &item = project.items.at(at);
+        if (item.kind == QLatin1String("scene"))
+            scenes.append(QVariantMap {
+                { QStringLiteral("id"), item.id },
+                { QStringLiteral("title"), item.title },
+                { QStringLiteral("plotlines"), strings(item.data.get("plotlines")) } });
+        for (const int child : item.children)
+            walk(child);
+    };
+    for (const int root : project.roots) {
+        if (project.items.at(root).section == QLatin1String("manuscript"))
+            walk(root);
+    }
+    return scenes;
+}
+
 QString ProjectSession::addPlotline(const QString &name)
 {
     const QString clean = name.trimmed();

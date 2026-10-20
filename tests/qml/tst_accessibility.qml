@@ -644,4 +644,30 @@ TestCase {
         (findChild(view, "plotline-main") as Choice).clicked();
         compare(view.session.fields(scene).plotlines, []);
     }
+
+    function test_plotGridClicksAndDrags() {
+        const view = makeView();
+        const a = view.session.addPlotline("A");
+        const b = view.session.addPlotline("B");
+        const scene = view.session.plotGrid()[0].id;
+        view.forceActiveFocus();
+        keyClick(Qt.Key_G, Qt.ControlModifier | Qt.AltModifier);
+        compare(view.viewMode, "grid");
+        waitForRendering(view);
+        const gridView = findChild(view, "plotGridView") as Item;
+        compare(faults(gridView), []);
+        // The first cell of the first row: scene one on plotline A.
+        const cell = findChild(findChild(gridView, "plotRow") as Item, "plotCell") as Item;
+        mouseClick(cell);
+        compare(view.session.fields(scene).plotlines, [a]);
+        waitForRendering(view);
+        // Drag the mark one row down, onto plotline B.
+        const mark = findChild(findChild(gridView, "plotRow") as Item, "plotCell") as Item;
+        const from = mark.mapToItem(view, mark.width / 2, mark.height / 2);
+        mousePress(view, from.x, from.y);
+        for (let i = 1; i <= 10; ++i)
+            mouseMove(view, from.x, from.y + 4 * i);
+        mouseRelease(view, from.x, from.y + 40);
+        compare(view.session.fields(scene).plotlines, [b]);
+    }
 }

@@ -1137,6 +1137,17 @@ private slots:
         QCOMPARE(ProjectStore::binderFile(result.project), readFile("binder.toml"));
     }
 
+    void plotGridListsTheScenes()
+    {
+        const QString line = session->addPlotline("The ledger");
+        QVERIFY(session->setField("t6v4h9r2mz", "plotlines", QStringList { line }));
+        const QVariantList scenes = session->plotGrid();
+        QCOMPARE(scenes.size(), 2);
+        QCOMPARE(scenes.first().toMap().value("id").toString(), QStringLiteral("m1n2p3q4r5"));
+        QVERIFY(scenes.first().toMap().value("plotlines").toStringList().isEmpty());
+        QCOMPARE(scenes.at(1).toMap().value("plotlines").toStringList(), QStringList { line });
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
