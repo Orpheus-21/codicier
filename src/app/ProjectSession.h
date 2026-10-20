@@ -299,6 +299,13 @@ public:
     // The parts of the text of an item that each pass wrote: the start, the
     // length, and the pass number of each.
     Q_INVOKABLE QVariantList passRanges(const QString &id) const;
+    // Sets the checklist of a pass, by its number from 1.
+    Q_INVOKABLE bool setPassChecks(int number, const QStringList &checks);
+    // The checklist of a pass: checks, the list of checks, and chapters,
+    // each with an id, a title, and ticked, one true or false for each check.
+    Q_INVOKABLE QVariantMap checklist(int number) const;
+    // Ticks a check of a pass for a chapter, or takes the tick away.
+    Q_INVOKABLE bool setTick(int number, const QString &check, const QString &itemId, bool ticked);
     // The comments, of one item or of all items for an empty id, in order:
     // the index in binder.toml, the item, its title, the quote, the text,
     // resolved, and the start of the quote in the text now, or -1 when the
@@ -389,6 +396,16 @@ private:
     void applySpelling();
     // The calendar of story time of the project.
     Calendar calendar() const;
+    // An item that holds scenes directly, such as a chapter.
+    struct ChapterGroup
+    {
+        QString id;
+        QString title;
+        QList<int> scenes;
+    };
+    // The chapters of the manuscript in binder order. Scenes at the top of
+    // the manuscript form one group, "Manuscript".
+    QList<ChapterGroup> chapterGroups() const;
     // Teaches the checker the words of dictionary.txt and of the names of
     // the codex.
     void teachSpelling();

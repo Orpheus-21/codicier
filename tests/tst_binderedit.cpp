@@ -1490,6 +1490,46 @@ private slots:
         QVERIFY(!session->removeComment(0));
     }
 
+    void checklistsTickChecksForChapters()
+    {
+        QVERIFY(!session->setPassChecks(1, { "Too soon" }));
+        QCOMPARE(session->startPass("Structure"), 1);
+        QVERIFY(session->setPassChecks(
+            1, { " Cut filter words ", "", "Check the POV", "Check the POV" }));
+        QVariantMap list = session->checklist(1);
+        QCOMPARE(list.value("checks").toStringList(),
+                 (QStringList { "Cut filter words", "Check the POV" }));
+        const QVariantMap letter = list.value("chapters").toList().first().toMap();
+        QCOMPARE(letter.value("id").toString(), QStringLiteral("f6g7h8j9k0"));
+        QCOMPARE(letter.value("ticked").toList(), (QVariantList { false, false }));
+
+        QVERIFY(session->setTick(1, "Check the POV", "f6g7h8j9k0", true));
+        QVERIFY(session->setTick(1, "Check the POV", "f6g7h8j9k0", true));
+        list = session->checklist(1);
+        QCOMPARE(list.value("chapters").toList().first().toMap().value("ticked").toList(),
+                 (QVariantList { false, true }));
+        // A tick of pass 1 is not a tick of pass 2.
+        QCOMPARE(session->startPass("Line edit"), 2);
+        QVERIFY(session->setPassChecks(2, { "Check the POV" }));
+        QCOMPARE(session->checklist(2)
+                     .value("chapters")
+                     .toList()
+                     .first()
+                     .toMap()
+                     .value("ticked")
+                     .toList(),
+                 (QVariantList { false }));
+
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY(result.ok());
+        QCOMPARE(ProjectStore::binderFile(result.project), readFile("binder.toml"));
+        QCOMPARE(ProjectStore::projectFile(result.project), readFile("project.toml"));
+        QVERIFY(session->setTick(1, "Check the POV", "f6g7h8j9k0", false));
+        QVERIFY(!readFile("binder.toml").contains("[[tick]]"));
+        QVERIFY(session->setPassChecks(1, { }));
+        QVERIFY(session->checklist(1).value("checks").toStringList().isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

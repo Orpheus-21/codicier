@@ -93,8 +93,8 @@ Item {
     // What the editor area shows: "page", "board" for the corkboard,
     // "outline" for the outliner, "beats" for the beat board, "grid" for the
     // plot grid, "timeline" for the timeline, "relations" for the
-    // relationship graph, "family" for the family tree, or "insights" for
-    // the figures of the manuscript.
+    // relationship graph, "family" for the family tree, "insights" for the
+    // figures of the manuscript, or "checklist" for the revision checklist.
     property string viewMode: "page"
 
     function toggleViewMode(mode: string) {
@@ -296,6 +296,7 @@ Item {
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
         { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
         { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
+        { id: "checklist", name: "Show or hide the revision checklist", sequence: "Ctrl+Alt+L", run: () => view.toggleViewMode("checklist") },
         { id: "passes", name: "Draft passes", sequence: "Ctrl+Alt+D", run: () => passDialog.open() },
         { id: "versions.list", name: "Show the versions", sequence: "Ctrl+Alt+H", run: () => view.openVersions() },
         { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
@@ -665,6 +666,16 @@ Item {
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
                 onOpened: id => view.openText(id)
+            }
+
+            Checklist {
+                objectName: "checklistView"
+                visible: view.viewMode === "checklist"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
             }
 
             Insights {

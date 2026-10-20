@@ -496,23 +496,15 @@ QUrl ProjectSession::fileUrl(const QString &id) const
     return QUrl::fromLocalFile(QDir(project.folder).filePath(project.items.at(index).file));
 }
 
-QVariantMap ProjectSession::insights()
+QList<ProjectSession::ChapterGroup> ProjectSession::chapterGroups() const
 {
-    // The figures read the files, so the latest typing goes to disk first.
-    saveAll();
     // A group is an item that holds scenes directly, such as a chapter, in
     // binder order. Scenes at the top of the manuscript form one group.
-    struct Group
-    {
-        QString id;
-        QString title;
-        QList<int> scenes;
-    };
-    QList<Group> groups;
-    Group loose { QString(), QStringLiteral("Manuscript"), { } };
+    QList<ChapterGroup> groups;
+    ChapterGroup loose { QString(), QStringLiteral("Manuscript"), { } };
     const std::function<void(int)> walk = [&](int at) {
         const ProjectItem &item = project.items.at(at);
-        Group group { item.id, item.title, { } };
+        ChapterGroup group { item.id, item.title, { } };
         for (const int child : item.children) {
             if (project.items.at(child).kind == QLatin1String("scene"))
                 group.scenes.append(child);
@@ -531,6 +523,14 @@ QVariantMap ProjectSession::insights()
     }
     if (!loose.scenes.isEmpty())
         groups.prepend(loose);
+    return groups;
+}
+
+QVariantMap ProjectSession::insights()
+{
+    // The figures read the files, so the latest typing goes to disk first.
+    saveAll();
+    const QList<ChapterGroup> groups = chapterGroups();
     // Dialogue is text between straight or curly double quotes.
     static const QRegularExpression quoted(QStringLiteral("\"[^\"\\n]*\"|“[^”\\n]*”"));
     QHash<QString, int> povTotals;
@@ -585,7 +585,7 @@ QVariantMap ProjectSession::insights()
                                      | QRegularExpression::UseUnicodePropertiesOption) });
     }
     QVariantList chapters;
-    for (const Group &group : std::as_const(groups)) {
+    for (const ChapterGroup &group : std::as_const(groups)) {
         QVariantList scenes;
         int words = 0;
         int dialogue = 0;
@@ -1608,6 +1608,86 @@ int ProjectSession::startPass(const QString &name)
     applyPasses();
     emit passesChanged();
     return number;
+}
+
+bool ProjectSession::setPassChecks(int number, const QStringList &checks)
+{
+    toml::array *passes = project.data.get_as<toml::array>("pass");
+    if (project.readOnly || passes == nullptr || number < 1
+        || number > static_cast<int>(passes->size()))
+        return false;
+    toml::table *pass = (*passes)[static_cast<std::size_t>(number - 1)].as_table();
+    if (pass == nullptr)
+        return false;
+    toml::array list;
+    QStringList seen;
+    for (const QString &check : checks) {
+        if (!check.trimmed().isEmpty() && !seen.contains(check.trimmed())) {
+            seen.append(check.trimmed());
+            list.push_back(check.trimmed().toStdString());
+        }
+    }
+    if (list.empty())
+        pass->erase("checks");
+    else
+        pass->insert_or_assign("checks", std::move(list));
+    return commit({ });
+}
+
+QVariantMap ProjectSession::checklist(int number) const
+{
+    QStringList checks;
+    if (const toml::array *passes = project.data.get_as<toml::array>("pass");
+        passes != nullptr && number >= 1 && number <= static_cast<int>(passes->size())) {
+        if (const toml::table *pass = (*passes)[static_cast<std::size_t>(number - 1)].as_table())
+            checks = strings(pass->get("checks"));
+    }
+
+    QSet<QString> ticked;
+    if (const toml::array *ticks = project.binderData.get_as<toml::array>("tick")) {
+        for (const toml::node &node : *ticks) {
+            const toml::table *tick = node.as_table();
+            if (tick != nullptr && (*tick)["pass"].value_or(std::int64_t { 0 }) == number)
+                ticked.insert(QString::fromStdString((*tick)["item"].value_or(std::string()))
+                              + u'\n'
+                              + QString::fromStdString((*tick)["check"].value_or(std::string())));
+        }
+    }
+    QVariantList chapters;
+    for (const ChapterGroup &group : chapterGroups()) {
+        QVariantList marks;
+        for (const QString &check : std::as_const(checks))
+            marks.append(ticked.contains(group.id + u'\n' + check));
+        chapters.append(QVariantMap { { QStringLiteral("id"), group.id },
+                                      { QStringLiteral("title"), group.title },
+                                      { QStringLiteral("ticked"), marks } });
+    }
+    return { { QStringLiteral("checks"), checks }, { QStringLiteral("chapters"), chapters } };
+}
+
+bool ProjectSession::setTick(int number, const QString &check, const QString &itemId, bool ticked)
+{
+    if (project.readOnly || number < 1 || check.isEmpty())
+        return false;
+    if (project.binderData.get_as<toml::array>("tick") == nullptr)
+        project.binderData.insert_or_assign("tick", toml::array { });
+    toml::array &ticks = *project.binderData.get_as<toml::array>("tick");
+    const auto same = [&](const toml::node &node) {
+        const toml::table *tick = node.as_table();
+        return tick != nullptr && (*tick)["pass"].value_or(std::int64_t { 0 }) == number
+            && QString::fromStdString((*tick)["check"].value_or(std::string())) == check
+            && QString::fromStdString((*tick)["item"].value_or(std::string())) == itemId;
+    };
+    const auto found = std::ranges::find_if(ticks, same);
+    if (ticked && found == ticks.end())
+        ticks.push_back(toml::table { { "pass", number },
+                                      { "check", check.toStdString() },
+                                      { "item", itemId.toStdString() } });
+    else if (!ticked && found != ticks.end())
+        ticks.erase(found);
+    if (ticks.empty())
+        project.binderData.erase("tick");
+    return commit({ });
 }
 
 QVariantList ProjectSession::passRanges(const QString &id) const

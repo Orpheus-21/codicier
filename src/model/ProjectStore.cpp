@@ -343,6 +343,22 @@ private:
         checkFormat(*table, file);
         result.project.binderData = *table;
         result.project.binderData.erase("item");
+        // The ticks of the revision checklists: [[tick]] with pass, check, and item.
+        if (checkType(*table, "tick", toml::node_type::array, file)) {
+            if (const toml::array *ticks = table->get_as<toml::array>("tick")) {
+                for (const toml::node &each : *ticks) {
+                    const toml::table *tick = each.as_table();
+                    if (tick == nullptr) {
+                        error(file, lineOf(each),
+                              QStringLiteral("`tick` must be a list of tables"));
+                        continue;
+                    }
+                    string(*tick, "check", file, lineOf(each), true);
+                    string(*tick, "item", file, lineOf(each), true);
+                    checkType(*tick, "pass", toml::node_type::integer, file);
+                }
+            }
+        }
         // The comments on texts: [[comment]] with item, quote, start, text,
         // and resolved.
         if (checkType(*table, "comment", toml::node_type::array, file)) {

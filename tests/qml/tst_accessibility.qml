@@ -914,4 +914,35 @@ TestCase {
         (findChild(list.itemAtIndex(0), "resolveComment") as Button).clicked();
         tryCompare(list, "count", 0);
     }
+
+    function test_checklistTicksAChapter() {
+        const view = makeView();
+        view.session.startPass("Structure");
+        view.forceActiveFocus();
+        keyClick(Qt.Key_L, Qt.ControlModifier | Qt.AltModifier);
+        compare(view.viewMode, "checklist");
+        const listView = findChild(view, "checklistView") as Item;
+        const field = findChild(listView, "newCheck") as TextField;
+        field.forceActiveFocus();
+        for (const c of "Cut adverbs")
+            keyClick(c);
+        keyClick(Qt.Key_Return);
+        compare(view.session.checklist(1).checks, ["Cut adverbs"]);
+        waitForRendering(view);
+        compare(faults(listView), []);
+        // The first visible tick box: the name cell of a row has a hidden one.
+        let tick = null;
+        const walk = item => {
+            for (let i = 0; i < item.children.length; ++i) {
+                const child = item.children[i];
+                if (!tick && child.objectName === "tick" && child.visible)
+                    tick = child;
+                walk(child);
+            }
+        };
+        walk(listView);
+        verify(tick !== null);
+        mouseClick(tick);
+        verify(view.session.checklist(1).chapters[0].ticked[0]);
+    }
 }
