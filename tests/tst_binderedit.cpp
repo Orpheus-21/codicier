@@ -1222,6 +1222,41 @@ private slots:
         QVERIFY(!readFile("project.toml").contains("[calendar"));
     }
 
+    void relationsLinkEntities()
+    {
+        const QString mara = session->add("character");
+        QVERIFY(session->rename(mara, "Mara"));
+        const QString mother = session->add("character");
+        QVERIFY(session->rename(mother, "Ilse"));
+        const QString port = session->add("place");
+        QVERIFY(!session->addRelation(mara, mara, "self", false));
+        QVERIFY(!session->addRelation(mara, "t6v4h9r2mz", "scene", false));
+        QVERIFY(!session->addRelation(mara, port, " ", false));
+        QVERIFY(session->addRelation(mara, port, " lives in ", false));
+        QVERIFY(session->addRelation(mother, mara, "ignored", true));
+
+        const QVariantList own = session->relations(mara);
+        QCOMPARE(own.size(), 2);
+        QCOMPARE(own.first().toMap().value("name").toString(), QStringLiteral("lives in"));
+        const QVariantMap parent = own.at(1).toMap();
+        QCOMPARE(parent.value("name").toString(), QStringLiteral("parent of"));
+        QVERIFY(parent.value("parent").toBool());
+        QCOMPARE(parent.value("fromTitle").toString(), QStringLiteral("Ilse"));
+        QCOMPARE(session->relations(port).size(), 1);
+
+        // Both files load again and come back byte for byte.
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY(result.ok());
+        QCOMPARE(ProjectStore::binderFile(result.project), readFile("binder.toml"));
+
+        // A relation to an item in the trash does not show.
+        QVERIFY(session->moveToTrash(port));
+        QCOMPARE(session->relations(mara).size(), 1);
+        QVERIFY(session->removeRelation(parent.value("index").toInt()));
+        QVERIFY(session->relations(mara).isEmpty());
+        QVERIFY(!session->removeRelation(7));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

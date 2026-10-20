@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import QtQml
 import QtQuick
 import QtQuick.Templates as T
 
@@ -25,7 +26,11 @@ Pane {
         inspector.entityType = session.entityTypes().find(type => type.kind === inspector.fields.kind);
         inspector.mentions = inspector.entityType ? session.mentionsOf(session.currentId) : [];
         inspector.plotlines = session.plotlines();
+        inspector.relations = inspector.entityType ? session.relations(session.currentId) : [];
     }
+
+    // The relations of the open entity.
+    property var relations: []
 
     // The plotlines of the project, read again after each change.
     property var plotlines: []
@@ -446,6 +451,124 @@ Pane {
                         text = "";
                         if (id !== "")
                             inspector.togglePlotline(id);
+                    }
+                }
+            }
+
+            Column {
+                id: relationSection
+
+                objectName: "relationSection"
+                visible: inspector.entityType !== undefined
+                width: parent.width
+                spacing: Theme.space.xs
+
+                property bool parentLink: false
+
+                Caps {
+                    text: "Relations"
+                }
+
+                Repeater {
+                    model: inspector.relations
+
+                    Item {
+                        id: relationRow
+
+                        required property var modelData
+
+                        width: parent.width
+                        height: 30
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - removeRelation.width
+                            elide: Text.ElideRight
+                            text: relationRow.modelData.fromTitle + " is " + relationRow.modelData.name + " "
+                                  + relationRow.modelData.toTitle
+                            font.family: Theme.type.ui
+                            font.pixelSize: Theme.type.body
+                            color: Theme.color.ink
+                        }
+
+                        IconButton {
+                            id: removeRelation
+
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            iconName: "x"
+                            label: "Remove the relation " + relationRow.modelData.name
+                            onClicked: inspector.session.removeRelation(relationRow.modelData.index)
+                        }
+                    }
+                }
+
+                Row {
+                    spacing: Theme.space.xs
+
+                    Choice {
+                        label: "Name"
+                        chosen: !relationSection.parentLink
+                        onClicked: relationSection.parentLink = false
+                    }
+
+                    Choice {
+                        objectName: "parentLink"
+                        label: "Parent of"
+                        chosen: relationSection.parentLink
+                        onClicked: relationSection.parentLink = true
+                    }
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: Theme.space.xs
+
+                    TextField {
+                        id: relationName
+
+                        objectName: "relationName"
+                        visible: !relationSection.parentLink
+                        width: parent.width - linkButton.width - Theme.space.xs
+                        Accessible.name: "Name of the relation"
+                        placeholderText: "Sister of, rival of"
+                    }
+
+                    Button {
+                        id: linkButton
+
+                        objectName: "linkButton"
+                        text: "Link to"
+                        iconName: "chevron-down"
+                        iconAfterText: true
+                        enabled: relationSection.parentLink || relationName.text.trim() !== ""
+                        onClicked: linkMenu.popup(linkButton, 0, linkButton.height)
+                    }
+                }
+
+                Menu {
+                    id: linkMenu
+
+                    objectName: "linkMenu"
+
+                    Instantiator {
+                        model: inspector.entityType !== undefined
+                               ? inspector.session.items().filter(item => item.id !== inspector.session.currentId
+                                   && inspector.session.entityTypes().some(type => type.kind === item.kind)) : []
+
+                        delegate: T.Action {
+                            required property var modelData
+
+                            text: modelData.title
+                            onTriggered: {
+                                if (inspector.session.addRelation(inspector.session.currentId, modelData.id,
+                                                                  relationName.text, relationSection.parentLink))
+                                    relationName.text = "";
+                            }
+                        }
+
+                        onObjectAdded: (index, action) => linkMenu.insertAction(index, action as T.Action)
+                        onObjectRemoved: (index, action) => linkMenu.removeAction(action as T.Action)
                     }
                 }
             }

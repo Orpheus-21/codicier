@@ -245,6 +245,9 @@ private slots:
         QTest::newRow("calendar month with no days")
             << projectText() + "\n[[calendar.month]]\nname = \"Thaw\"\n"
             << goodBinder() << "`days` must be a whole number from 1 to 1000";
+        QTest::newRow("relation with no name")
+            << projectText() << goodBinder() + "\n[[relation]]\nfrom = \"a\"\nto = \"b\"\n"
+            << "`name` is missing";
         QTest::newRow("aliases not strings") << projectText()
                                              << goodBinder()
                 + "\n[[item]]\nid = \"c0c1c2c3c4\"\nkind = \"character\"\nsection = \"codex\"\n"

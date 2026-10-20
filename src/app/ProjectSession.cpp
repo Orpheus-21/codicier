@@ -364,6 +364,71 @@ QVariantList ProjectSession::plotlines() const
     return list;
 }
 
+QVariantList ProjectSession::relations(const QString &id) const
+{
+    QVariantList list;
+    const toml::array *relations = project.binderData.get_as<toml::array>("relation");
+    if (relations == nullptr)
+        return list;
+    for (std::size_t i = 0; i < relations->size(); ++i) {
+        const toml::table *relation = (*relations)[i].as_table();
+        if (relation == nullptr)
+            continue;
+        const QString from = QString::fromStdString((*relation)["from"].value_or(std::string()));
+        const QString to = QString::fromStdString((*relation)["to"].value_or(std::string()));
+        const int a = indexOf(from);
+        const int b = indexOf(to);
+        // A link to an item that is gone or in the trash does not show.
+        if (a < 0 || b < 0 || binderModel.isInTrash(from) || binderModel.isInTrash(to))
+            continue;
+        if (!id.isEmpty() && from != id && to != id)
+            continue;
+        list.append(
+            QVariantMap { { QStringLiteral("index"), static_cast<int>(i) },
+                          { QStringLiteral("from"), from },
+                          { QStringLiteral("to"), to },
+                          { QStringLiteral("fromTitle"), project.items.at(a).title },
+                          { QStringLiteral("toTitle"), project.items.at(b).title },
+                          { QStringLiteral("name"),
+                            QString::fromStdString((*relation)["name"].value_or(std::string())) },
+                          { QStringLiteral("parent"), (*relation)["parent"].value_or(false) } });
+    }
+    return list;
+}
+
+bool ProjectSession::addRelation(const QString &from, const QString &to, const QString &name,
+                                 bool parent)
+{
+    const int a = indexOf(from);
+    const int b = indexOf(to);
+    const QString clean = parent ? QStringLiteral("parent of") : name.trimmed();
+    if (project.readOnly || a < 0 || b < 0 || from == to || clean.isEmpty()
+        || !isEntity(project.items.at(a).kind) || !isEntity(project.items.at(b).kind))
+        return false;
+    if (project.binderData.get_as<toml::array>("relation") == nullptr)
+        project.binderData.insert_or_assign("relation", toml::array { });
+    toml::table relation { { "from", from.toStdString() },
+                           { "to", to.toStdString() },
+                           { "name", clean.toStdString() } };
+    // The parent key is written only when true.
+    if (parent)
+        relation.insert("parent", true);
+    project.binderData.get_as<toml::array>("relation")->push_back(std::move(relation));
+    return commit({ });
+}
+
+bool ProjectSession::removeRelation(int index)
+{
+    toml::array *relations = project.binderData.get_as<toml::array>("relation");
+    if (project.readOnly || relations == nullptr || index < 0
+        || index >= static_cast<int>(relations->size()))
+        return false;
+    relations->erase(relations->begin() + index);
+    if (relations->empty())
+        project.binderData.erase("relation");
+    return commit({ });
+}
+
 QVariantList ProjectSession::plotGrid() const
 {
     QVariantList scenes;

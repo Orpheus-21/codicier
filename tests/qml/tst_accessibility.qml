@@ -730,4 +730,32 @@ TestCase {
         mouseClick(findChild(overlay, "gregorian") as Item);
         compare(view.session.calendarMonths().length, 0);
     }
+
+    function test_inspectorListsRelations() {
+        const view = makeView();
+        const mara = view.session.add("character");
+        view.session.rename(mara, "Mara");
+        const ilse = view.session.add("character");
+        view.session.rename(ilse, "Ilse");
+        view.session.addRelation(mara, ilse, "daughter of", false);
+        view.session.currentId = mara;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const section = findChild(view, "relationSection") as Item;
+        verify(section.visible);
+        compare(faults(section), []);
+        let button = null;
+        const walk = item => {
+            for (let i = 0; i < item.children.length; ++i) {
+                const child = item.children[i];
+                if (child instanceof IconButton && child.label.startsWith("Remove the relation"))
+                    button = child;
+                walk(child);
+            }
+        };
+        walk(section);
+        verify(button !== null);
+        button.clicked();
+        compare(view.session.relations(mara).length, 0);
+    }
 }

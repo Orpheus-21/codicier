@@ -116,6 +116,16 @@ public:
     // The scenes of the manuscript in binder order, for the plot grid: the
     // id, the title, and the plotline ids of each.
     Q_INVOKABLE QVariantList plotGrid() const;
+    // The relations between entities, or only those of one item: the index
+    // in binder.toml, from, to, their titles, the name, and parent. A
+    // relation to an item in the trash does not show.
+    Q_INVOKABLE QVariantList relations(const QString &id = QString()) const;
+    // Links two entities with a name, such as "sister of". With parent,
+    // from is a parent of to, and the name is "parent of". Returns false on
+    // an error.
+    Q_INVOKABLE bool addRelation(const QString &from, const QString &to, const QString &name,
+                                 bool parent);
+    Q_INVOKABLE bool removeRelation(int index);
     // The items with a date in story time, outside the trash, as tracks by
     // "pov" or by "plotline", in name order: the name and the events of
     // each track, by day. Each event has an id, title, kind, day number,

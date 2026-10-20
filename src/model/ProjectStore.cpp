@@ -341,6 +341,23 @@ private:
         checkFormat(*table, file);
         result.project.binderData = *table;
         result.project.binderData.erase("item");
+        // The relations between entities: [[relation]] with from, to, a name,
+        // and parent for a parent link.
+        if (checkType(*table, "relation", toml::node_type::array, file)) {
+            if (const toml::array *relations = table->get_as<toml::array>("relation")) {
+                for (const toml::node &each : *relations) {
+                    const toml::table *relation = each.as_table();
+                    if (relation == nullptr) {
+                        error(file, lineOf(each),
+                              QStringLiteral("`relation` must be a list of tables"));
+                        continue;
+                    }
+                    for (const char *key : { "from", "to", "name" })
+                        string(*relation, key, file, lineOf(each), true);
+                    checkType(*relation, "parent", toml::node_type::boolean, file);
+                }
+            }
+        }
         const toml::node *node = table->get("item");
         if (node == nullptr)
             return;
