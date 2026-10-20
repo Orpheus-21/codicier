@@ -572,4 +572,28 @@ TestCase {
         view.versionOnClose();
         compare(view.session.saveVersion(""), "");
     }
+
+    function test_versionsPanelListsTheVersions() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_H, Qt.ControlModifier | Qt.AltModifier);
+        verify(view.versionsOpen);
+        const list = findChild(view, "versionList") as ListView;
+        compare(list.count, 0);
+        view.turnOnVersions();
+        tryCompare(list, "count", 1);
+        compare(list.model[0].message, "Versions on");
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const versions = findChild(view, "textVersions") as Item;
+        verify(versions.visible);
+        compare(faults(versions), []);
+        keyClick(Qt.Key_Escape);
+    }
 }

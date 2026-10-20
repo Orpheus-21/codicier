@@ -549,6 +549,79 @@ Pane {
                 }
             }
 
+            // The saved versions of this text, when the project has versions.
+            Column {
+                id: versionSection
+
+                property var entries: []
+
+                function refresh() {
+                    entries = inspector.session.versionsOn && inspector.session.currentId !== ""
+                        ? inspector.session.versions(inspector.session.currentId) : [];
+                }
+
+                objectName: "textVersions"
+                visible: inspector.session.versionsOn && inspector.entityType === undefined
+                         && (inspector.fields.kind === "scene" || inspector.fields.kind === "page"
+                             || inspector.fields.kind === "note")
+                width: parent.width
+                spacing: Theme.space.xs
+                Component.onCompleted: refresh()
+
+                Connections {
+                    target: inspector.session
+
+                    function onVersionsChanged() {
+                        versionSection.refresh();
+                    }
+
+                    function onCurrentIdChanged() {
+                        versionSection.refresh();
+                    }
+                }
+
+                Caps {
+                    text: "Versions"
+                }
+
+                Text {
+                    visible: versionSection.entries.length === 0
+                    text: "No saved version holds this text yet."
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.body
+                    color: Theme.color.inkMuted
+                }
+
+                Repeater {
+                    model: versionSection.entries
+
+                    Column {
+                        id: versionRow
+
+                        required property var modelData
+
+                        objectName: "textVersion"
+                        width: parent.width
+
+                        Text {
+                            width: parent.width
+                            text: versionRow.modelData.message
+                            elide: Text.ElideRight
+                            font.family: Theme.type.ui
+                            font.pixelSize: Theme.type.body
+                            color: Theme.color.ink
+                        }
+
+                        Text {
+                            text: versionRow.modelData.label
+                            font.family: Theme.type.ui
+                            font.pixelSize: Theme.type.small
+                            color: Theme.color.inkMuted
+                        }
+                    }
+                }
+            }
+
             Rule {
                 width: parent.width
             }

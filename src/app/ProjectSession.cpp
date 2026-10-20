@@ -910,6 +910,28 @@ QString ProjectSession::saveVersion(const QString &message)
     return error;
 }
 
+QVariantList ProjectSession::versions(const QString &id) const
+{
+    QVariantList list;
+    QString path;
+    if (!id.isEmpty()) {
+        const int index = indexOf(id);
+        if (index < 0 || project.items.at(index).file.isEmpty())
+            return list;
+        path = project.items.at(index).file;
+    }
+    const QLocale english(QLocale::English, QLocale::UnitedKingdom);
+    for (const Versions::Entry &entry : Versions(project.folder).log(path)) {
+        const QDateTime time = QDateTime::fromString(entry.time, Qt::ISODate).toLocalTime();
+        list.append(QVariantMap { { QStringLiteral("hash"), entry.hash },
+                                  { QStringLiteral("time"), entry.time },
+                                  { QStringLiteral("label"),
+                                    english.toString(time, QStringLiteral("d MMMM yyyy, HH:mm")) },
+                                  { QStringLiteral("message"), entry.message } });
+    }
+    return list;
+}
+
 int ProjectSession::streak() const
 {
     return history ? history->streak(QDate::currentDate()) : 0;

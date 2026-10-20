@@ -219,6 +219,9 @@ public:
     // Saves a version of the project with a message, or with the date and
     // time for an empty message. Returns an error text, or "".
     Q_INVOKABLE QString saveVersion(const QString &message);
+    // The versions of the project, or of the text of an item, newest first:
+    // the hash, the time as ISO 8601, a label of the time, and the message.
+    Q_INVOKABLE QVariantList versions(const QString &id = QString()) const;
     bool spellCheck() const { return checkSpelling; }
     void setSpellCheck(bool on);
     QString dictionary() const;

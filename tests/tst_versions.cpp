@@ -61,6 +61,16 @@ private slots:
         QCOMPARE(git(dir.path(), { "log", "-1", "--format=%s" }), QStringLiteral("First scene"));
         // No signature, ever.
         QCOMPARE(git(dir.path(), { "log", "-1", "--format=%G?" }), QStringLiteral("N"));
+
+        // The log of the project, newest first, and the log of one file.
+        const QList<Versions::Entry> all = versions.log();
+        QCOMPARE(all.size(), 2);
+        QCOMPARE(all.first().message, QStringLiteral("First scene"));
+        QCOMPARE(all.last().message, QStringLiteral("Versions on"));
+        QCOMPARE(all.first().hash.size(), 40);
+        QVERIFY(all.first().time.contains('T'));
+        QCOMPARE(versions.log("manuscript/one.md").size(), 1);
+        QCOMPARE(versions.log("project.toml").size(), 1);
     }
 
     void aRepositoryAboveTheFolderIsUsed()

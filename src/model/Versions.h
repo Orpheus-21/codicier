@@ -9,6 +9,15 @@
 class Versions
 {
 public:
+    // One saved version.
+    struct Entry
+    {
+        QString hash;
+        // The time of the version, in ISO 8601.
+        QString time;
+        QString message;
+    };
+
     explicit Versions(QString projectFolder);
 
     // True if the git program is on the computer.
@@ -21,6 +30,11 @@ public:
     // Saves a version of the project folder with a message. A folder with no
     // change saves nothing. Returns an error text, or "".
     QString save(const QString &message, const QString &author);
+
+    // The versions that change path, newest first, or the versions of the
+    // whole project folder for an empty path. path is relative to the
+    // project folder.
+    QList<Entry> log(const QString &path = QString(), int limit = 500) const;
 
 private:
     QString folder;

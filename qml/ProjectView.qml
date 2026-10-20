@@ -156,12 +156,23 @@ Item {
         }
     }
 
-    // The codex panel also takes the place of the binder list.
+    // The codex panel and the versions panel also take the place of the
+    // binder list.
     property bool codexOpen: false
+    property bool versionsOpen: false
+
+    function openVersions() {
+        setFocusMode(false);
+        searchOpen = false;
+        codexOpen = false;
+        versionsOpen = true;
+        versionsPanel.start();
+    }
 
     function openCodex() {
         setFocusMode(false);
         searchOpen = false;
+        versionsOpen = false;
         codexOpen = true;
         codex.start();
     }
@@ -170,6 +181,7 @@ Item {
     function openSearch(replace: bool) {
         setFocusMode(false);
         codexOpen = false;
+        versionsOpen = false;
         searchOpen = true;
         search.replacing = replace;
         search.start();
@@ -247,6 +259,7 @@ Item {
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
+        { id: "versions.list", name: "Show the versions", sequence: "Ctrl+Alt+H", run: () => view.openVersions() },
         { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
         { id: "versions.on", name: "Turn on versions", sequence: "Ctrl+Alt+V", run: () => view.turnOnVersions() },
         { id: "progress", name: "Goals and progress", sequence: "Ctrl+Shift+G", run: () => progressDialog.open() },
@@ -483,10 +496,26 @@ Item {
                 }
             }
 
+            VersionsPanel {
+                id: versionsPanel
+
+                objectName: "versionsPanel"
+                visible: view.versionsOpen
+                anchors.top: projectButton.bottom
+                anchors.topMargin: Theme.space.s
+                anchors.bottom: parent.bottom
+                width: parent.width
+                session: view.session
+                onCloseRequested: {
+                    view.versionsOpen = false;
+                    binder.forceActiveFocus();
+                }
+            }
+
             Binder {
                 id: binder
 
-                visible: !view.searchOpen && !view.codexOpen
+                visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()
                 anchors.top: projectButton.bottom

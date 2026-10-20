@@ -28,6 +28,26 @@ int Versions::git(const QStringList &arguments, QString *out) const
     return process.exitStatus() == QProcess::NormalExit ? process.exitCode() : -1;
 }
 
+QList<Versions::Entry> Versions::log(const QString &path, int limit) const
+{
+    QList<Entry> entries;
+    QString out;
+    // A unit separator between the fields, which no message holds.
+    if (!isOn()
+        || git({ QStringLiteral("log"), QStringLiteral("--max-count=%1").arg(limit),
+                 QStringLiteral("--format=%H%x1f%cI%x1f%s"), QStringLiteral("--"),
+                 path.isEmpty() ? QStringLiteral(".") : path },
+               &out)
+            != 0)
+        return entries;
+    for (const QString &line : out.split(u'\n', Qt::SkipEmptyParts)) {
+        const QStringList fields = line.split(QChar(0x1f));
+        if (fields.size() == 3)
+            entries.append({ fields.at(0), fields.at(1), fields.at(2) });
+    }
+    return entries;
+}
+
 bool Versions::isOn() const
 {
     QString out;
