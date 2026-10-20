@@ -62,6 +62,7 @@ deadline = 2027-03-01
 | `goals.daily` | integer | no | The word goal for each day. |
 | `goals.deadline` | date | no | The date to finish the work. |
 | `framework` | string | no | The plot framework of the beat board: `three-act`, `save-the-cat`, `heros-journey`, `kishotenketsu`, or `snowflake`. |
+| `calendar.month` | array of tables | no | The months of the calendar of the story, each with a `name` and `days` from 1 to 1000. With no months, the story uses the Gregorian calendar. |
 | `plotline` | array of tables | no | The plotlines, each with an `id` and a `name`, in order. |
 | `entity-type` | array of tables | no | The entity types of the author. See "Entity types". |
 
@@ -135,6 +136,7 @@ Do not say so yet."""
 | `pov` | string | scenes | The point of view character. |
 | `place` | string | scenes | Where the scene happens. |
 | `time` | string | scenes | When the scene happens, in free text. |
+| `date` | string | scenes and entities | The date in story time, written year-month-day, such as `1847-03-04`, in the calendar of the project. A year before year 0 has a minus sign. |
 | `plotlines` | array of strings | scenes | The ids of the plotlines of the scene. |
 | `beat` | string | scenes | The id of the beat of the framework that the scene is on. |
 | `synopsis` | string | text items | A short summary. |
