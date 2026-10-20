@@ -182,13 +182,14 @@ A short story or an essay can have scenes at the top of the manuscript, with no 
 
 A move to the trash changes only `binder.toml`. The item goes to the top level with `section = "trash"`. Its `restore` key keeps the id of its old parent. The file stays where it is. When the author empties the trash, the app deletes the files of the items in the trash.
 
-### Relations and pins
+### Relations, comments, and pins
 
 `binder.toml` can also hold these lists of tables, after the items:
 
 | Table | Keys | Meaning |
 |---|---|---|
 | `[[relation]]` | `from`, `to`, `name`, and `parent` | A link between two entities, such as `name = "sister of"`. With `parent = true`, `from` is a parent of `to`, for the family tree. The app writes `parent` only when it is true. |
+| `[[comment]]` | `item`, `quote`, `start`, `text`, and `resolved` | A comment on the words `quote` of a text, which were at the character `start` when the author wrote the comment. The app finds the quote at the place nearest `start`. The app writes `resolved` only when it is true. |
 | `[[pin]]` | `map`, `place`, `x`, and `y` | An entity pinned to a map. `x` and `y` are parts of the width and the height of the image, from 0 to 1. |
 
 ### Keys that the app does not know
