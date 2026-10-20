@@ -59,6 +59,26 @@ deadline = 2027-03-01
 | `goals.words` | integer | no | The word goal for the whole work. |
 | `goals.daily` | integer | no | The word goal for each day. |
 | `goals.deadline` | date | no | The date to finish the work. |
+| `entity-type` | array of tables | no | The entity types of the author. See "Entity types". |
+
+### Entity types
+
+Each `[[entity-type]]` table adds fields to a type of the app, or defines a new type of entity for the codex:
+
+```toml
+[[entity-type]]
+kind = "ships"
+name = "Ships"
+fields = ["Captain", "Home port"]
+```
+
+| Key | Type | Required | Meaning |
+|---|---|---|---|
+| `kind` | string | yes | The kind of the items of this type. A kind of the app, such as `character`, or a new kind with lowercase letters, digits, and hyphens, with a letter first. |
+| `name` | string | no | The heading of the type in the codex, for a new kind. |
+| `fields` | array of strings | no | The names of the fields of the type. |
+
+An item of a new kind is an entity: it is in the `codex` section, and its file is in `codex/`.
 
 ## binder.toml
 
@@ -113,6 +133,7 @@ Do not say so yet."""
 | `time` | string | scenes | When the scene happens, in free text. |
 | `synopsis` | string | text items | A short summary. |
 | `aliases` | array of strings | entities | Other names of the entity, such as a nickname or a title. |
+| `fields` | table of strings | entities | The values of the fields of the entity type, by field name: `fields = { Captain = "Ahab" }`. |
 | `tags` | array of strings | text items | Tags. |
 | `target` | integer | text items | The word target. |
 | `include` | boolean | text items | False leaves the item out of the manuscript: no total counts its words. The default is true, and the app writes the key only when it is false. |
