@@ -13,6 +13,7 @@ The app also does these things:
 - It writes a zip backup of a project when the project closes.
 - It searches the full text of the project, also with regular expressions. It replaces words across the manuscript.
 - It has a focus mode with typewriter scroll.
+- It has a codex of the characters, places, items, factions, lore, and terms of the story, with links from the text and a list of mentions.
 - It has a command palette that finds every command and every item by name.
 - It keeps the layout of the panes for each project. A key map file sets the key of each command.
 
@@ -95,6 +96,7 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Shift+J | Merge the scene with the next scene. |
 | Ctrl+Shift+Del | Move the item to the trash. |
 | Ctrl+Shift+S | Take a snapshot of the open text. |
+| Ctrl+Shift+E | Open the codex. |
 | Ctrl+Shift+F | Search the project. |
 | Ctrl+H | Replace across the manuscript. |
 | Ctrl+Shift+B | Show or hide the binder. |
@@ -123,6 +125,20 @@ Drag the line between two panes to change the width of a pane. The buttons at th
 ### The inspector
 
 The inspector shows the data of the selected item: synopsis, status, point of view, place, time, word target, tags, and notes. The "Manuscript" choice leaves an item out of the word count of the book. The inspector also lists the snapshots of a scene. Click "Compare" to see the differences, or "Restore" to go back to a snapshot.
+
+### The codex
+
+The codex holds the entities of the story: characters, places, items, factions, lore, and terms. Each entity has a page for its description, like a scene. Press Ctrl+Shift+E to open the codex panel. The panel groups the entities by type and has a filter field. Use its + button to add an entity.
+
+The inspector of an entity shows these parts:
+
+- Aliases: other names of the entity, split by commas.
+- A field for each field of its type.
+- Mentions: each text of the manuscript that names the entity by its title or an alias, with the count of mentions. Click a line to open the text.
+
+To add fields to a type, or to make a new type such as "Ships", choose "Types and fields" in the + menu of the codex panel. The app saves the types and their fields in `project.toml`.
+
+To link to an entity, type `[[` on the page. A list of entities opens under the cursor and filters as you type. Press Enter or Tab to insert the link, such as `[[Mara Vell]]`. Press Escape to close the list. Ctrl+click a link to open the entity. A link also finds an entity by an alias.
 
 ### Search and replace
 
