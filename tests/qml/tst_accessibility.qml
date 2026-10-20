@@ -212,4 +212,42 @@ TestCase {
         verify(!workspace.get(0).folder || workspace.get(0).folder !== folder);
         compare(workspace.count, 0);
     }
+
+    function test_codexListsEntitiesByType() {
+        const view = makeView();
+        const place = view.session.add("place");
+        view.session.rename(place, "The Harbour");
+        const first = view.session.add("character");
+        view.session.rename(first, "Mara");
+        const second = view.session.add("character");
+        view.session.rename(second, "Abel");
+        view.session.currentId = "";
+
+        view.forceActiveFocus();
+        keyClick(Qt.Key_E, Qt.ControlModifier | Qt.ShiftModifier);
+        verify(view.codexOpen);
+        const list = findChild(view, "codexList") as ListView;
+        // Characters come first, then places; each type in title order.
+        compare(list.model.map(item => item.title), ["Abel", "Mara", "The Harbour"]);
+        waitForRendering(view);
+        compare(faults(view), []);
+
+        // The filter, then Enter opens the entity.
+        for (const c of "mar")
+            keyClick(c);
+        compare(list.count, 1);
+        keyClick(Qt.Key_Return);
+        compare(view.session.currentId, first);
+
+        // The inspector saves the aliases of an entity.
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const aliases = findChild(view, "aliasesField") as TextField;
+        verify(aliases.visible);
+        aliases.forceActiveFocus();
+        for (const c of "the clerk, M")
+            keyClick(c);
+        keyClick(Qt.Key_Tab);
+        compare(view.session.fields(first).aliases, ["the clerk", "M"]);
+    }
 }

@@ -87,9 +87,20 @@ Item {
     // The search panel takes the place of the binder list.
     property bool searchOpen: false
 
+    // The codex panel also takes the place of the binder list.
+    property bool codexOpen: false
+
+    function openCodex() {
+        setFocusMode(false);
+        searchOpen = false;
+        codexOpen = true;
+        codex.start();
+    }
+
     // Opens the search panel, or with replace the replace mode of it.
     function openSearch(replace: bool) {
         setFocusMode(false);
+        codexOpen = false;
         searchOpen = true;
         search.replacing = replace;
         search.start();
@@ -164,6 +175,7 @@ Item {
         { id: "scene.merge", name: "Merge with the next scene", sequence: "Ctrl+Shift+J", run: () => session.mergeWithNext(session.currentId) },
         { id: "item.trash", name: "Move the item to the trash", sequence: "Ctrl+Shift+Del", run: () => session.moveToTrash(session.currentId) },
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
+        { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+E", run: () => view.openCodex() },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
         { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
         { id: "pane.next", name: "Move to the next pane", sequence: "F6", run: () => view.nextPane() },
@@ -292,6 +304,12 @@ Item {
                 T.Action { text: "New part"; onTriggered: binder.addItem("part") }
                 T.Action { text: "New note"; onTriggered: binder.addItem("note") }
                 T.Action { text: "New page"; onTriggered: binder.addItem("page") }
+                T.Action { text: "New character"; onTriggered: binder.addItem("character") }
+                T.Action { text: "New place"; onTriggered: binder.addItem("place") }
+                T.Action { text: "New item"; onTriggered: binder.addItem("item") }
+                T.Action { text: "New faction"; onTriggered: binder.addItem("faction") }
+                T.Action { text: "New lore"; onTriggered: binder.addItem("lore") }
+                T.Action { text: "New term"; onTriggered: binder.addItem("term") }
             }
 
             Menu {
@@ -333,10 +351,29 @@ Item {
                 }
             }
 
+            CodexPanel {
+                id: codex
+
+                visible: view.codexOpen
+                anchors.top: projectButton.bottom
+                anchors.topMargin: Theme.space.s
+                anchors.bottom: parent.bottom
+                width: parent.width
+                session: view.session
+                onCloseRequested: {
+                    view.codexOpen = false;
+                    binder.forceActiveFocus();
+                }
+                onOpened: id => {
+                    view.session.currentId = id;
+                    editor.focusText();
+                }
+            }
+
             Binder {
                 id: binder
 
-                visible: !view.searchOpen
+                visible: !view.searchOpen && !view.codexOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()
                 anchors.top: projectButton.bottom

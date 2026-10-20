@@ -188,7 +188,7 @@ Pane {
                     width: parent.width
                     Accessible.name: "Synopsis"
                     text: inspector.fields.synopsis ?? ""
-                    placeholderText: "What happens in this scene"
+                    placeholderText: inspector.fields.kind === "scene" ? "What happens in this scene" : "A short summary"
                     font.family: Theme.type.reading
                     font.italic: true
                     font.pixelSize: Theme.type.large - 1
@@ -277,6 +277,8 @@ Pane {
             }
 
             Column {
+                // A word target is for the texts of the book, not for an entity.
+                visible: !["character", "place", "item", "faction", "lore", "term"].includes(inspector.fields.kind)
                 width: parent.width
                 spacing: Theme.space.xs
 
@@ -329,6 +331,25 @@ Pane {
                         top: 10000000
                     }
                     onEditingFinished: inspector.save("target", text === "" ? 0 : parseInt(text))
+                }
+            }
+
+            Column {
+                visible: ["character", "place", "item", "faction", "lore", "term"].includes(inspector.fields.kind)
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Aliases"
+                }
+
+                TextField {
+                    objectName: "aliasesField"
+                    width: parent.width
+                    placeholderText: "Other names, split by commas"
+                    Accessible.name: "Aliases"
+                    text: (inspector.fields.aliases ?? []).join(", ")
+                    onEditingFinished: inspector.save("aliases", text.split(",").map(t => t.trim()).filter(t => t !== ""))
                 }
             }
 
