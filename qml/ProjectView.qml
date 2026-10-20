@@ -590,6 +590,7 @@ Item {
                 z: 3
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
             }
 
             Corkboard {

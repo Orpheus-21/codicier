@@ -812,4 +812,30 @@ TestCase {
         tryCompare(image, "status", Image.Ready);
         compare(image.sourceSize.width, 8);
     }
+
+    function test_mapPinsOpenAndMove() {
+        const view = makeView();
+        const port = view.session.add("place");
+        view.session.rename(port, "Port");
+        const map = view.session.addMap("file://" + Qt.resolvedUrl("../fixtures/map.png").toString().replace("file://", ""));
+        verify(view.session.addPin(map, port, 0.5, 0.5));
+        view.session.currentId = map;
+        const mapView = findChild(view, "mapView") as MapView;
+        tryCompare(findChild(mapView, "mapImage") as Image, "status", Image.Ready);
+        waitForRendering(view);
+        compare(faults(mapView), []);
+        const pin = findChild(mapView, "mapPin") as Item;
+        verify(pin);
+        // A drag to the right moves the pin.
+        const from = pin.mapToItem(view, pin.width / 2, 12);
+        mousePress(view, from.x, from.y);
+        for (let i = 1; i <= 10; ++i)
+            mouseMove(view, from.x + 4 * i, from.y);
+        mouseRelease(view, from.x + 40, from.y);
+        verify(view.session.pins(map)[0].x > 0.5);
+        // A click opens the place.
+        const moved = findChild(mapView, "mapPin") as Item;
+        mouseClick(moved, moved.width / 2, 12);
+        compare(view.session.currentId, port);
+    }
 }

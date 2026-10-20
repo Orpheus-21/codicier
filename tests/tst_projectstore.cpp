@@ -248,6 +248,10 @@ private slots:
         QTest::newRow("relation with no name")
             << projectText() << goodBinder() + "\n[[relation]]\nfrom = \"a\"\nto = \"b\"\n"
             << "`name` is missing";
+        QTest::newRow("pin out of the map")
+            << projectText()
+            << goodBinder() + "\n[[pin]]\nmap = \"a\"\nplace = \"b\"\nx = 2.0\ny = 0.5\n"
+            << "`x` must be a number from 0 to 1";
         QTest::newRow("aliases not strings") << projectText()
                                              << goodBinder()
                 + "\n[[item]]\nid = \"c0c1c2c3c4\"\nkind = \"character\"\nsection = \"codex\"\n"

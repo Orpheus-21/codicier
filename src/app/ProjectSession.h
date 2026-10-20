@@ -126,6 +126,13 @@ public:
     Q_INVOKABLE QString addMap(const QUrl &image);
     // The URL of the file of an item, such as the image of a map.
     Q_INVOKABLE QUrl fileUrl(const QString &id) const;
+    // The pins of a map: the index in binder.toml, the place, its title, and
+    // x and y as parts of the width and height of the image, 0 to 1.
+    Q_INVOKABLE QVariantList pins(const QString &mapId) const;
+    // Pins an entity of the codex, such as a place, to a map.
+    Q_INVOKABLE bool addPin(const QString &mapId, const QString &placeId, double x, double y);
+    Q_INVOKABLE bool movePin(int index, double x, double y);
+    Q_INVOKABLE bool removePin(int index);
     // Links two entities with a name, such as "sister of". With parent,
     // from is a parent of to, and the name is "parent of". Returns false on
     // an error.

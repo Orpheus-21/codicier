@@ -404,6 +404,74 @@ QString ProjectSession::addMap(const QUrl &image)
     return item.id;
 }
 
+QVariantList ProjectSession::pins(const QString &mapId) const
+{
+    QVariantList list;
+    const toml::array *pins = project.binderData.get_as<toml::array>("pin");
+    if (pins == nullptr)
+        return list;
+    for (std::size_t i = 0; i < pins->size(); ++i) {
+        const toml::table *pin = (*pins)[i].as_table();
+        if (pin == nullptr
+            || QString::fromStdString((*pin)["map"].value_or(std::string())) != mapId)
+            continue;
+        const QString place = QString::fromStdString((*pin)["place"].value_or(std::string()));
+        const int index = indexOf(place);
+        // A pin of a place in the trash does not show.
+        if (index < 0 || binderModel.isInTrash(place))
+            continue;
+        list.append(QVariantMap { { QStringLiteral("index"), static_cast<int>(i) },
+                                  { QStringLiteral("place"), place },
+                                  { QStringLiteral("title"), project.items.at(index).title },
+                                  { QStringLiteral("x"), (*pin)["x"].value_or(0.0) },
+                                  { QStringLiteral("y"), (*pin)["y"].value_or(0.0) } });
+    }
+    return list;
+}
+
+bool ProjectSession::addPin(const QString &mapId, const QString &placeId, double x, double y)
+{
+    const int map = indexOf(mapId);
+    const int place = indexOf(placeId);
+    if (project.readOnly || map < 0 || place < 0
+        || project.items.at(map).kind != QLatin1String("map")
+        || !isEntity(project.items.at(place).kind) || x < 0 || x > 1 || y < 0 || y > 1)
+        return false;
+    if (project.binderData.get_as<toml::array>("pin") == nullptr)
+        project.binderData.insert_or_assign("pin", toml::array { });
+    project.binderData.get_as<toml::array>("pin")->push_back(
+        toml::table { { "map", mapId.toStdString() },
+                      { "place", placeId.toStdString() },
+                      { "x", x },
+                      { "y", y } });
+    return commit({ });
+}
+
+bool ProjectSession::movePin(int index, double x, double y)
+{
+    toml::array *pins = project.binderData.get_as<toml::array>("pin");
+    if (project.readOnly || pins == nullptr || index < 0 || index >= static_cast<int>(pins->size())
+        || x < 0 || x > 1 || y < 0 || y > 1)
+        return false;
+    toml::table *pin = (*pins)[static_cast<std::size_t>(index)].as_table();
+    if (pin == nullptr)
+        return false;
+    pin->insert_or_assign("x", x);
+    pin->insert_or_assign("y", y);
+    return commit({ });
+}
+
+bool ProjectSession::removePin(int index)
+{
+    toml::array *pins = project.binderData.get_as<toml::array>("pin");
+    if (project.readOnly || pins == nullptr || index < 0 || index >= static_cast<int>(pins->size()))
+        return false;
+    pins->erase(pins->begin() + index);
+    if (pins->empty())
+        project.binderData.erase("pin");
+    return commit({ });
+}
+
 QUrl ProjectSession::fileUrl(const QString &id) const
 {
     const int index = indexOf(id);

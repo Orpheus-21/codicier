@@ -1315,6 +1315,37 @@ private slots:
         QVERIFY(session->search("harbour").size() >= 1);
     }
 
+    void pinsPlacePlacesOnAMap()
+    {
+        QTemporaryDir source;
+        QImage image(20, 10, QImage::Format_RGB32);
+        image.fill(Qt::white);
+        QVERIFY(image.save(source.filePath("map.png")));
+        const QString map = session->addMap(QUrl::fromLocalFile(source.filePath("map.png")));
+        const QString port = session->add("place");
+        QVERIFY(session->rename(port, "Port"));
+        QVERIFY(!session->addPin(map, port, 1.5, 0.5));
+        QVERIFY(!session->addPin(port, port, 0.5, 0.5));
+        QVERIFY(!session->addPin(map, "t6v4h9r2mz", 0.5, 0.5));
+        QVERIFY(session->addPin(map, port, 0.25, 0.75));
+        QVariantList pins = session->pins(map);
+        QCOMPARE(pins.size(), 1);
+        QCOMPARE(pins.first().toMap().value("title").toString(), QStringLiteral("Port"));
+        QCOMPARE(pins.first().toMap().value("x").toDouble(), 0.25);
+        QVERIFY(session->movePin(0, 0.5, 0.5));
+        QVERIFY(!session->movePin(0, -1, 0.5));
+        QCOMPARE(session->pins(map).first().toMap().value("y").toDouble(), 0.5);
+
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY(result.ok());
+        QCOMPARE(ProjectStore::binderFile(result.project), readFile("binder.toml"));
+
+        QVERIFY(session->moveToTrash(port));
+        QVERIFY(session->pins(map).isEmpty());
+        QVERIFY(session->removePin(0));
+        QVERIFY(!session->removePin(0));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

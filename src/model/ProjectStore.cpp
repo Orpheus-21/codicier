@@ -343,6 +343,26 @@ private:
         checkFormat(*table, file);
         result.project.binderData = *table;
         result.project.binderData.erase("item");
+        // The pins of the maps: [[pin]] with map, place, and x and y from 0 to 1.
+        if (checkType(*table, "pin", toml::node_type::array, file)) {
+            if (const toml::array *pins = table->get_as<toml::array>("pin")) {
+                for (const toml::node &each : *pins) {
+                    const toml::table *pin = each.as_table();
+                    if (pin == nullptr) {
+                        error(file, lineOf(each), QStringLiteral("`pin` must be a list of tables"));
+                        continue;
+                    }
+                    string(*pin, "map", file, lineOf(each), true);
+                    string(*pin, "place", file, lineOf(each), true);
+                    for (const char *key : { "x", "y" }) {
+                        const auto value = (*pin)[key].value<double>();
+                        if (!value || *value < 0 || *value > 1)
+                            error(file, lineOf(each),
+                                  QStringLiteral("`%1` must be a number from 0 to 1").arg(qs(key)));
+                    }
+                }
+            }
+        }
         // The relations between entities: [[relation]] with from, to, a name,
         // and parent for a parent link.
         if (checkType(*table, "relation", toml::node_type::array, file)) {
