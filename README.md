@@ -28,11 +28,12 @@ The project is in development. Not all features are complete.
 - CMake 3.21 or later.
 - Qt 6.8 or later, with the Qt Base and Qt Declarative modules.
 - toml++ 3 or later.
+- Hunspell and pkg-config. For the spell check, also a Hunspell dictionary, such as `hunspell-en_us` or `hunspell-en_gb`.
 
 On Arch Linux, install the requirements with this command:
 
 ```
-sudo pacman -S --needed gcc make cmake qt6-base qt6-declarative tomlplusplus
+sudo pacman -S --needed gcc make cmake pkgconf qt6-base qt6-declarative tomlplusplus hunspell hunspell-en_us
 ```
 
 The fonts Literata and Inter are in the repo. The app has them inside the program file.
@@ -139,6 +140,12 @@ The inspector of an entity shows these parts:
 To add fields to a type, or to make a new type such as "Ships", choose "Types and fields" in the + menu of the codex panel. The app saves the types and their fields in `project.toml`.
 
 To link to an entity, type `[[` on the page. A list of entities opens under the cursor and filters as you type. Press Enter or Tab to insert the link, such as `[[Mara Vell]]`. Press Escape to close the list. Ctrl+click a link to open the entity. A link also finds an entity by an alias.
+
+### Spelling and style
+
+The page underlines each word that the dictionary does not know. The app uses the Hunspell dictionary for the `language` of the project, and works offline. Right-click an underlined word to see suggestions, or to add the word to the project dictionary, `dictionary.txt` in the project folder. The names and aliases of the codex count as known words.
+
+The settings can also mark repeated words, filter words such as "just" and "seemed", adverbs that end in -ly, and passive voice. Each mark is a soft tint. These marks are off by default.
 
 ### Search and replace
 
