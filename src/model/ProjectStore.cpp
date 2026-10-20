@@ -343,6 +343,24 @@ private:
         checkFormat(*table, file);
         result.project.binderData = *table;
         result.project.binderData.erase("item");
+        // The comments on texts: [[comment]] with item, quote, start, text,
+        // and resolved.
+        if (checkType(*table, "comment", toml::node_type::array, file)) {
+            if (const toml::array *comments = table->get_as<toml::array>("comment")) {
+                for (const toml::node &each : *comments) {
+                    const toml::table *comment = each.as_table();
+                    if (comment == nullptr) {
+                        error(file, lineOf(each),
+                              QStringLiteral("`comment` must be a list of tables"));
+                        continue;
+                    }
+                    for (const char *key : { "item", "quote", "text" })
+                        string(*comment, key, file, lineOf(each), true);
+                    checkType(*comment, "start", toml::node_type::integer, file);
+                    checkType(*comment, "resolved", toml::node_type::boolean, file);
+                }
+            }
+        }
         // The pins of the maps: [[pin]] with map, place, and x and y from 0 to 1.
         if (checkType(*table, "pin", toml::node_type::array, file)) {
             if (const toml::array *pins = table->get_as<toml::array>("pin")) {

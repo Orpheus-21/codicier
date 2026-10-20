@@ -66,6 +66,18 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
     styleSpans(text, footnote, 0, footnoteFormat);
     styleSpans(text, link, 2, linkFormat);
     tintPasses(text);
+    // The comments: a dotted line in the accent color under the quote.
+    const int first = currentBlock().position();
+    for (const auto &[start, length] : std::as_const(commentRanges)) {
+        const int from = std::max(start, first);
+        const int to = std::min(start + length, static_cast<int>(first + text.size()));
+        if (from >= to)
+            continue;
+        QTextCharFormat merged = format(from - first);
+        merged.setUnderlineStyle(QTextCharFormat::DotLine);
+        merged.setUnderlineColor(linkFormat.foreground().color());
+        setFormat(from - first, to - from, merged);
+    }
     checkSpelling(text);
     checkStyle(text);
 }
@@ -76,6 +88,14 @@ void MarkdownHighlighter::setPasses(const QList<PassRange> &ranges, const QList<
         return;
     passRanges = ranges;
     passColors = colors;
+    rehighlight();
+}
+
+void MarkdownHighlighter::setComments(const QList<std::pair<int, int>> &ranges)
+{
+    if (ranges == commentRanges)
+        return;
+    commentRanges = ranges;
     rehighlight();
 }
 

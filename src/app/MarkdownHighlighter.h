@@ -44,6 +44,9 @@ public:
     // Tints each range with the color of its pass. The colors repeat after
     // the last one. No ranges turns the tints off.
     void setPasses(const QList<PassRange> &ranges, const QList<QColor> &colors);
+    // Underlines each commented part of the text, as a start and a length
+    // in the whole text, with a dotted line.
+    void setComments(const QList<std::pair<int, int>> &ranges);
 
 protected:
     void highlightBlock(const QString &text) override;
@@ -70,6 +73,7 @@ private:
     unsigned styleChecks = 0;
     QList<PassRange> passRanges;
     QList<QColor> passColors;
+    QList<std::pair<int, int>> commentRanges;
     // Tints the parts of this block that a pass wrote.
     void tintPasses(const QString &text);
     bool has(StyleCheck check) const { return (styleChecks & static_cast<unsigned>(check)) != 0U; }

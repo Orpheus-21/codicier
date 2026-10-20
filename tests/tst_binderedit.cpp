@@ -1454,6 +1454,42 @@ private slots:
         QVERIFY(session->showPasses());
     }
 
+    void commentsFollowTheirQuote()
+    {
+        QVERIFY(!session->addComment("t6v4h9r2mz", 0, "", "Empty quote"));
+        QVERIFY(!session->addComment("t6v4h9r2mz", 4, "letter", " "));
+        QVERIFY(session->addComment("t6v4h9r2mz", 4, "letter", " Which letter? "));
+        QVariantList comments = session->comments();
+        QCOMPARE(comments.size(), 1);
+        QVariantMap comment = comments.first().toMap();
+        QCOMPARE(comment.value("text").toString(), QStringLiteral("Which letter?"));
+        QCOMPARE(comment.value("start").toInt(), 4);
+        QCOMPARE(comment.value("title").toString(), QStringLiteral("A Date She Did Not Know"));
+
+        // New words before the quote move it, and the comment follows.
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor(&editor).insertText("Rain. ");
+        QCOMPARE(session->comments("t6v4h9r2mz").first().toMap().value("start").toInt(), 10);
+
+        // Both files load again and come back byte for byte.
+        QVERIFY(session->resolveComment(0, true));
+        QVERIFY(session->comments().first().toMap().value("resolved").toBool());
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY(result.ok());
+        QCOMPARE(ProjectStore::binderFile(result.project), readFile("binder.toml"));
+        QVERIFY(session->resolveComment(0, false));
+        QVERIFY(!readFile("binder.toml").contains("resolved"));
+
+        // A quote that is gone gives -1.
+        editor.setPlainText("Nothing of it.");
+        QCOMPARE(session->comments().first().toMap().value("start").toInt(), -1);
+        QVERIFY(session->removeComment(0));
+        QVERIFY(session->comments().isEmpty());
+        QVERIFY(!session->removeComment(0));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

@@ -299,6 +299,16 @@ public:
     // The parts of the text of an item that each pass wrote: the start, the
     // length, and the pass number of each.
     Q_INVOKABLE QVariantList passRanges(const QString &id) const;
+    // The comments, of one item or of all items for an empty id, in order:
+    // the index in binder.toml, the item, its title, the quote, the text,
+    // resolved, and the start of the quote in the text now, or -1 when the
+    // quote is gone. A comment of an item in the trash does not show.
+    Q_INVOKABLE QVariantList comments(const QString &id = QString()) const;
+    // Adds a comment on the quote at start in the text of an item.
+    Q_INVOKABLE bool addComment(const QString &id, int start, const QString &quote,
+                                const QString &text);
+    Q_INVOKABLE bool resolveComment(int index, bool resolved);
+    Q_INVOKABLE bool removeComment(int index);
     // Saves a version of the project with a message, or with the date and
     // time for an empty message. Returns an error text, or "".
     Q_INVOKABLE QString saveVersion(const QString &message);
@@ -369,6 +379,10 @@ private:
     bool passTints = false;
     // Gives the pass ranges of the open text to its document.
     void applyPasses();
+    // Gives the places of the open comments of the open text to its document.
+    void applyComments();
+    // The text of an item now, with the typing that is not saved yet.
+    QString textOf(int index) const;
     int checksOfStyle = 0;
     void setStyleChecks(int checks);
     // Gives the checker, or none, to the open text and the tracked texts.

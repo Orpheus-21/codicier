@@ -881,4 +881,37 @@ TestCase {
         verify(view.session.showPasses);
         compare(field.text, "");
     }
+
+    function test_commentOnSelectionAndInbox() {
+        const view = makeView();
+        const scene = view.session.plotGrid()[0].id;
+        view.session.currentId = scene;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "The tide came in fast.";
+        text.forceActiveFocus();
+        text.select(4, 8);
+        keyClick(Qt.Key_K, Qt.ControlModifier | Qt.AltModifier);
+        const overlay = view.T.Overlay.overlay;
+        const field = findChild(overlay, "commentText") as TextArea;
+        tryVerify(() => field && field.activeFocus);
+        compare(faults(field.parent), []);
+        for (const c of "Which tide")
+            keyClick(c);
+        mouseClick(findChild(overlay, "saveComment") as Item);
+        compare(view.session.comments(scene)[0].quote, "tide");
+
+        view.forceActiveFocus();
+        keyClick(Qt.Key_O, Qt.ControlModifier | Qt.AltModifier);
+        verify(view.inboxOpen);
+        const list = findChild(view, "commentList") as ListView;
+        tryCompare(list, "count", 1);
+        waitForRendering(view);
+        compare(faults(findChild(view, "inboxPanel") as Item), []);
+        view.session.currentId = "";
+        mouseClick(list.itemAtIndex(0), 10, 10);
+        compare(view.session.currentId, scene);
+        compare(text.selectedText, "tide");
+        (findChild(list.itemAtIndex(0), "resolveComment") as Button).clicked();
+        tryCompare(list, "count", 0);
+    }
 }

@@ -83,6 +83,7 @@ void Document::attach(QTextDocument *value)
     highlighter->setSpellChecker(spell);
     highlighter->setStyleChecks(styleChecks);
     setPasses(passes);
+    highlighter->setComments(comments);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
     showText();
 }
@@ -103,6 +104,13 @@ void Document::setPasses(const QList<MarkdownHighlighter::PassRange> &ranges)
     for (const QVariant &color : std::as_const(colorsOfPasses))
         colors.append(color.value<QColor>());
     highlighter->setPasses(ranges, colors);
+}
+
+void Document::setComments(const QList<std::pair<int, int>> &ranges)
+{
+    comments = ranges;
+    if (highlighter != nullptr)
+        highlighter->setComments(ranges);
 }
 
 void Document::setPassColors(const QVariantList &colors)

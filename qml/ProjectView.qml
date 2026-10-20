@@ -167,11 +167,30 @@ Item {
     // binder list.
     property bool codexOpen: false
     property bool versionsOpen: false
+    property bool inboxOpen: false
+
+    function openInbox() {
+        setFocusMode(false);
+        searchOpen = false;
+        codexOpen = false;
+        versionsOpen = false;
+        inboxOpen = true;
+        inbox.start();
+    }
+
+    // Asks for a comment on the selected words of the page.
+    function commentOnSelection() {
+        if (session.currentId === "" || editor.selectedText === "")
+            return;
+        // The page splits paragraphs with U+2029, and the file with a newline.
+        commentDialog.ask(session.currentId, editor.selectionStart, editor.selectedText.replace(/\u2029/g, "\n"));
+    }
 
     function openVersions() {
         setFocusMode(false);
         searchOpen = false;
         codexOpen = false;
+        inboxOpen = false;
         versionsOpen = true;
         versionsPanel.start();
     }
@@ -180,6 +199,7 @@ Item {
         setFocusMode(false);
         searchOpen = false;
         versionsOpen = false;
+        inboxOpen = false;
         codexOpen = true;
         codex.start();
     }
@@ -189,6 +209,7 @@ Item {
         setFocusMode(false);
         codexOpen = false;
         versionsOpen = false;
+        inboxOpen = false;
         searchOpen = true;
         search.replacing = replace;
         search.start();
@@ -273,6 +294,8 @@ Item {
         { id: "beats", name: "Show or hide the beat board", sequence: "Ctrl+Alt+B", run: () => view.toggleViewMode("beats") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
+        { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
+        { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
         { id: "passes", name: "Draft passes", sequence: "Ctrl+Alt+D", run: () => passDialog.open() },
         { id: "versions.list", name: "Show the versions", sequence: "Ctrl+Alt+H", run: () => view.openVersions() },
         { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
@@ -316,6 +339,14 @@ Item {
         title: "Choose the image of a map"
         nameFilters: ["Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)"]
         onAccepted: view.session.addMap(selectedFile)
+    }
+
+    CommentDialog {
+        id: commentDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
     }
 
     PassDialog {
@@ -536,6 +567,26 @@ Item {
                 }
             }
 
+            InboxPanel {
+                id: inbox
+
+                objectName: "inboxPanel"
+                visible: view.inboxOpen
+                anchors.top: projectButton.bottom
+                anchors.topMargin: Theme.space.s
+                anchors.bottom: parent.bottom
+                width: parent.width
+                session: view.session
+                onCloseRequested: {
+                    view.inboxOpen = false;
+                    binder.forceActiveFocus();
+                }
+                onOpened: (id, start, length) => {
+                    view.openText(id);
+                    editor.selectRange(start, length);
+                }
+            }
+
             VersionsPanel {
                 id: versionsPanel
 
@@ -556,7 +607,7 @@ Item {
             Binder {
                 id: binder
 
-                visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen
+                visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen && !view.inboxOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()
                 anchors.top: projectButton.bottom

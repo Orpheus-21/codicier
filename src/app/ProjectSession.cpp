@@ -38,13 +38,15 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
     connect(&text, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);
-        // The tints follow the text after each save.
+        // The tints and the comments follow the text after each save.
         if (passTints)
             applyPasses();
+        applyComments();
     });
     connect(this, &ProjectSession::currentIdChanged, this, [this] {
         if (passTints)
             applyPasses();
+        applyComments();
     });
     connect(this, &ProjectSession::snapshotsChanged, this, [this] { changedSinceBackup = true; });
     // The live count of the open text goes into the binder, so the counts of
@@ -1647,6 +1649,123 @@ QVariantList ProjectSession::passRanges(const QString &id) const
         i = end;
     }
     return list;
+}
+
+QString ProjectSession::textOf(int index) const
+{
+    const ProjectItem &item = project.items.at(index);
+    if (item.id == current && !text.file().isEmpty())
+        return text.text();
+    bool ok = false;
+    return readTextFile(QDir(project.folder).filePath(item.file), &ok);
+}
+
+QVariantList ProjectSession::comments(const QString &id) const
+{
+    QVariantList list;
+    const toml::array *comments = project.binderData.get_as<toml::array>("comment");
+    if (comments == nullptr)
+        return list;
+    QHash<QString, QString> texts;
+    for (std::size_t i = 0; i < comments->size(); ++i) {
+        const toml::table *comment = (*comments)[i].as_table();
+        if (comment == nullptr)
+            continue;
+        const QString item = QString::fromStdString((*comment)["item"].value_or(std::string()));
+        const int index = indexOf(item);
+        if (index < 0 || binderModel.isInTrash(item) || (!id.isEmpty() && item != id))
+            continue;
+        if (!texts.contains(item))
+            texts.insert(item, textOf(index));
+        // The quote nearest to its old place: the text around it can change.
+        const QString quote = QString::fromStdString((*comment)["quote"].value_or(std::string()));
+        const auto hint = static_cast<qsizetype>((*comment)["start"].value_or(std::int64_t { 0 }));
+        qsizetype best = -1;
+        const QString &body = texts[item];
+        for (qsizetype at = body.indexOf(quote); at >= 0 && !quote.isEmpty();
+             at = body.indexOf(quote, at + 1)) {
+            if (best < 0 || std::abs(at - hint) < std::abs(best - hint))
+                best = at;
+        }
+        list.append(
+            QVariantMap { { QStringLiteral("index"), static_cast<int>(i) },
+                          { QStringLiteral("item"), item },
+                          { QStringLiteral("title"), project.items.at(index).title },
+                          { QStringLiteral("quote"), quote },
+                          { QStringLiteral("text"),
+                            QString::fromStdString((*comment)["text"].value_or(std::string())) },
+                          { QStringLiteral("resolved"), (*comment)["resolved"].value_or(false) },
+                          { QStringLiteral("start"), static_cast<int>(best) } });
+    }
+    return list;
+}
+
+bool ProjectSession::addComment(const QString &id, int start, const QString &quote,
+                                const QString &text)
+{
+    const int index = indexOf(id);
+    if (project.readOnly || index < 0 || quote.trimmed().isEmpty() || text.trimmed().isEmpty()
+        || start < 0)
+        return false;
+    if (project.binderData.get_as<toml::array>("comment") == nullptr)
+        project.binderData.insert_or_assign("comment", toml::array { });
+    project.binderData.get_as<toml::array>("comment")->push_back(
+        toml::table { { "item", id.toStdString() },
+                      { "quote", quote.toStdString() },
+                      { "start", start },
+                      { "text", text.trimmed().toStdString() } });
+    const bool ok = commit({ });
+    applyComments();
+    return ok;
+}
+
+bool ProjectSession::resolveComment(int index, bool resolved)
+{
+    toml::array *comments = project.binderData.get_as<toml::array>("comment");
+    if (project.readOnly || comments == nullptr || index < 0
+        || index >= static_cast<int>(comments->size()))
+        return false;
+    toml::table *comment = (*comments)[static_cast<std::size_t>(index)].as_table();
+    if (comment == nullptr)
+        return false;
+    // The key is written only when true.
+    if (resolved)
+        comment->insert_or_assign("resolved", true);
+    else
+        comment->erase("resolved");
+    const bool ok = commit({ });
+    applyComments();
+    return ok;
+}
+
+bool ProjectSession::removeComment(int index)
+{
+    toml::array *comments = project.binderData.get_as<toml::array>("comment");
+    if (project.readOnly || comments == nullptr || index < 0
+        || index >= static_cast<int>(comments->size()))
+        return false;
+    comments->erase(comments->begin() + index);
+    if (comments->empty())
+        project.binderData.erase("comment");
+    const bool ok = commit({ });
+    applyComments();
+    return ok;
+}
+
+void ProjectSession::applyComments()
+{
+    QList<std::pair<int, int>> ranges;
+    if (!current.isEmpty()) {
+        for (const QVariant &each : comments(current)) {
+            const QVariantMap comment = each.toMap();
+            const int start = comment.value(QStringLiteral("start")).toInt();
+            if (start >= 0 && !comment.value(QStringLiteral("resolved")).toBool())
+                ranges.append(
+                    { start,
+                      static_cast<int>(comment.value(QStringLiteral("quote")).toString().size()) });
+        }
+    }
+    text.setComments(ranges);
 }
 
 void ProjectSession::applyPasses()

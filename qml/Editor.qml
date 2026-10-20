@@ -114,6 +114,9 @@ Item {
     }
     // The place of the cursor in the text, for a split.
     readonly property int cursorPosition: textEdit.cursorPosition
+    // The selection on the page, for a comment.
+    readonly property int selectionStart: textEdit.selectionStart
+    readonly property string selectedText: textEdit.selectedText
     // Typewriter scroll: the line with the cursor stays at one height.
     property bool typewriter: false
     // That height, as a part of the page height.
