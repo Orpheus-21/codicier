@@ -134,6 +134,11 @@ target_compile_options(tst_versions PRIVATE -Wall -Wextra)
 target_link_libraries(tst_versions PRIVATE codicier_core Qt6::Test)
 add_test(NAME tst_versions COMMAND tst_versions)
 
+qt_add_executable(tst_calendar tst_calendar.cpp)
+target_compile_options(tst_calendar PRIVATE -Wall -Wextra)
+target_link_libraries(tst_calendar PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_calendar COMMAND tst_calendar)
+
 qt_add_executable(tst_history tst_history.cpp)
 target_compile_options(tst_history PRIVATE -Wall -Wextra)
 target_link_libraries(tst_history PRIVATE codicier_core Qt6::Test)

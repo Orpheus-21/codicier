@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <memory>
 
+class Calendar;
 class History;
 class SpellChecker;
 class Index;
@@ -305,6 +306,8 @@ private:
     void setStyleChecks(int checks);
     // Gives the checker, or none, to the open text and the tracked texts.
     void applySpelling();
+    // The calendar of story time of the project.
+    Calendar calendar() const;
     // Teaches the checker the words of dictionary.txt and of the names of
     // the codex.
     void teachSpelling();

@@ -372,6 +372,43 @@ Pane {
             }
 
             Column {
+                objectName: "dateSection"
+                visible: inspector.fields.kind === "scene" || inspector.entityType !== undefined
+                width: parent.width
+                spacing: Theme.space.xs
+
+                property bool bad: false
+
+                Caps {
+                    text: "Date in the story"
+                }
+
+                TextField {
+                    objectName: "dateField"
+                    width: parent.width
+                    Accessible.name: "Date in the story"
+                    placeholderText: "Year-month-day, such as 1847-03-04"
+                    text: inspector.fields.date ?? ""
+                    onEditingFinished: {
+                        if (text === (inspector.fields.date ?? ""))
+                            return;
+                        parent.bad = !inspector.session.setField(inspector.session.currentId, "date", text);
+                    }
+                }
+
+                Text {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: parent.bad ? "This date does not exist in the calendar of the story."
+                                     : (inspector.fields.dateLabel ?? "")
+                    visible: text !== ""
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.small
+                    color: parent.bad ? Theme.color.accent : Theme.color.inkMuted
+                }
+            }
+
+            Column {
                 objectName: "plotlineSection"
                 visible: inspector.fields.kind === "scene"
                 width: parent.width

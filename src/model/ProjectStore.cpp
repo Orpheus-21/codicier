@@ -368,7 +368,7 @@ private:
         const auto parent = string(entry, "parent", file, line, false);
 
         for (const std::string_view key :
-             { "pov", "place", "time", "synopsis", "notes", "restore", "query", "beat" })
+             { "pov", "place", "time", "synopsis", "notes", "restore", "query", "beat", "date" })
             checkType(entry, key, toml::node_type::string, file);
         checkType(entry, "target", toml::node_type::integer, file);
         checkType(entry, "include", toml::node_type::boolean, file);
@@ -501,10 +501,10 @@ constexpr std::array<std::string_view, 8> projectOrder { "format",  "title",    
                                                          "created", "framework" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 21> itemOrder {
-    "id",        "kind", "section", "parent", "title", "file",     "status",
-    "include",   "pov",  "place",   "time",   "beat",  "synopsis", "aliases",
-    "plotlines", "tags", "target",  "query",  "regex", "restore",  "notes"
+constexpr std::array<std::string_view, 22> itemOrder {
+    "id",   "kind",   "section", "parent", "title",   "file",     "status",  "include",
+    "pov",  "place",  "time",    "date",   "beat",    "synopsis", "aliases", "plotlines",
+    "tags", "target", "query",   "regex",  "restore", "notes"
 };
 
 TomlWriter::Order orderFor(std::string_view path)

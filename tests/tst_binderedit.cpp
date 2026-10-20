@@ -1148,6 +1148,21 @@ private slots:
         QCOMPARE(scenes.at(1).toMap().value("plotlines").toStringList(), QStringList { line });
     }
 
+    void storyDatesAreChecked()
+    {
+        QVERIFY(session->setField("t6v4h9r2mz", "date", " 1847-03-04 "));
+        QCOMPARE(session->fields("t6v4h9r2mz").value("date").toString(),
+                 QStringLiteral("1847-03-04"));
+        QCOMPARE(session->fields("t6v4h9r2mz").value("dateLabel").toString(),
+                 QStringLiteral("4 March 1847"));
+        QVERIFY(!session->setField("t6v4h9r2mz", "date", "1847-02-30"));
+        QCOMPARE(session->fields("t6v4h9r2mz").value("date").toString(),
+                 QStringLiteral("1847-03-04"));
+        QVERIFY(readFile("binder.toml").contains("date = \"1847-03-04\""));
+        QVERIFY(session->setField("t6v4h9r2mz", "date", ""));
+        QVERIFY(!readFile("binder.toml").contains("date = "));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

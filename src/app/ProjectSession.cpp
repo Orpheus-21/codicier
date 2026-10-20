@@ -1,6 +1,7 @@
 #include "ProjectSession.h"
 
 #include "Backup.h"
+#include "Calendar.h"
 #include "Diff.h"
 #include "Frameworks.h"
 #include "History.h"
@@ -405,6 +406,11 @@ QString ProjectSession::addPlotline(const QString &name)
     project.data.get_as<toml::array>("plotline")
         ->push_back(toml::table { { "id", id.toStdString() }, { "name", clean.toStdString() } });
     return commit({ }) ? id : QString();
+}
+
+Calendar ProjectSession::calendar() const
+{
+    return { };
 }
 
 QString ProjectSession::framework() const
@@ -1357,8 +1363,9 @@ QVariantMap ProjectSession::fields(const QString &id) const
     map.insert(QStringLiteral("status"),
                status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
                                                                        : status);
-    for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat" })
+    for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat", "date" })
         map.insert(QString::fromLatin1(key), string(key));
+    map.insert(QStringLiteral("dateLabel"), calendar().label(string("date")));
     QStringList tags;
     if (const toml::array *list = item.data.get_as<toml::array>("tags")) {
         for (const toml::node &tag : *list)
@@ -1437,6 +1444,15 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
             && status != QLatin1String("final"))
             return false;
         data.insert_or_assign(name, status.toStdString());
+    } else if (key == QLatin1String("date")) {
+        // A date of story time, valid in the calendar of the project.
+        const QString date = value.toString().trimmed();
+        if (date.isEmpty())
+            data.erase(name);
+        else if (calendar().dayOf(date))
+            data.insert_or_assign(name, date.toStdString());
+        else
+            return false;
     } else if (key == QLatin1String("beat") || key == QLatin1String("pov")
                || key == QLatin1String("place") || key == QLatin1String("time")
                || key == QLatin1String("synopsis") || key == QLatin1String("notes")) {
