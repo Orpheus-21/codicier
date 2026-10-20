@@ -1050,6 +1050,35 @@ private slots:
         QVERIFY(session->compare("t6v4h9r2mz", "version:0000000").isEmpty());
     }
 
+    void restoreATextAndTheProject()
+    {
+        QCOMPARE(session->turnOnVersions(), QString());
+        const QString first = session->versions().first().toMap().value("hash").toString();
+        const QByteArray before = readFile("manuscript/a-date-she-did-not-know.md");
+
+        // A text: the old words come back, and the state before is a version.
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText("All new words.");
+        QCOMPARE(session->restoreVersion("t6v4h9r2mz", first), QString());
+        QCOMPARE(readFile("manuscript/a-date-she-did-not-know.md"), before);
+        QVERIFY(editor.toPlainText().startsWith("The letter said"));
+        QCOMPARE(session->versions().first().toMap().value("message").toString(),
+                 QStringLiteral("Before the restore of A Date She Did Not Know"));
+        QVERIFY(!session->restoreVersion("t6v4h9r2mz", "0000000").isEmpty());
+
+        // The project: a scene added after the version goes away.
+        const QString added = session->add("scene");
+        QVERIFY(!added.isEmpty());
+        QCOMPARE(session->restoreProject(first), QString());
+        QVERIFY(onDisk(dir.path(), added).id.isEmpty());
+        QCOMPARE(session->versions().first().toMap().value("message").toString(),
+                 QStringLiteral("Restored a version"));
+        QCOMPARE(session->versions().at(1).toMap().value("message").toString(),
+                 QStringLiteral("Before the restore of the project"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

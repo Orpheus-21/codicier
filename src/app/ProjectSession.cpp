@@ -932,6 +932,59 @@ QVariantList ProjectSession::versions(const QString &id) const
     return list;
 }
 
+QString ProjectSession::restoreVersion(const QString &id, const QString &hash)
+{
+    const int index = indexOf(id);
+    if (!versionsOn() || project.readOnly || index < 0 || project.items.at(index).file.isEmpty())
+        return QStringLiteral("This text has no versions.");
+    const QString file = project.items.at(index).file;
+    bool ok = false;
+    const QString old = Versions(project.folder).fileAt(hash, file, &ok);
+    if (!ok)
+        return QStringLiteral("The version does not hold this text.");
+    if (const QString error = saveVersion(
+            QStringLiteral("Before the restore of %1").arg(project.items.at(index).title));
+        !error.isEmpty())
+        return error;
+    QSaveFile out(QDir(project.folder).filePath(file));
+    const QByteArray bytes = old.toUtf8() + (old.endsWith(u'\n') ? "" : "\n");
+    if (!out.open(QIODevice::WriteOnly) || out.write(bytes) != bytes.size() || !out.commit())
+        return QStringLiteral("Cannot write %1.").arg(file);
+    noteSaved(file);
+    if (text.file() == file)
+        text.open(project.folder, file);
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document && document->file() == file)
+            document->reloadIfClean();
+    }
+    emit versionsChanged();
+    return { };
+}
+
+QString ProjectSession::restoreProject(const QString &hash)
+{
+    if (!versionsOn() || project.readOnly)
+        return QStringLiteral("This project has no versions.");
+    if (const QString error = saveVersion(QStringLiteral("Before the restore of the project"));
+        !error.isEmpty())
+        return error;
+    Versions versions(project.folder);
+    if (const QString error = versions.restoreAll(hash); !error.isEmpty())
+        return error;
+    // The binder and the texts changed on disk: load them again.
+    reload();
+    text.open(project.folder, text.file());
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document)
+            document->reloadIfClean();
+    }
+    const QString error
+        = versions.save(QStringLiteral("Restored a version"),
+                        QString::fromStdString(project.data["author"].value_or(std::string())));
+    emit versionsChanged();
+    return error;
+}
+
 int ProjectSession::streak() const
 {
     return history ? history->streak(QDate::currentDate()) : 0;

@@ -12,6 +12,8 @@ Item {
 
     // Escape in the panel.
     signal closeRequested
+    // A restore of the project ended: the message for the status bar.
+    signal restored(message: string)
 
     property var entries: []
 
@@ -106,12 +108,34 @@ Item {
                     color: Theme.color.ink
                 }
 
-                Text {
+                Item {
                     width: parent.width
-                    text: row.modelData.label
-                    font.family: Theme.type.ui
-                    font.pixelSize: Theme.type.small
-                    color: Theme.color.inkMuted
+                    height: restoreButton.height
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: row.modelData.label
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.small
+                        color: Theme.color.inkMuted
+                    }
+
+                    // A restore saves a version of the state before, so it
+                    // can be undone with another restore.
+                    Button {
+                        id: restoreButton
+
+                        objectName: "restoreProject"
+                        anchors.right: parent.right
+                        visible: row.index > 0
+                        text: "Restore"
+                        Accessible.name: "Restore the project to " + row.modelData.label
+                        onClicked: {
+                            const error = panel.session.restoreProject(row.modelData.hash);
+                            panel.restored(error !== "" ? error
+                                           : "The project is back to the version of " + row.modelData.label + ".");
+                        }
+                    }
                 }
             }
 

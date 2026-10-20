@@ -71,6 +71,17 @@ private slots:
         QVERIFY(all.first().time.contains('T'));
         QCOMPARE(versions.log("manuscript/one.md").size(), 1);
         QCOMPARE(versions.log("project.toml").size(), 1);
+
+        // A restore of the whole folder: the old files, and no new file.
+        const QString first = all.last().hash;
+        write(dir.filePath("project.toml"), "title = \"Changed\"\n");
+        QCOMPARE(versions.save("Changed", "A. Writer"), QString());
+        QCOMPARE(versions.restoreAll(first), QString());
+        QFile toml(dir.filePath("project.toml"));
+        QVERIFY(toml.open(QIODevice::ReadOnly));
+        QCOMPARE(toml.readAll(), QByteArray("title = \"A\"\n"));
+        QVERIFY(!QFileInfo::exists(dir.filePath("manuscript/one.md")));
+        QVERIFY(!versions.restoreAll("--hard").isEmpty());
     }
 
     void aRepositoryAboveTheFolderIsUsed()

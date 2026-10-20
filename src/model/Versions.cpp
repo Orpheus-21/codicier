@@ -61,6 +61,22 @@ QString Versions::fileAt(const QString &hash, const QString &path, bool *ok) con
     return found ? out : QString();
 }
 
+QString Versions::restoreAll(const QString &hash)
+{
+    static const QRegularExpression hex(QStringLiteral("^[0-9a-f]{7,40}$"));
+    if (!hex.match(hash).hasMatch())
+        return QStringLiteral("This is not a version.");
+    QString out;
+    // restore with no overlay also removes the files that the version did not have.
+    if (git({ QStringLiteral("restore"), QStringLiteral("--source=%1").arg(hash),
+              QStringLiteral("--staged"), QStringLiteral("--worktree"), QStringLiteral("--"),
+              QStringLiteral(".") },
+            &out)
+        != 0)
+        return QStringLiteral("git could not restore the version: %1").arg(out);
+    return { };
+}
+
 bool Versions::isOn() const
 {
     QString out;

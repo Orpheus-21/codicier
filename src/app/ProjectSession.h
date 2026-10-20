@@ -223,6 +223,13 @@ public:
     // The versions of the project, or of the text of an item, newest first:
     // the hash, the time as ISO 8601, a label of the time, and the message.
     Q_INVOKABLE QVariantList versions(const QString &id = QString()) const;
+    // Puts the text of an item back to a saved version. A version of the
+    // state before goes first, so the restore can be undone. Returns an
+    // error text, or "".
+    Q_INVOKABLE QString restoreVersion(const QString &id, const QString &hash);
+    // Puts the whole project back to a saved version, with a version of the
+    // state before first. Returns an error text, or "".
+    Q_INVOKABLE QString restoreProject(const QString &hash);
     bool spellCheck() const { return checkSpelling; }
     void setSpellCheck(bool on);
     QString dictionary() const;

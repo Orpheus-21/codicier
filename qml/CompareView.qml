@@ -77,11 +77,14 @@ Rectangle {
             spacing: Theme.space.s
 
             Button {
-                // This button restores a snapshot, not a saved version.
-                visible: !compare.snapshotPath.startsWith("version:")
+                objectName: "restoreCompared"
                 text: "Restore this version"
                 onClicked: {
-                    compare.session.restoreSnapshot(compare.itemId, compare.snapshotPath);
+                    // A saved version of git, or a snapshot of the text.
+                    if (compare.snapshotPath.startsWith("version:"))
+                        compare.session.restoreVersion(compare.itemId, compare.snapshotPath.slice(8));
+                    else
+                        compare.session.restoreSnapshot(compare.itemId, compare.snapshotPath);
                     compare.closeRequested();
                 }
             }

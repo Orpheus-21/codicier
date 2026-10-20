@@ -510,6 +510,7 @@ Item {
                     view.versionsOpen = false;
                     binder.forceActiveFocus();
                 }
+                onRestored: message => view.versionsMessage = message
             }
 
             Binder {

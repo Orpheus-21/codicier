@@ -38,6 +38,10 @@ public:
     // The text of a file in a version, or "" with ok false when the version
     // does not hold the file. path is relative to the project folder.
     QString fileAt(const QString &hash, const QString &path, bool *ok = nullptr) const;
+    // Puts the whole project folder back to a version: the files of that
+    // version, and no file that the version did not have. Returns an error
+    // text, or "".
+    QString restoreAll(const QString &hash);
 
 private:
     QString folder;
