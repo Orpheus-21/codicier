@@ -29,6 +29,12 @@ bool fail(QString *error, const QString &reason)
     return false;
 }
 
+QByteArray read(const QString &path)
+{
+    QFile file(path);
+    return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+}
+
 // The created time in the text of a project.toml, or "" if there is none.
 QString createdIn(const QByteArray &projectToml)
 {
@@ -111,9 +117,18 @@ QString write(const QString &projectFolder, const QString &backupFolder, int kee
         return { };
     }
 
-    // Keep the newest zips. The names sort by time.
-    QStringList zips
-        = target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files, QDir::Name);
+    // Keep the newest zips of this project. The names sort by time. A
+    // project with the same folder name in another workspace shares the
+    // folder, so only the zips with the same created time count.
+    const QString created = createdIn(read(project.filePath(QStringLiteral("project.toml"))));
+    QStringList zips;
+    for (const QString &zip :
+         target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files, QDir::Name)) {
+        const QByteArray toml
+            = QZipReader(target.filePath(zip)).fileData(name + QStringLiteral("/project.toml"));
+        if (createdIn(toml) == created)
+            zips.append(zip);
+    }
     while (zips.size() > keep)
         QFile::remove(target.filePath(zips.takeFirst()));
     return target.filePath(zipName);
@@ -122,8 +137,7 @@ QString write(const QString &projectFolder, const QString &backupFolder, int kee
 int removeAll(const QString &projectFolder, const QString &backupFolder, QString *error)
 {
     const QDir project(projectFolder);
-    QFile file(project.filePath(QStringLiteral("project.toml")));
-    const QString created = file.open(QIODevice::ReadOnly) ? createdIn(file.readAll()) : QString();
+    const QString created = createdIn(read(project.filePath(QStringLiteral("project.toml"))));
     if (created.isEmpty()) {
         fail(error, QStringLiteral("The project has no created time, so its backups are unknown."));
         return -1;

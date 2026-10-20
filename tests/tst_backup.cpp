@@ -75,17 +75,19 @@ private slots:
         copyFixture(project);
         const QString backups = root.filePath("backups");
         QDir().mkpath(backups + "/p");
-        for (const char *old : { "p-2026-01-01T10-00-00.zip", "p-2026-02-01T10-00-00.zip",
-                                 "p-2026-03-01T10-00-00.zip", "other.zip" }) {
-            QFile file(backups + "/p/" + old);
-            QVERIFY(file.open(QIODevice::WriteOnly));
-        }
+        // Three real zips of the project, and a file that is not one.
+        QStringList written;
+        for (int i = 0; i < 3; ++i)
+            written.append(QFileInfo(Backup::write(project, backups, 10)).fileName());
+        QFile other(backups + "/p/other.zip");
+        QVERIFY(other.open(QIODevice::WriteOnly));
+        other.close();
         const QString zip = Backup::write(project, backups, 2);
         QVERIFY(!zip.isEmpty());
         const QStringList left = QDir(backups + "/p").entryList(QDir::Files, QDir::Name);
         QCOMPARE(left.size(), 3);
         QVERIFY(left.contains("other.zip"));
-        QVERIFY(left.contains("p-2026-03-01T10-00-00.zip"));
+        QVERIFY(left.contains(written.last()));
         QVERIFY(left.contains(QFileInfo(zip).fileName()));
     }
 
@@ -129,6 +131,11 @@ private slots:
             QVERIFY(!Backup::write(second, backups, 10).isEmpty());
         }
         const QDir target(QDir(backups).filePath("novel"));
+        QCOMPARE(target.entryList(QDir::Files).size(), 4);
+        // The pruning of one project leaves the zips of the other.
+        QVERIFY(!Backup::write(first, backups, 1).isEmpty());
+        QCOMPARE(target.entryList(QDir::Files).size(), 3);
+        QVERIFY(!Backup::write(first, backups, 2).isEmpty());
         QCOMPARE(target.entryList(QDir::Files).size(), 4);
 
         QString error;
