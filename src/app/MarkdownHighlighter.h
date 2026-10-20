@@ -5,8 +5,8 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 
-// Styles Markdown in place: headings, strong and emphasis, and footnote
-// marks. The marks stay in the text, in a pale colour, so the file on disk
+// Styles Markdown in place: headings, strong and emphasis, footnote marks,
+// and links to the codex. The marks stay in the text, in a pale colour, so the file on disk
 // is the text on screen.
 class MarkdownHighlighter : public QSyntaxHighlighter
 {
@@ -29,8 +29,10 @@ private:
     QRegularExpression strong;
     QRegularExpression emphasis;
     QRegularExpression footnote;
+    QRegularExpression link;
     QTextCharFormat markFormat;
     QTextCharFormat strongFormat;
     QTextCharFormat emphasisFormat;
     QTextCharFormat footnoteFormat;
+    QTextCharFormat linkFormat;
 };

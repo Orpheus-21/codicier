@@ -832,6 +832,29 @@ private slots:
         QVERIFY(!readFile("project.toml").contains("kind = \"character\""));
     }
 
+    void linksFindEntitiesByNameAndAlias()
+    {
+        const QString id = session->add("character");
+        QVERIFY(session->rename(id, "Mara Vell"));
+        QVERIFY(session->setField(id, "aliases", QStringList { "the clerk" }));
+        QCOMPARE(session->entityByName(" mara vell "), id);
+        QCOMPARE(session->entityByName("The Clerk"), id);
+        QVERIFY(session->entityByName("Abel").isEmpty());
+        QVERIFY(session->entityByName("").isEmpty());
+        // A scene is not an entity, even with the same title.
+        QVERIFY(session->entityByName("A Date She Did Not Know").isEmpty());
+
+        const QString text = "Then [[the clerk]] left, and [[Nobody]] came.";
+        QCOMPARE(session->entityAt(text, 7), id);
+        QCOMPARE(session->entityAt(text, 5), id);
+        QVERIFY(session->entityAt(text, 2).isEmpty());
+        QVERIFY(session->entityAt(text, 32).isEmpty());
+
+        // An entity in the trash is not a link target.
+        QVERIFY(session->moveToTrash(id));
+        QVERIFY(session->entityByName("Mara Vell").isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

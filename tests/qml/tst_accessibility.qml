@@ -297,4 +297,41 @@ TestCase {
         keyClick(Qt.Key_Tab);
         compare(view.session.fields(id).values.Captain, "Ahab");
     }
+
+    function test_linksCompleteAndOpen() {
+        const view = makeView();
+        const mara = view.session.add("character");
+        view.session.rename(mara, "Mara Vell");
+        view.session.rename(view.session.add("character"), "Abel Crane");
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "";
+        text.forceActiveFocus();
+        for (const c of "Ask [[ma")
+            keyClick(c);
+        const list = findChild(view, "linkList") as Item;
+        verify(list.visible);
+        keyClick(Qt.Key_Return);
+        compare(text.text, "Ask [[Mara Vell]]");
+        verify(!list.visible);
+        compare(text.cursorPosition, text.text.length);
+
+        // Escape closes the list, and typing goes on as text.
+        for (const c of " [[")
+            keyClick(c);
+        verify(list.visible);
+        keyClick(Qt.Key_Escape);
+        verify(!list.visible);
+
+        // Ctrl+click on the link opens the entity.
+        waitForRendering(view);
+        const rect = text.positionToRectangle(7);
+        mouseClick(text, rect.x + 2, rect.y + rect.height / 2, Qt.LeftButton, Qt.ControlModifier);
+        compare(view.session.currentId, mara);
+    }
 }

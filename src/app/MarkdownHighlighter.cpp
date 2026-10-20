@@ -7,7 +7,9 @@ MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
     : QSyntaxHighlighter(document), heading(QStringLiteral("^(#{1,6})\\s")),
       strong(QStringLiteral("\\*\\*(?=\\S)(.+?)(?<=\\S)\\*\\*")),
       emphasis(QStringLiteral("(?<![*\\w])[*_](?=[^\\s*_])(.+?)(?<=[^\\s*_])[*_](?![*\\w])")),
-      footnote(QStringLiteral("\\[\\^[^\\]\\s]+\\]"))
+      footnote(QStringLiteral("\\[\\^[^\\]\\s]+\\]")),
+      // A link to an entity of the codex: [[Mara Vell]].
+      link(QStringLiteral("\\[\\[[^\\[\\]\\n]+\\]\\]"))
 {
     // The light theme colours until the app sets the theme.
     markFormat.setForeground(QColor(0x70, 0x6b, 0x65));
@@ -15,6 +17,7 @@ MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
     emphasisFormat.setFontItalic(true);
     footnoteFormat.setForeground(QColor(0x94, 0x55, 0x2a));
     footnoteFormat.setVerticalAlignment(QTextCharFormat::AlignSuperScript);
+    linkFormat.setForeground(QColor(0x94, 0x55, 0x2a));
 }
 
 void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
@@ -23,6 +26,7 @@ void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
         return;
     markFormat.setForeground(mark);
     footnoteFormat.setForeground(accent);
+    linkFormat.setForeground(accent);
     rehighlight();
 }
 
@@ -49,6 +53,7 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
     styleSpans(text, strong, 2, strongFormat);
     styleSpans(text, emphasis, 1, emphasisFormat);
     styleSpans(text, footnote, 0, footnoteFormat);
+    styleSpans(text, link, 2, linkFormat);
 }
 
 void MarkdownHighlighter::styleSpans(const QString &text, const QRegularExpression &pattern,

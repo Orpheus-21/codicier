@@ -437,7 +437,9 @@ Item {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 document: view.session.document
+                session: view.session
                 typewriter: view.focusMode
+                onLinkOpened: id => view.session.currentId = id
             }
 
             Item {

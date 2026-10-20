@@ -8,6 +8,47 @@ Item {
     id: editorArea
 
     required property Document document
+    // The session gives the entities for links. Without it, links are text.
+    property ProjectSession session: null
+
+    // Ctrl+click on a [[link]] asks to open its entity.
+    signal linkOpened(id: string)
+
+    // The open [[ before the cursor: its start, the typed name, the matches,
+    // and the chosen match. linkStart is -1 when no list shows.
+    property int linkStart: -1
+    property var linkMatches: []
+    property int linkIndex: 0
+
+    function updateLink() {
+        const at = textEdit.cursorPosition;
+        const before = textEdit.getText(Math.max(0, at - 80), at);
+        const open = before.match(/\[\[([^\[\]\n]*)$/);
+        if (!open || !session) {
+            linkStart = -1;
+            return;
+        }
+        const query = open[1].toLowerCase();
+        const kinds = session.entityTypes().map(type => type.kind);
+        linkMatches = session.items()
+            .filter(item => kinds.includes(item.kind) && item.title.toLowerCase().includes(query))
+            .slice(0, 8);
+        linkIndex = 0;
+        linkStart = linkMatches.length > 0 ? at - open[1].length : -1;
+    }
+
+    // Puts the chosen title in place of the typed name and closes the link.
+    function completeLink() {
+        // The edits below call updateLink, so keep the values first.
+        const title = linkMatches[linkIndex].title;
+        const start = linkStart;
+        const at = textEdit.cursorPosition;
+        const closed = textEdit.getText(at, at + 2) === "]]";
+        textEdit.remove(start, at);
+        textEdit.insert(start, title + (closed ? "" : "]]"));
+        textEdit.cursorPosition = start + title.length + 2;
+        linkStart = -1;
+    }
     // The place of the cursor in the text, for a split.
     readonly property int cursorPosition: textEdit.cursorPosition
     // Typewriter scroll: the line with the cursor stays at one height.
@@ -106,6 +147,38 @@ Item {
             x: Math.max(Theme.space.xl, (page.width - width) / 2)
             visible: editorArea.document.file !== ""
             onCursorRectangleChanged: page.follow(cursorRectangle)
+            onTextChanged: editorArea.updateLink()
+            onCursorPositionChanged: editorArea.updateLink()
+            Keys.onPressed: event => {
+                if (editorArea.linkStart < 0)
+                    return;
+                const count = editorArea.linkMatches.length;
+                if (event.key === Qt.Key_Down) {
+                    editorArea.linkIndex = (editorArea.linkIndex + 1) % count;
+                } else if (event.key === Qt.Key_Up) {
+                    editorArea.linkIndex = (editorArea.linkIndex + count - 1) % count;
+                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                           || event.key === Qt.Key_Tab) {
+                    editorArea.completeLink();
+                } else if (event.key === Qt.Key_Escape) {
+                    editorArea.linkStart = -1;
+                } else {
+                    return;
+                }
+                event.accepted = true;
+            }
+
+            TapHandler {
+                acceptedModifiers: Qt.ControlModifier
+                onTapped: eventPoint => {
+                    if (!editorArea.session)
+                        return;
+                    const at = textEdit.positionAt(eventPoint.position.x, eventPoint.position.y);
+                    const id = editorArea.session.entityAt(textEdit.text, at);
+                    if (id !== "")
+                        editorArea.linkOpened(id);
+                }
+            }
         }
     }
 
@@ -150,4 +223,57 @@ Item {
     }
 
     onTypewriterChanged: Qt.callLater(placeCursor)
+
+    // The list of entities for the open [[, under the cursor.
+    Rectangle {
+        id: linkList
+
+        readonly property point place: textEdit.mapToItem(editorArea, textEdit.cursorRectangle.x,
+                                                          textEdit.cursorRectangle.y + textEdit.cursorRectangle.height)
+
+        objectName: "linkList"
+        visible: editorArea.linkStart >= 0
+        x: Math.min(place.x, editorArea.width - width - Theme.space.s)
+        y: place.y + Theme.space.xs
+        z: 3
+        width: 260
+        height: links.height + 2 * Theme.space.xs
+        radius: Theme.radius.small
+        color: Theme.color.paper
+        border.width: 1
+        border.color: Theme.color.rule
+
+        Column {
+            id: links
+
+            x: Theme.space.xs
+            y: Theme.space.xs
+            width: parent.width - 2 * Theme.space.xs
+
+            Repeater {
+                model: editorArea.linkMatches
+
+                Rectangle {
+                    required property var modelData
+                    required property int index
+
+                    width: links.width
+                    height: 28
+                    radius: Theme.radius.small
+                    color: index === editorArea.linkIndex ? Theme.color.selection : "transparent"
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: Theme.space.s
+                        width: parent.width - 2 * Theme.space.s
+                        text: parent.modelData.title
+                        elide: Text.ElideRight
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.body
+                        color: Theme.color.ink
+                    }
+                }
+            }
+        }
+    }
 }

@@ -418,6 +418,34 @@ QString ProjectSession::saveEntityType(const QString &kind, const QString &name,
     return type;
 }
 
+QString ProjectSession::entityByName(const QString &name) const
+{
+    const QString wanted = name.trimmed();
+    if (wanted.isEmpty())
+        return { };
+    for (const ProjectItem &item : project.items) {
+        if (!isEntity(item.kind) || item.section == QLatin1String("trash"))
+            continue;
+        QStringList names = strings(item.data.get("aliases"));
+        names.prepend(item.title);
+        if (names.contains(wanted, Qt::CaseInsensitive))
+            return item.id;
+    }
+    return { };
+}
+
+QString ProjectSession::entityAt(const QString &text, int position) const
+{
+    static const QRegularExpression link(QStringLiteral("\\[\\[([^\\[\\]\\n]+)\\]\\]"));
+    QRegularExpressionMatchIterator it = link.globalMatch(text);
+    while (it.hasNext()) {
+        const QRegularExpressionMatch match = it.next();
+        if (position >= match.capturedStart() && position <= match.capturedEnd())
+            return entityByName(match.captured(1));
+    }
+    return { };
+}
+
 bool ProjectSession::setEntityField(const QString &id, const QString &field, const QString &value)
 {
     const int index = indexOf(id);

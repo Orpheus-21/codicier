@@ -81,6 +81,10 @@ public:
     // makes a new type from the name. Returns the kind, or "" on an error.
     Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,
                                        const QStringList &fields);
+    // The entity with this title or alias, with no regard to case, or "".
+    Q_INVOKABLE QString entityByName(const QString &name) const;
+    // The entity of the [[link]] at position in text, or "".
+    Q_INVOKABLE QString entityAt(const QString &text, int position) const;
     // Sets the value of one field of an entity. An empty value removes it.
     Q_INVOKABLE bool setEntityField(const QString &id, const QString &field, const QString &value);
     // Gives the item a new title and saves the binder.
