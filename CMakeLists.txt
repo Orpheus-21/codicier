@@ -11,6 +11,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # on purpose (see src/model/Backup.cpp), so the notice about it is off.
 set(QT_NO_PRIVATE_MODULE_WARNING ON)
 find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick Sql CorePrivate)
+# Hunspell checks the spelling, offline, with the dictionaries of the system.
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(HUNSPELL REQUIRED IMPORTED_TARGET hunspell)
 # toml++ reads the project files (docs/format.md).
 find_package(tomlplusplus 3 REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
@@ -34,7 +37,7 @@ target_compile_definitions(codicier_core PUBLIC TOML_HEADER_ONLY=1)
 set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
 qt_add_library(codicier_ui STATIC)
 target_include_directories(codicier_ui PUBLIC src/app)
-target_link_libraries(codicier_ui PUBLIC codicier_core Qt6::Gui Qt6::Quick)
+target_link_libraries(codicier_ui PUBLIC codicier_core Qt6::Gui Qt6::Quick PRIVATE PkgConfig::HUNSPELL)
 target_compile_options(codicier_ui PRIVATE -Wall -Wextra)
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
@@ -53,7 +56,7 @@ qt_add_qml_module(codicier_ui
         src/app/Document.cpp src/app/Document.h
         src/app/MarkdownHighlighter.cpp src/app/MarkdownHighlighter.h
         src/app/Settings.cpp src/app/Settings.h
-        src/app/KeyMap.cpp src/app/KeyMap.h
+        src/app/KeyMap.cpp src/app/KeyMap.h src/app/SpellChecker.cpp src/app/SpellChecker.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

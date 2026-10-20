@@ -344,6 +344,24 @@ T.Popup {
                     }
                 }
 
+                Setting {
+                    label: "Spelling"
+
+                    Choice {
+                        objectName: "spellOn"
+                        label: "Underline unknown words"
+                        chosen: Settings.spellCheck
+                        onClicked: Settings.spellCheck = true
+                    }
+
+                    Choice {
+                        objectName: "spellOff"
+                        label: "Off"
+                        chosen: !Settings.spellCheck
+                        onClicked: Settings.spellCheck = false
+                    }
+                }
+
                 Heading {
                     text: "Backups"
                 }

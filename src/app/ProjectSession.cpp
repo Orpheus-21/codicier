@@ -7,6 +7,7 @@
 #include "Naming.h"
 #include "ProjectStore.h"
 #include "Snapshots.h"
+#include "SpellChecker.h"
 
 #include <QDate>
 #include <QDir>
@@ -100,6 +101,13 @@ void ProjectSession::setFolder(const QString &folder)
     historyTotal = sessionStart;
     if (!folder.isEmpty() && loadError.isEmpty() && !project.readOnly)
         history = std::make_unique<History>(folder);
+    // The dictionary of the project language.
+    spell.reset();
+    if (!folder.isEmpty() && loadError.isEmpty())
+        spell = std::make_unique<SpellChecker>(
+            QString::fromStdString(project.data["language"].value_or(std::string("en_US"))));
+    applySpelling();
+    emit spellChanged();
     emit wordsChanged();
 }
 
@@ -762,6 +770,35 @@ int ProjectSession::chapterWords() const
     return chapter.isEmpty() ? -1 : binderModel.wordsOf(chapter);
 }
 
+void ProjectSession::setSpellCheck(bool on)
+{
+    if (checkSpelling == on)
+        return;
+    checkSpelling = on;
+    applySpelling();
+    emit spellChanged();
+}
+
+QString ProjectSession::dictionary() const
+{
+    return spell ? spell->dictionary() : QString();
+}
+
+QStringList ProjectSession::suggestions(const QString &word) const
+{
+    return spell ? spell->suggestions(word) : QStringList();
+}
+
+void ProjectSession::applySpelling()
+{
+    const SpellChecker *checker = checkSpelling ? spell.get() : nullptr;
+    text.setSpellChecker(checker);
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document)
+            document->setSpellChecker(checker);
+    }
+}
+
 int ProjectSession::streak() const
 {
     return history ? history->streak(QDate::currentDate()) : 0;
@@ -1258,6 +1295,7 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
         return;
     tracked.removeAll(nullptr);
     tracked.append(document);
+    document->setSpellChecker(checkSpelling ? spell.get() : nullptr);
     connect(document, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);

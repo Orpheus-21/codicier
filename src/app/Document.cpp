@@ -80,8 +80,16 @@ void Document::attach(QTextDocument *value)
     attachedOnce = true;
     // The document owns the highlighter.
     highlighter = new MarkdownHighlighter(document);
+    highlighter->setSpellChecker(spell);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
     showText();
+}
+
+void Document::setSpellChecker(const SpellChecker *checker)
+{
+    spell = checker;
+    if (highlighter != nullptr)
+        highlighter->setSpellChecker(checker);
 }
 
 void Document::setMarkColor(const QColor &color)

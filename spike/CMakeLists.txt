@@ -7,9 +7,11 @@ add_custom_command(OUTPUT ${FIXTURE}
     DEPENDS gen_fixture.py)
 add_custom_target(fixture ALL DEPENDS ${FIXTURE})
 
-qt_add_executable(probe probe.cpp ${PROJECT_SOURCE_DIR}/src/app/MarkdownHighlighter.cpp)
+qt_add_executable(probe probe.cpp ${PROJECT_SOURCE_DIR}/src/app/MarkdownHighlighter.cpp
+    ${PROJECT_SOURCE_DIR}/src/app/SpellChecker.cpp)
 target_include_directories(probe PRIVATE ${PROJECT_SOURCE_DIR}/src/app)
 target_compile_options(probe PRIVATE -Wall -Wextra)
+target_link_libraries(probe PRIVATE PkgConfig::HUNSPELL)
 target_compile_definitions(probe PRIVATE
     PROBE_QML="${CMAKE_CURRENT_SOURCE_DIR}/EditorProbe.qml")
 target_link_libraries(probe PRIVATE Qt6::Gui Qt6::Quick)
@@ -20,9 +22,11 @@ add_test(NAME check_editor_speed COMMAND probe ${FIXTURE} 16)
 set_tests_properties(check_editor_speed PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 # A manual check: type into the spike editor through the input method.
-qt_add_executable(typecheck typecheck.cpp ${PROJECT_SOURCE_DIR}/src/app/MarkdownHighlighter.cpp)
+qt_add_executable(typecheck typecheck.cpp ${PROJECT_SOURCE_DIR}/src/app/MarkdownHighlighter.cpp
+    ${PROJECT_SOURCE_DIR}/src/app/SpellChecker.cpp)
 target_include_directories(typecheck PRIVATE ${PROJECT_SOURCE_DIR}/src/app)
 target_compile_options(typecheck PRIVATE -Wall -Wextra)
+target_link_libraries(typecheck PRIVATE PkgConfig::HUNSPELL)
 target_compile_definitions(typecheck PRIVATE
     PROBE_QML="${CMAKE_CURRENT_SOURCE_DIR}/EditorProbe.qml")
 target_link_libraries(typecheck PRIVATE Qt6::Gui Qt6::Quick)

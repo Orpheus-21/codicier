@@ -1,4 +1,5 @@
 #include "MarkdownHighlighter.h"
+#include "SpellChecker.h"
 
 #include <QAbstractTextDocumentLayout>
 #include <QFont>
@@ -101,6 +102,43 @@ private slots:
         cursor.movePosition(QTextCursor::End);
         cursor.insertText(QStringLiteral("*b*"));
         QVERIFY(formatAt(*document, 3).fontItalic());
+    }
+
+    void spellCheckerKnowsTheTestWords()
+    {
+        SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") };
+        // No en_GB in the folder, so the checker takes the one dictionary there.
+        SpellChecker checker("en-GB");
+        QCOMPARE(checker.dictionary(), QStringLiteral("en_TEST"));
+        QVERIFY(checker.isCorrect("letter"));
+        QVERIFY(!checker.isCorrect("lettr"));
+        QVERIFY(checker.suggestions("lettr").contains("letter"));
+        checker.addWord("Mara");
+        QVERIFY(checker.isCorrect("Mara"));
+
+        SpellChecker::searchPaths() = { QStringLiteral("/no/such/folder") };
+        SpellChecker none("en_GB");
+        QCOMPARE(none.dictionary(), QString());
+        QVERIFY(none.isCorrect("lettr"));
+        QVERIFY(none.suggestions("lettr").isEmpty());
+    }
+
+    void unknownWordsHaveAnUnderline()
+    {
+        SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") };
+        SpellChecker checker("en_TEST");
+        QTextDocument document;
+        document.setPlainText("The lettr said [[Zork Vale]] and[^xq].");
+        MarkdownHighlighter highlighter(&document);
+        QCOMPARE(formatAt(document, 4).underlineStyle(), QTextCharFormat::NoUnderline);
+        highlighter.setSpellChecker(&checker);
+        QCOMPARE(formatAt(document, 4).underlineStyle(), QTextCharFormat::SpellCheckUnderline);
+        QCOMPARE(formatAt(document, 0).underlineStyle(), QTextCharFormat::NoUnderline);
+        // A link and a footnote mark are not checked.
+        QCOMPARE(formatAt(document, 18).underlineStyle(), QTextCharFormat::NoUnderline);
+        QCOMPARE(formatAt(document, 35).underlineStyle(), QTextCharFormat::NoUnderline);
+        highlighter.setSpellChecker(nullptr);
+        QCOMPARE(formatAt(document, 4).underlineStyle(), QTextCharFormat::NoUnderline);
     }
 };
 

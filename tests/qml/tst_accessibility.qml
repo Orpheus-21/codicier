@@ -516,4 +516,25 @@ TestCase {
         tryCompare(view, "sprintEnd", 0, 4000);
         compare(status.text, "Sprint: 3 words in 0 minutes");
     }
+
+    function test_rightClickSuggestsAWord() {
+        const view = makeView();
+        compare(view.session.dictionary, "en_TEST");
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "The lettr said";
+        waitForRendering(view);
+        const rect = text.positionToRectangle(6);
+        mouseClick(text, rect.x + 1, rect.y + rect.height / 2, Qt.RightButton);
+        const menu = findChild(view, "spellMenu") as Menu;
+        tryVerify(() => menu.opened);
+        keyClick(Qt.Key_Down);
+        keyClick(Qt.Key_Return);
+        compare(text.text.slice(0, 10), "The letter");
+    }
 }

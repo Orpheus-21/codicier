@@ -16,6 +16,7 @@ Item {
         folder: view.folder
         backupFolder: Settings.backupFolder
         backupsToKeep: Settings.backupsToKeep
+        spellCheck: Settings.spellCheck
     }
     // The name of the workspace, for the way back.
     property string workspaceName: ""

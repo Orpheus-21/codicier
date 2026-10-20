@@ -73,6 +73,8 @@ public:
     Q_INVOKABLE void open(const QString &projectFolder, const QString &file);
     // Writes the text now. Returns false on an error or during a conflict.
     Q_INVOKABLE bool save();
+    // The checker for the underlines of unknown words, or null for none.
+    void setSpellChecker(const SpellChecker *checker);
     // Reads the file again, if there are no unsaved edits.
     void reloadIfClean();
     // The watcher saw an outside edit while the text was not saved.
@@ -97,6 +99,7 @@ private:
     QPointer<QQuickTextDocument> quickDocument;
     QPointer<QTextDocument> document;
     QPointer<MarkdownHighlighter> highlighter;
+    const SpellChecker *spell = nullptr;
     QColor mark { 0x70, 0x6b, 0x65 };
     QColor accent { 0x94, 0x55, 0x2a };
     qreal distance = 0;

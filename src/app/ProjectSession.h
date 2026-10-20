@@ -16,6 +16,7 @@
 #include <memory>
 
 class History;
+class SpellChecker;
 class Index;
 
 // The open project. Set folder, and the session loads the project and fills
@@ -45,6 +46,10 @@ class ProjectSession : public QObject
     Q_PROPERTY(int sessionWords READ sessionWords NOTIFY wordsChanged)
     // The days in a row with words, up to today.
     Q_PROPERTY(int streak READ streak NOTIFY wordsChanged)
+    // True underlines the unknown words of the open texts.
+    Q_PROPERTY(bool spellCheck READ spellCheck WRITE setSpellCheck NOTIFY spellChanged)
+    // The name of the dictionary, such as "en_GB", or "" if none was found.
+    Q_PROPERTY(QString dictionary READ dictionary NOTIFY spellChanged)
     // The word goal from project.toml, or 0.
     Q_PROPERTY(int goalWords READ goalWords NOTIFY wordsChanged)
     // The deadline of the project as yyyy-MM-dd, or "".
@@ -203,6 +208,11 @@ public:
     int manuscriptWords() const { return binderModel.manuscriptWords(); }
     int sessionWords() const { return std::max(0, manuscriptWords() - sessionStart); }
     int streak() const;
+    bool spellCheck() const { return checkSpelling; }
+    void setSpellCheck(bool on);
+    QString dictionary() const;
+    // The spelling suggestions for a word, or none with no dictionary.
+    Q_INVOKABLE QStringList suggestions(const QString &word) const;
     // The net words of the last count days, oldest first, up to today: the
     // date as yyyy-MM-dd and the words of each.
     Q_INVOKABLE QVariantList historyDays(int count) const;
@@ -222,6 +232,7 @@ signals:
     // A snapshot was taken or restored.
     void snapshotsChanged();
     void backupChanged();
+    void spellChanged();
     // A text file changed: the app saved it, or another program changed it.
     void textsChanged();
 
@@ -242,6 +253,10 @@ private:
     int sessionStart = 0;
     // The writing history, and the manuscript words of its last count.
     std::unique_ptr<History> history;
+    std::unique_ptr<SpellChecker> spell;
+    bool checkSpelling = true;
+    // Gives the checker, or none, to the open text and the tracked texts.
+    void applySpelling();
     int historyTotal = 0;
     // The search index builds at the first search after a load or a binder
     // edit. Between those, only the files that changed are read again.

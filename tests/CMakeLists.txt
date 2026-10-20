@@ -13,7 +13,8 @@ set_tests_properties(tst_smoke PROPERTIES ENVIRONMENT "${TEST_ENV}")
 qt_add_executable(tst_qml tst_qml.cpp)
 target_compile_options(tst_qml PRIVATE -Wall -Wextra)
 target_compile_definitions(tst_qml PRIVATE
-    QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml")
+    QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml"
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
 target_link_libraries(tst_qml PRIVATE Qt6::Qml Qt6::QuickTest codicier_ui codicier_uiplugin)
 add_test(NAME tst_qml COMMAND tst_qml)
 set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "${TEST_ENV}")
@@ -26,9 +27,12 @@ add_test(NAME tst_offline COMMAND tst_offline)
 set_tests_properties(tst_offline PROPERTIES ENVIRONMENT "${TEST_ENV}")
 
 qt_add_executable(tst_highlighter tst_highlighter.cpp
-    ${PROJECT_SOURCE_DIR}/src/app/MarkdownHighlighter.cpp)
+    ${PROJECT_SOURCE_DIR}/src/app/MarkdownHighlighter.cpp
+    ${PROJECT_SOURCE_DIR}/src/app/SpellChecker.cpp)
 target_compile_options(tst_highlighter PRIVATE -Wall -Wextra)
+target_link_libraries(tst_highlighter PRIVATE PkgConfig::HUNSPELL)
 target_include_directories(tst_highlighter PRIVATE ${PROJECT_SOURCE_DIR}/src/app)
+target_compile_definitions(tst_highlighter PRIVATE FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
 target_link_libraries(tst_highlighter PRIVATE Qt6::Gui Qt6::Test)
 add_test(NAME tst_highlighter COMMAND tst_highlighter)
 set_tests_properties(tst_highlighter PROPERTIES ENVIRONMENT "${TEST_ENV}")

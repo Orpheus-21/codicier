@@ -35,6 +35,8 @@ class Settings : public QObject
     Q_PROPERTY(int sessionTarget READ sessionTarget WRITE setSessionTarget NOTIFY changed)
     // The length of a writing sprint in minutes, 1 to 240.
     Q_PROPERTY(int sprintMinutes READ sprintMinutes WRITE setSprintMinutes NOTIFY changed)
+    // True underlines the words that the dictionary does not know.
+    Q_PROPERTY(bool spellCheck READ spellCheck WRITE setSpellCheck NOTIFY changed)
 
 public:
     static constexpr int defaultBackupsToKeep = 10;
@@ -64,6 +66,8 @@ public:
     int sessionTarget() const { return target; }
     void setSessionTarget(int value);
     int sprintMinutes() const { return sprint; }
+    bool spellCheck() const { return spelling; }
+    void setSpellCheck(bool value) { change(spelling, value, "edit/spellCheck"); }
     void setSprintMinutes(int value);
     // The same for a URL from a folder dialog.
     Q_INVOKABLE void setBackupFolderUrl(const QUrl &url);
@@ -83,6 +87,7 @@ private:
     bool lessMotion = false;
     int target = 0;
     int sprint = 25;
+    bool spelling = true;
 
     // Sets a value, writes it to the settings file, and tells the views.
     template <typename T> void change(T &member, const T &value, const char *key)

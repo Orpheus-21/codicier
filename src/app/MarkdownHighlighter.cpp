@@ -1,7 +1,11 @@
 #include "MarkdownHighlighter.h"
 
+#include "SpellChecker.h"
+
 #include <QColor>
 #include <QFont>
+
+#include <algorithm>
 
 MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
     : QSyntaxHighlighter(document), heading(QStringLiteral("^(#{1,6})\\s")),
@@ -9,7 +13,9 @@ MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
       emphasis(QStringLiteral("(?<![*\\w])[*_](?=[^\\s*_])(.+?)(?<=[^\\s*_])[*_](?![*\\w])")),
       footnote(QStringLiteral("\\[\\^[^\\]\\s]+\\]")),
       // A link to an entity of the codex: [[Mara Vell]].
-      link(QStringLiteral("\\[\\[[^\\[\\]\\n]+\\]\\]"))
+      link(QStringLiteral("\\[\\[[^\\[\\]\\n]+\\]\\]")),
+      word(QStringLiteral("\\p{L}+(?:['’]\\p{L}+)*"),
+           QRegularExpression::UseUnicodePropertiesOption)
 {
     // The light theme colours until the app sets the theme.
     markFormat.setForeground(QColor(0x70, 0x6b, 0x65));
@@ -54,6 +60,45 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
     styleSpans(text, emphasis, 1, emphasisFormat);
     styleSpans(text, footnote, 0, footnoteFormat);
     styleSpans(text, link, 2, linkFormat);
+    checkSpelling(text);
+}
+
+void MarkdownHighlighter::setSpellChecker(const SpellChecker *checker)
+{
+    if (spell == checker)
+        return;
+    spell = checker;
+    rehighlight();
+}
+
+void MarkdownHighlighter::checkSpelling(const QString &text)
+{
+    if (spell == nullptr)
+        return;
+    // A link names an entity, and a footnote mark is not a word.
+    QList<std::pair<qsizetype, qsizetype>> skip;
+    for (const QRegularExpression *pattern : { &link, &footnote }) {
+        auto matches = pattern->globalMatch(text);
+        while (matches.hasNext()) {
+            const QRegularExpressionMatch match = matches.next();
+            skip.append({ match.capturedStart(), match.capturedEnd() });
+        }
+    }
+    auto matches = word.globalMatch(text);
+    while (matches.hasNext()) {
+        const QRegularExpressionMatch match = matches.next();
+        const qsizetype start = match.capturedStart();
+        if (std::ranges::any_of(skip, [start](const auto &range) {
+                return start >= range.first && start < range.second;
+            }))
+            continue;
+        if (spell->isCorrect(match.captured()))
+            continue;
+        QTextCharFormat merged = format(static_cast<int>(start));
+        merged.setUnderlineStyle(QTextCharFormat::SpellCheckUnderline);
+        merged.setUnderlineColor(linkFormat.foreground().color());
+        setFormat(static_cast<int>(start), static_cast<int>(match.capturedLength()), merged);
+    }
 }
 
 void MarkdownHighlighter::styleSpans(const QString &text, const QRegularExpression &pattern,

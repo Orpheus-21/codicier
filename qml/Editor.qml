@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 
+import QtQml
 import QtQuick
+import QtQuick.Templates as T
 
 // The page: the text of the open document in the reading font, in a column
 // of the measure width. The document saves itself one second after an edit.
@@ -35,6 +37,60 @@ Item {
             .slice(0, 8);
         linkIndex = 0;
         linkStart = linkMatches.length > 0 ? at - open[1].length : -1;
+    }
+
+    // The word under a right click: its start, its end, and the suggestions.
+    property int wordStart: -1
+    property int wordEnd: -1
+    property var wordSuggestions: []
+
+    // Opens the menu of spelling suggestions for the word at position.
+    function suggestAt(position: int, x: real, y: real) {
+        if (!session || !session.spellCheck)
+            return;
+        const text = textEdit.text;
+        // The QML engine has no \p{L}, so a letter is a character with two
+        // cases. An apostrophe inside a word counts too.
+        const isLetter = c => c !== undefined && (c.toLowerCase() !== c.toUpperCase() || c === "'" || c === "’");
+        let start = position;
+        let end = position;
+        while (start > 0 && isLetter(text[start - 1]))
+            --start;
+        while (end < text.length && isLetter(text[end]))
+            ++end;
+        if (start === end)
+            return;
+        wordStart = start;
+        wordEnd = end;
+        wordSuggestions = session.suggestions(text.slice(start, end)).slice(0, 7);
+        if (wordSuggestions.length > 0)
+            spellMenu.popup(textEdit, x, y);
+    }
+
+    function replaceWord(word: string) {
+        textEdit.remove(wordStart, wordEnd);
+        textEdit.insert(wordStart, word);
+        textEdit.cursorPosition = wordStart + word.length;
+    }
+
+    Menu {
+        id: spellMenu
+
+        objectName: "spellMenu"
+
+        Instantiator {
+            model: editorArea.wordSuggestions
+
+            delegate: T.Action {
+                required property string modelData
+
+                text: modelData
+                onTriggered: editorArea.replaceWord(modelData)
+            }
+
+            onObjectAdded: (index, action) => spellMenu.insertAction(index, action as T.Action)
+            onObjectRemoved: (index, action) => spellMenu.removeAction(action as T.Action)
+        }
     }
 
     // Puts the chosen title in place of the typed name and closes the link.
@@ -166,6 +222,13 @@ Item {
                     return;
                 }
                 event.accepted = true;
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                onTapped: eventPoint => editorArea.suggestAt(
+                    textEdit.positionAt(eventPoint.position.x, eventPoint.position.y),
+                    eventPoint.position.x, eventPoint.position.y)
             }
 
             TapHandler {
