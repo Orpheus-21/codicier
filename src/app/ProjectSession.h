@@ -123,7 +123,10 @@ public:
     Q_INVOKABLE QVariantList relations(const QString &id = QString()) const;
     // The figures of the manuscript for the insights view: chapters, a list
     // of the items that hold scenes in binder order, each with an id, a
-    // title, its words, and its scenes (id, title, and words of each).
+    // title, its words, its scenes (id, title, and words of each), pov (the
+    // words of each POV name), and dialogue (the share of words between
+    // double quotes, 0 to 1); and povNames, the POV names by their words in
+    // the whole manuscript, most first.
     Q_INVOKABLE QVariantMap insights();
     // Copies a local image into maps/ and adds it as a map in the codex.
     // Returns the new id, or "" with the reason in lastError.

@@ -515,24 +515,54 @@ QVariantMap ProjectSession::insights()
     }
     if (!loose.scenes.isEmpty())
         groups.prepend(loose);
+    // Dialogue is text between straight or curly double quotes.
+    static const QRegularExpression quoted(QStringLiteral("\"[^\"\\n]*\"|“[^”\\n]*”"));
+    QHash<QString, int> povTotals;
     QVariantList chapters;
     for (const Group &group : std::as_const(groups)) {
         QVariantList scenes;
         int words = 0;
+        int dialogue = 0;
+        QHash<QString, int> povWords;
         for (const int index : group.scenes) {
             const ProjectItem &scene = project.items.at(index);
             const int count = binderModel.wordsOf(scene.id);
             words += count;
+            const QString pov
+                = QString::fromStdString(scene.data["pov"].value_or(std::string())).trimmed();
+            povWords[pov.isEmpty() ? QStringLiteral("No POV") : pov] += count;
+            QFile file(QDir(project.folder).filePath(scene.file));
+            if (file.open(QIODevice::ReadOnly)) {
+                QRegularExpressionMatchIterator it
+                    = quoted.globalMatch(QString::fromUtf8(file.readAll()));
+                while (it.hasNext())
+                    dialogue += Index::countWords(it.next().captured());
+            }
             scenes.append(QVariantMap { { QStringLiteral("id"), scene.id },
                                         { QStringLiteral("title"), scene.title },
                                         { QStringLiteral("words"), count } });
         }
-        chapters.append(QVariantMap { { QStringLiteral("id"), group.id },
-                                      { QStringLiteral("title"), group.title },
-                                      { QStringLiteral("words"), words },
-                                      { QStringLiteral("scenes"), scenes } });
+        QVariantMap pov;
+        for (auto it = povWords.cbegin(); it != povWords.cend(); ++it) {
+            pov.insert(it.key(), it.value());
+            povTotals[it.key()] += it.value();
+        }
+        chapters.append(QVariantMap {
+            { QStringLiteral("id"), group.id },
+            { QStringLiteral("title"), group.title },
+            { QStringLiteral("words"), words },
+            { QStringLiteral("scenes"), scenes },
+            { QStringLiteral("pov"), pov },
+            { QStringLiteral("dialogue"), words > 0 ? double(dialogue) / words : 0.0 } });
     }
-    return { { QStringLiteral("chapters"), chapters } };
+    // The POV names by their words in the whole manuscript, most first, so
+    // each name keeps one color in every chapter.
+    QStringList povNames = povTotals.keys();
+    std::ranges::sort(povNames, [&povTotals](const QString &a, const QString &b) {
+        return povTotals.value(a) != povTotals.value(b) ? povTotals.value(a) > povTotals.value(b)
+                                                        : a < b;
+    });
+    return { { QStringLiteral("chapters"), chapters }, { QStringLiteral("povNames"), povNames } };
 }
 
 QVariantList ProjectSession::relations(const QString &id) const

@@ -849,5 +849,7 @@ TestCase {
         waitForRendering(view);
         compare(faults(insightsView), []);
         verify(findChild(insightsView, "lengthChapter"));
+        verify(findChild(insightsView, "povChapter"));
+        verify(findChild(insightsView, "dialogueChapter"));
     }
 }

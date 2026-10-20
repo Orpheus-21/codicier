@@ -1358,6 +1358,25 @@ private slots:
         QCOMPARE(scenes.at(1).toMap().value("words").toInt(), 18);
     }
 
+    void insightsGivePovAndDialogue()
+    {
+        QVERIFY(session->setField("m1n2p3q4r5", "pov", "Abel"));
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText(
+            "“Not here,” said Abel. \"Not anymore,\" he said again, and then he left.");
+        const QVariantMap figures = session->insights();
+        const QVariantMap letter = figures.value("chapters").toList().first().toMap();
+        const QVariantMap pov = letter.value("pov").toMap();
+        QCOMPARE(pov.value("Mara").toInt(), 18);
+        QCOMPARE(pov.value("Abel").toInt(), session->binder()->wordsOf("m1n2p3q4r5"));
+        QCOMPARE(figures.value("povNames").toStringList().first(), QStringLiteral("Mara"));
+        // Four words in quotes: "Not here" and "Not anymore".
+        const int words = letter.value("words").toInt();
+        QCOMPARE(letter.value("dialogue").toDouble(), 4.0 / words);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
