@@ -303,6 +303,33 @@ Item {
             }
 
             Heading {
+                text: "Most used words"
+            }
+
+            Text {
+                visible: (insights.figures.words ?? []).length === 0
+                text: "The manuscript has no words yet."
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.inkMuted
+            }
+
+            Repeater {
+                model: insights.figures.words ?? []
+
+                Bar {
+                    required property var modelData
+
+                    objectName: "frequentWord"
+                    child: true
+                    label: modelData.word
+                    value: modelData.count
+                    maximum: insights.figures.words[0].count
+                    itemId: ""
+                }
+            }
+
+            Heading {
                 text: "Dialogue"
             }
 

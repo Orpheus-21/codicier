@@ -518,6 +518,28 @@ QVariantMap ProjectSession::insights()
     // Dialogue is text between straight or curly double quotes.
     static const QRegularExpression quoted(QStringLiteral("\"[^\"\\n]*\"|“[^”\\n]*”"));
     QHash<QString, int> povTotals;
+    // The words of the manuscript, with the common English words left out.
+    static const QRegularExpression wordPattern(QStringLiteral("\\p{L}+(?:['’]\\p{L}+)*"),
+                                                QRegularExpression::UseUnicodePropertiesOption);
+    static const QSet<QString> stopWords {
+        "the",     "and",    "for",        "are",   "but",    "not",    "you",    "all",
+        "any",     "can",    "her",        "was",   "one",    "our",    "out",    "his",
+        "has",     "had",    "him",        "she",   "they",   "them",   "their",  "there",
+        "then",    "than",   "that",       "this",  "these",  "those",  "with",   "from",
+        "have",    "were",   "what",       "when",  "where",  "which",  "who",    "whom",
+        "why",     "how",    "will",       "would", "could",  "should", "into",   "onto",
+        "over",    "under",  "again",      "about", "after",  "before", "just",   "only",
+        "very",    "more",   "most",       "some",  "such",   "said",   "says",   "say",
+        "its",     "it's",   "i'm",        "don't", "didn't", "did",    "does",   "doing",
+        "done",    "been",   "being",      "your",  "yours",  "mine",   "myself", "himself",
+        "herself", "itself", "themselves", "here",  "now",    "also",   "too",    "off",
+        "own",     "same",   "each",       "other", "both",   "few",    "nor",    "yet",
+        "upon",    "back",   "down",       "like",  "know",   "knew",   "came",   "come",
+        "went",    "get",    "got",        "let",   "may",    "might",  "must",   "shall",
+        "still",   "even",   "ever",       "never", "much",   "many",   "well",   "way",
+        "because", "while",  "though",
+    };
+    QHash<QString, int> frequency;
     QVariantList chapters;
     for (const Group &group : std::as_const(groups)) {
         QVariantList scenes;
@@ -533,10 +555,16 @@ QVariantMap ProjectSession::insights()
             povWords[pov.isEmpty() ? QStringLiteral("No POV") : pov] += count;
             QFile file(QDir(project.folder).filePath(scene.file));
             if (file.open(QIODevice::ReadOnly)) {
-                QRegularExpressionMatchIterator it
-                    = quoted.globalMatch(QString::fromUtf8(file.readAll()));
+                const QString body = QString::fromUtf8(file.readAll());
+                QRegularExpressionMatchIterator it = quoted.globalMatch(body);
                 while (it.hasNext())
                     dialogue += Index::countWords(it.next().captured());
+                QRegularExpressionMatchIterator words = wordPattern.globalMatch(body);
+                while (words.hasNext()) {
+                    const QString word = words.next().captured().toLower();
+                    if (word.size() > 2 && !stopWords.contains(word))
+                        ++frequency[word];
+                }
             }
             scenes.append(QVariantMap { { QStringLiteral("id"), scene.id },
                                         { QStringLiteral("title"), scene.title },
@@ -562,7 +590,20 @@ QVariantMap ProjectSession::insights()
         return povTotals.value(a) != povTotals.value(b) ? povTotals.value(a) > povTotals.value(b)
                                                         : a < b;
     });
-    return { { QStringLiteral("chapters"), chapters }, { QStringLiteral("povNames"), povNames } };
+    // The most used words, most first, then in word order.
+    QList<std::pair<QString, int>> ranked;
+    for (auto it = frequency.cbegin(); it != frequency.cend(); ++it)
+        ranked.append({ it.key(), it.value() });
+    std::ranges::sort(ranked, [](const auto &a, const auto &b) {
+        return a.second != b.second ? a.second > b.second : a.first < b.first;
+    });
+    QVariantList common;
+    for (qsizetype i = 0; i < std::min<qsizetype>(30, ranked.size()); ++i)
+        common.append(QVariantMap { { QStringLiteral("word"), ranked.at(i).first },
+                                    { QStringLiteral("count"), ranked.at(i).second } });
+    return { { QStringLiteral("chapters"), chapters },
+             { QStringLiteral("povNames"), povNames },
+             { QStringLiteral("words"), common } };
 }
 
 QVariantList ProjectSession::relations(const QString &id) const

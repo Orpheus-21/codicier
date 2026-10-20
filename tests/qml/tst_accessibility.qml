@@ -841,6 +841,8 @@ TestCase {
 
     function test_insightsShowTheLengths() {
         const view = makeView();
+        view.session.currentId = view.session.plotGrid()[0].id;
+        (findChild(view, "editor") as TextEdit).text = "The harbour slept under the snow.";
         view.forceActiveFocus();
         keyClick(Qt.Key_I, Qt.ControlModifier | Qt.AltModifier);
         compare(view.viewMode, "insights");
@@ -851,5 +853,6 @@ TestCase {
         verify(findChild(insightsView, "lengthChapter"));
         verify(findChild(insightsView, "povChapter"));
         verify(findChild(insightsView, "dialogueChapter"));
+        verify(findChild(insightsView, "frequentWord"));
     }
 }

@@ -126,7 +126,9 @@ public:
     // title, its words, its scenes (id, title, and words of each), pov (the
     // words of each POV name), and dialogue (the share of words between
     // double quotes, 0 to 1); and povNames, the POV names by their words in
-    // the whole manuscript, most first.
+    // the whole manuscript, most first; and words, the 30 most used words of
+    // the manuscript with a word and a count each, with no common English
+    // word and no word of one or two letters.
     Q_INVOKABLE QVariantMap insights();
     // Copies a local image into maps/ and adds it as a map in the codex.
     // Returns the new id, or "" with the reason in lastError.

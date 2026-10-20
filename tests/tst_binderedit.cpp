@@ -1377,6 +1377,26 @@ private slots:
         QCOMPARE(letter.value("dialogue").toDouble(), 4.0 / words);
     }
 
+    void insightsGiveTheMostUsedWords()
+    {
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText("The ledger, the ledger, and the LEDGER. Salt salt. A cat sat.");
+        const QVariantList words = session->insights().value("words").toList();
+        QCOMPARE(words.first().toMap().value("word").toString(), QStringLiteral("ledger"));
+        QCOMPARE(words.first().toMap().value("count").toInt(), 3);
+        QStringList all;
+        for (const QVariant &each : words)
+            all.append(each.toMap().value("word").toString());
+        // No stop word, and no word of two letters or less.
+        QVERIFY(!all.contains("the"));
+        QVERIFY(!all.contains("and"));
+        QVERIFY(!all.contains("a"));
+        QVERIFY(all.contains("salt"));
+        QVERIFY(words.size() <= 30);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));
