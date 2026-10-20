@@ -758,4 +758,26 @@ TestCase {
         button.clicked();
         compare(view.session.relations(mara).length, 0);
     }
+
+    function test_relationGraphShowsEntities() {
+        const view = makeView();
+        const mara = view.session.add("character");
+        view.session.rename(mara, "Mara");
+        const port = view.session.add("place");
+        view.session.rename(port, "Port");
+        const lone = view.session.add("place");
+        view.session.addRelation(mara, port, "lives in", false);
+        view.forceActiveFocus();
+        keyClick(Qt.Key_R, Qt.ControlModifier | Qt.AltModifier);
+        compare(view.viewMode, "relations");
+        const graphView = findChild(view, "relationGraph") as RelationGraph;
+        // The character, and the place with a relation, but not the lone place.
+        compare(graphView.nodes.map(node => node.id).sort(), [mara, port].sort());
+        waitForRendering(view);
+        compare(faults(graphView), []);
+        const node = findChild(graphView, "graphNode") as Item;
+        mouseClick(node);
+        verify(view.session.currentId === mara || view.session.currentId === port);
+        compare(view.viewMode, "page");
+    }
 }
