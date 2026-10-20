@@ -127,6 +127,9 @@ public:
     // The text items below the item, in binder order, as maps with id,
     // title, and file. For the composite view.
     Q_INVOKABLE QVariantList textsUnder(const QString &id) const;
+    // The direct children of an item, in binder order: the id, title, kind,
+    // synopsis, status, and words of each. For the corkboard and outliner.
+    Q_INVOKABLE QVariantList childrenOf(const QString &id) const;
     // Every item outside the trash, in binder order: the id, the title, the
     // kind, and the path of titles above it, as "Part One / The Letter".
     Q_INVOKABLE QVariantList items() const;

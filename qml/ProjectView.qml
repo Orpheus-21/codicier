@@ -87,6 +87,13 @@ Item {
     // The search panel takes the place of the binder list.
     property bool searchOpen: false
 
+    // What the editor area shows: "page", or "board" for the corkboard.
+    property string viewMode: "page"
+
+    function toggleViewMode(mode: string) {
+        viewMode = viewMode === mode ? "page" : mode;
+    }
+
     // The codex panel also takes the place of the binder list.
     property bool codexOpen: false
 
@@ -175,6 +182,7 @@ Item {
         { id: "scene.merge", name: "Merge with the next scene", sequence: "Ctrl+Shift+J", run: () => session.mergeWithNext(session.currentId) },
         { id: "item.trash", name: "Move the item to the trash", sequence: "Ctrl+Shift+Del", run: () => session.moveToTrash(session.currentId) },
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
+        { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+E", run: () => view.openCodex() },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
         { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
@@ -415,6 +423,17 @@ Item {
                 }
             }
 
+            Corkboard {
+                objectName: "corkboardView"
+                visible: view.viewMode === "board"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
+                itemId: visible ? view.session.currentId : ""
+            }
+
             CompareView {
                 visible: view.comparePath !== ""
                 anchors.top: editorBar.bottom
@@ -454,6 +473,12 @@ Item {
                     anchors.rightMargin: Theme.space.l
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Theme.space.xs
+
+                    IconButton {
+                        iconName: "layout-grid"
+                        label: "Corkboard"
+                        onClicked: view.toggleViewMode("board")
+                    }
 
                     IconButton {
                         iconName: "panel-left"

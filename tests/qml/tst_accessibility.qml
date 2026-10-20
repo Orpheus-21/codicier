@@ -356,4 +356,45 @@ TestCase {
         mouseClick(row);
         compare(view.session.currentId, scene);
     }
+
+    function test_corkboardDragReordersTheBinder() {
+        const view = makeView();
+        let chapter = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "chapter" && chapter === "")
+                chapter = item.id;
+        }
+        view.session.currentId = chapter;
+        view.session.add("scene");
+        view.session.currentId = chapter;
+        const before = view.session.childrenOf(chapter).map(card => card.id);
+        verify(before.length >= 2);
+
+        view.forceActiveFocus();
+        keyClick(Qt.Key_K, Qt.ControlModifier | Qt.ShiftModifier);
+        compare(view.viewMode, "board");
+        const grid = findChild(view, "corkboard") as GridView;
+        tryCompare(grid, "count", before.length);
+        waitForRendering(view);
+        // Drag the second card onto the first card.
+        const second = grid.itemAtIndex(1);
+        const first = grid.itemAtIndex(0);
+        const from = second.mapToItem(view, second.width / 2, second.height / 2);
+        const to = first.mapToItem(view, first.width / 2, first.height / 2);
+        mousePress(view, from.x, from.y);
+        for (let i = 1; i <= 10; ++i)
+            mouseMove(view, from.x + (to.x - from.x) * i / 10, from.y + (to.y - from.y) * i / 10);
+        mouseRelease(view, to.x, to.y);
+        const after = view.session.childrenOf(chapter).map(card => card.id);
+        compare(after[0], before[1]);
+        compare(after[1], before[0]);
+
+        // A click opens the item, and the key goes back to the page.
+        waitForRendering(view);
+        const card = grid.itemAtIndex(0);
+        mouseClick(card, card.width / 2, card.height / 2);
+        compare(view.session.currentId, after[0]);
+        keyClick(Qt.Key_K, Qt.ControlModifier | Qt.ShiftModifier);
+        compare(view.viewMode, "page");
+    }
 }

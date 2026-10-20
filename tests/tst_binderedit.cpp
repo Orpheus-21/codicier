@@ -883,6 +883,20 @@ private slots:
         QVERIFY(session->mentionsOf("t6v4h9r2mz").isEmpty());
     }
 
+    void childrenOfGivesTheCards()
+    {
+        const QVariantList cards = session->childrenOf("f6g7h8j9k0");
+        QCOMPARE(cards.size(), 2);
+        const QVariantMap first = cards.first().toMap();
+        QCOMPARE(first.value("id").toString(), QStringLiteral("m1n2p3q4r5"));
+        QCOMPARE(first.value("kind").toString(), QStringLiteral("scene"));
+        QCOMPARE(first.value("words").toInt(), 10);
+        QCOMPARE(cards.at(1).toMap().value("synopsis").toString(),
+                 QStringLiteral("Mara finds a date in her mother's letter."));
+        QVERIFY(session->childrenOf("nothere").isEmpty());
+        QVERIFY(session->childrenOf("m1n2p3q4r5").isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

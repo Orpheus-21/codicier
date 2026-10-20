@@ -1009,6 +1009,30 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
     return commit({ });
 }
 
+QVariantList ProjectSession::childrenOf(const QString &id) const
+{
+    QVariantList list;
+    const int index = indexOf(id);
+    if (index < 0)
+        return list;
+    for (const int child : project.items.at(index).children) {
+        const ProjectItem &item = project.items.at(child);
+        const QString status = QString::fromStdString(item.data["status"].value_or(std::string()));
+        list.append(QVariantMap {
+            { QStringLiteral("id"), item.id },
+            { QStringLiteral("title"), item.title },
+            { QStringLiteral("kind"), item.kind },
+            { QStringLiteral("synopsis"),
+              QString::fromStdString(item.data["synopsis"].value_or(std::string())) },
+            { QStringLiteral("status"),
+              status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
+                                                                      : status },
+            { QStringLiteral("words"), binderModel.wordsOf(item.id) },
+        });
+    }
+    return list;
+}
+
 QVariantList ProjectSession::textsUnder(const QString &id) const
 {
     QVariantList list;
