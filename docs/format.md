@@ -22,6 +22,7 @@ the-salt-ledger/
     manuscript/         one Markdown file for each scene
     matter/             one Markdown file for each page of front or back matter
     codex/              one Markdown file for each entity of the codex
+    maps/               the images of the maps
     notes/              one Markdown file for each note
     research/           any files: images, PDF files, and other documents
     snapshots/          copies of a text at a moment, one folder for each item
@@ -170,6 +171,7 @@ An item at the top level has a `section` and no `parent`. An item below the top 
 | `faction` | a group, a family, or an institution | yes, in `codex/` | `codex` |
 | `lore` | history, a custom, or a rule of the world | yes, in `codex/` | `codex` |
 | `term` | a word of the story, for the glossary | yes, in `codex/` | `codex` |
+| `map` | the image of a map: PNG, JPEG, WebP, GIF, or BMP | yes, in `maps/` | `codex` |
 
 The kinds `character`, `place`, `item`, `faction`, `lore`, and `term` are the entities of the codex. The file of an entity holds its description as prose. Its data, such as `aliases`, `tags`, and `notes`, is in `binder.toml`, as for a scene.
 
