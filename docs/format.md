@@ -62,6 +62,7 @@ deadline = 2027-03-01
 | `goals.daily` | integer | no | The word goal for each day. |
 | `goals.deadline` | date | no | The date to finish the work. |
 | `framework` | string | no | The plot framework of the beat board: `three-act`, `save-the-cat`, `heros-journey`, `kishotenketsu`, or `snowflake`. |
+| `plotline` | array of tables | no | The plotlines, each with an `id` and a `name`, in order. |
 | `entity-type` | array of tables | no | The entity types of the author. See "Entity types". |
 
 ### Entity types
@@ -134,6 +135,7 @@ Do not say so yet."""
 | `pov` | string | scenes | The point of view character. |
 | `place` | string | scenes | Where the scene happens. |
 | `time` | string | scenes | When the scene happens, in free text. |
+| `plotlines` | array of strings | scenes | The ids of the plotlines of the scene. |
 | `beat` | string | scenes | The id of the beat of the framework that the scene is on. |
 | `synopsis` | string | text items | A short summary. |
 | `aliases` | array of strings | entities | Other names of the entity, such as a nickname or a title. |
