@@ -107,6 +107,8 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Alt+G | Show or hide the plot grid. |
 | Ctrl+Alt+T | Show or hide the timeline. |
 | Ctrl+Alt+C | Edit the calendar of the story. |
+| Ctrl+Alt+R | Show or hide the relationship graph. |
+| Ctrl+Alt+F | Show or hide the family tree. |
 | Ctrl+Shift+G | Open goals and progress. |
 | Ctrl+Shift+T | Start or stop a sprint. |
 | Ctrl+Shift+F | Search the project. |
@@ -147,6 +149,8 @@ The buttons at the top right of the page, and the keys in the table above, chang
 - Beat board: choose a plot framework (three acts, Save the Cat, the Hero's Journey, Kishōtenketsu, or Snowflake), then drag scenes onto its beats.
 - Plot grid: the scenes against the plotlines. Click a cell to put a scene on a plotline, or drag a mark to another plotline. Add plotlines in the inspector of a scene.
 - Timeline: the scenes and entities with a date in the story, on a track for each POV character or each plotline.
+- Relationship graph: the characters, and the other entities with a relation, with an arrow for each relation.
+- Family tree: the people with a parent link, one row for each generation.
 
 Give a scene or an entity a date in its inspector, as year-month-day, such as `1847-03-04`. To use your own months, press Ctrl+Alt+C and write one month on each line with its number of days, such as `Frostmonth 40`.
 
@@ -165,6 +169,10 @@ The inspector of an entity shows these parts:
 - Mentions: each text of the manuscript that names the entity by its title or an alias, with the count of mentions. Click a line to open the text.
 
 To add fields to a type, or to make a new type such as "Ships", choose "Types and fields" in the + menu of the codex panel. The app saves the types and their fields in `project.toml`.
+
+To link two entities, open one, type the name of the relation in its inspector, such as "sister of", and choose the other entity in the "Link to" menu. Choose "Parent of" for a parent link of the family tree.
+
+To add a map, choose "New map…" in the add menu, and choose an image. The app copies the image into the project. Right-click the map to pin a place of the codex. Click a pin to open its place, drag it to move it, or right-click it to remove it.
 
 To link to an entity, type `[[` on the page. A list of entities opens under the cursor and filters as you type. Press Enter or Tab to insert the link, such as `[[Mara Vell]]`. Press Escape to close the list. Ctrl+click a link to open the entity. A link also finds an entity by an alias.
 
