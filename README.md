@@ -13,6 +13,8 @@ The app also does these things:
 - It writes a zip backup of a project when the project closes.
 - It searches the full text of the project, also with regular expressions. It replaces words across the manuscript.
 - It has a focus mode with typewriter scroll.
+- It shows the work as index cards, an outline table, a beat board, a plot grid, and a timeline in story time.
+- It tracks a word target for each session, a goal and a deadline for the project, a history of the words of each day, and writing sprints.
 - It has a codex of the characters, places, items, factions, lore, and terms of the story, with links from the text and a list of mentions.
 - It has a command palette that finds every command and every item by name.
 - It keeps the layout of the panes for each project. A key map file sets the key of each command.
@@ -99,6 +101,14 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Shift+Del | Move the item to the trash. |
 | Ctrl+Shift+S | Take a snapshot of the open text. |
 | Ctrl+Shift+E | Open the codex. |
+| Ctrl+Shift+K | Show or hide the corkboard. |
+| Ctrl+Shift+O | Show or hide the outliner. |
+| Ctrl+Alt+B | Show or hide the beat board. |
+| Ctrl+Alt+G | Show or hide the plot grid. |
+| Ctrl+Alt+T | Show or hide the timeline. |
+| Ctrl+Alt+C | Edit the calendar of the story. |
+| Ctrl+Shift+G | Open goals and progress. |
+| Ctrl+Shift+T | Start or stop a sprint. |
 | Ctrl+Shift+F | Search the project. |
 | Ctrl+H | Replace across the manuscript. |
 | Ctrl+Shift+B | Show or hide the binder. |
@@ -127,6 +137,22 @@ Drag the line between two panes to change the width of a pane. The buttons at th
 ### The inspector
 
 The inspector shows the data of the selected item: synopsis, status, point of view, place, time, word target, tags, and notes. The "Manuscript" choice leaves an item out of the word count of the book. The inspector also lists the snapshots of a scene. Click "Compare" to see the differences, or "Restore" to go back to a snapshot.
+
+### Views of the work
+
+The buttons at the top right of the page, and the keys in the table above, change what the middle of the window shows.
+
+- Corkboard: the items in the open chapter, part, or folder as index cards, with their synopsis. Drag a card onto another card to change the order in the binder. Click a card to open it.
+- Outliner: the texts under the open item as a table, with status, POV, place, time, words, and custom fields. Click a header to sort the table.
+- Beat board: choose a plot framework (three acts, Save the Cat, the Hero's Journey, Kishōtenketsu, or Snowflake), then drag scenes onto its beats.
+- Plot grid: the scenes against the plotlines. Click a cell to put a scene on a plotline, or drag a mark to another plotline. Add plotlines in the inspector of a scene.
+- Timeline: the scenes and entities with a date in the story, on a track for each POV character or each plotline.
+
+Give a scene or an entity a date in its inspector, as year-month-day, such as `1847-03-04`. To use your own months, press Ctrl+Alt+C and write one month on each line with its number of days, such as `Frostmonth 40`.
+
+### Goals and progress
+
+Press Ctrl+Shift+G to set a word target for one session, and a word goal and a deadline for the project. The status bar shows the words of the session and the words to write each day to reach the goal. The dialog also shows a heat map of the words of each day, from `history.toml` in the project folder, and your streak of days in a row. Press Ctrl+Shift+T to start a writing sprint. The length is 25 minutes by default, and you can change it in the same dialog.
 
 ### The codex
 
