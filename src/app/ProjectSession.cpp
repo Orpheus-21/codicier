@@ -540,12 +540,41 @@ QVariantMap ProjectSession::insights()
         "because", "while",  "though",
     };
     QHash<QString, int> frequency;
+    // The characters, each with a pattern of its title and aliases as whole
+    // words, as for the mentions.
+    struct Character
+    {
+        QString id;
+        QString title;
+        QRegularExpression pattern;
+    };
+    QList<Character> characters;
+    for (const ProjectItem &item : std::as_const(project.items)) {
+        if (item.kind != QLatin1String("character") || binderModel.isInTrash(item.id))
+            continue;
+        QStringList names = strings(item.data.get("aliases"));
+        names.prepend(item.title);
+        QStringList escaped;
+        for (const QString &name : std::as_const(names)) {
+            if (!name.trimmed().isEmpty())
+                escaped.append(QRegularExpression::escape(name.trimmed()));
+        }
+        std::ranges::sort(escaped,
+                          [](const QString &a, const QString &b) { return a.size() > b.size(); });
+        characters.append(
+            { item.id, item.title,
+              QRegularExpression(QStringLiteral("(?<!\\w)(") + escaped.join(u'|')
+                                     + QStringLiteral(")(?!\\w)"),
+                                 QRegularExpression::CaseInsensitiveOption
+                                     | QRegularExpression::UseUnicodePropertiesOption) });
+    }
     QVariantList chapters;
     for (const Group &group : std::as_const(groups)) {
         QVariantList scenes;
         int words = 0;
         int dialogue = 0;
         QHash<QString, int> povWords;
+        QVariantList present(characters.size(), 0);
         for (const int index : group.scenes) {
             const ProjectItem &scene = project.items.at(index);
             const int count = binderModel.wordsOf(scene.id);
@@ -559,6 +588,16 @@ QVariantMap ProjectSession::insights()
                 QRegularExpressionMatchIterator it = quoted.globalMatch(body);
                 while (it.hasNext())
                     dialogue += Index::countWords(it.next().captured());
+                for (qsizetype c = 0; c < characters.size(); ++c) {
+                    QRegularExpressionMatchIterator found
+                        = characters.at(c).pattern.globalMatch(body);
+                    int count = present.at(c).toInt();
+                    while (found.hasNext()) {
+                        found.next();
+                        ++count;
+                    }
+                    present[c] = count;
+                }
                 QRegularExpressionMatchIterator words = wordPattern.globalMatch(body);
                 while (words.hasNext()) {
                     const QString word = words.next().captured().toLower();
@@ -581,7 +620,8 @@ QVariantMap ProjectSession::insights()
             { QStringLiteral("words"), words },
             { QStringLiteral("scenes"), scenes },
             { QStringLiteral("pov"), pov },
-            { QStringLiteral("dialogue"), words > 0 ? double(dialogue) / words : 0.0 } });
+            { QStringLiteral("dialogue"), words > 0 ? double(dialogue) / words : 0.0 },
+            { QStringLiteral("presence"), present } });
     }
     // The POV names by their words in the whole manuscript, most first, so
     // each name keeps one color in every chapter.
@@ -601,9 +641,14 @@ QVariantMap ProjectSession::insights()
     for (qsizetype i = 0; i < std::min<qsizetype>(30, ranked.size()); ++i)
         common.append(QVariantMap { { QStringLiteral("word"), ranked.at(i).first },
                                     { QStringLiteral("count"), ranked.at(i).second } });
+    QVariantList people;
+    for (const Character &character : std::as_const(characters))
+        people.append(QVariantMap { { QStringLiteral("id"), character.id },
+                                    { QStringLiteral("title"), character.title } });
     return { { QStringLiteral("chapters"), chapters },
              { QStringLiteral("povNames"), povNames },
-             { QStringLiteral("words"), common } };
+             { QStringLiteral("words"), common },
+             { QStringLiteral("characters"), people } };
 }
 
 QVariantList ProjectSession::relations(const QString &id) const

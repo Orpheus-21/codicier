@@ -1397,6 +1397,28 @@ private slots:
         QVERIFY(words.size() <= 30);
     }
 
+    void insightsCountCharactersInEachChapter()
+    {
+        const QString mara = session->add("character");
+        QVERIFY(session->rename(mara, "Mara"));
+        QVERIFY(session->setField(mara, "aliases", QStringList { "the clerk" }));
+        const QString abel = session->add("character");
+        QVERIFY(session->rename(abel, "Abel"));
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText("Mara met the clerk. Marathon. Mara again.");
+        const QVariantMap figures = session->insights();
+        const QVariantList people = figures.value("characters").toList();
+        QCOMPARE(people.size(), 2);
+        QCOMPARE(people.first().toMap().value("id").toString(), mara);
+        const QVariantList presence
+            = figures.value("chapters").toList().first().toMap().value("presence").toList();
+        // Two times "Mara" and one time "the clerk"; "Marathon" does not count.
+        QCOMPARE(presence.at(0).toInt(), 3);
+        QCOMPARE(presence.at(1).toInt(), 0);
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

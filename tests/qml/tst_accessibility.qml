@@ -854,5 +854,15 @@ TestCase {
         verify(findChild(insightsView, "povChapter"));
         verify(findChild(insightsView, "dialogueChapter"));
         verify(findChild(insightsView, "frequentWord"));
+        const grid = findChild(insightsView, "presenceGrid") as Grid;
+        verify(!grid.visible);
+        const harbour = view.session.add("character");
+        view.session.rename(harbour, "Harbour");
+        insightsView.refresh();
+        waitForRendering(view);
+        verify(grid.visible);
+        const cell = findChild(grid, "presenceCell") as Item;
+        verify(cell.Accessible.name.startsWith("Harbour in "), cell.Accessible.name);
+        compare(faults(grid), []);
     }
 }

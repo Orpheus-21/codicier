@@ -128,7 +128,7 @@ Item {
         anchors.margins: Theme.space.xl
         clip: true
         boundsBehavior: Flickable.StopAtBounds
-        contentHeight: column.implicitHeight
+        contentHeight: sections.implicitHeight
 
         WheelHandler {
             onWheel: event => {
@@ -138,7 +138,7 @@ Item {
         }
 
         Column {
-            id: column
+            id: sections
 
             width: Math.min(flick.width, 900)
 
@@ -376,6 +376,96 @@ Item {
                         font.family: Theme.type.ui
                         font.pixelSize: Theme.type.small
                         color: Theme.color.inkMuted
+                    }
+                }
+            }
+
+            Heading {
+                text: "Characters in each chapter"
+            }
+
+            Text {
+                visible: (insights.figures.characters ?? []).length === 0
+                text: "Add characters to the codex to see where they appear."
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.inkMuted
+            }
+
+            // A row for each character and a column for each chapter. A cell
+            // shows the count of mentions, on a tint that grows with it.
+            Grid {
+                id: presence
+
+                readonly property var people: insights.figures.characters ?? []
+                readonly property int cellWidth: 72
+                readonly property int most: Math.max(1, ...insights.figures.chapters.map(
+                    chapter => Math.max(0, ...(chapter.presence ?? []))))
+
+                objectName: "presenceGrid"
+                visible: people.length > 0
+                columns: insights.figures.chapters.length + 1
+                rowSpacing: 2
+                columnSpacing: 2
+
+                Item {
+                    width: insights.labelWidth
+                    height: 28
+                }
+
+                Repeater {
+                    model: insights.figures.chapters
+
+                    Text {
+                        required property var modelData
+
+                        width: presence.cellWidth
+                        height: 28
+                        verticalAlignment: Text.AlignBottom
+                        horizontalAlignment: Text.AlignHCenter
+                        text: modelData.title
+                        elide: Text.ElideRight
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.small
+                        font.weight: Font.DemiBold
+                        color: Theme.color.inkMuted
+                    }
+                }
+
+                Repeater {
+                    model: presence.people.length * (insights.figures.chapters.length + 1)
+
+                    Rectangle {
+                        id: cell
+
+                        required property int index
+
+                        readonly property int row: Math.floor(index / presence.columns)
+                        readonly property int column: index % presence.columns - 1
+                        readonly property int count: column >= 0
+                            ? (insights.figures.chapters[column].presence[row] ?? 0) : 0
+
+                        objectName: column >= 0 ? "presenceCell" : "presenceName"
+                        width: column < 0 ? insights.labelWidth : presence.cellWidth
+                        height: 28
+                        radius: 4
+                        color: column < 0 || count === 0 ? "transparent"
+                             : Qt.alpha(Theme.color.accent, 0.2 + 0.8 * count / presence.most)
+                        Accessible.role: Accessible.StaticText
+                        Accessible.name: column < 0 ? presence.people[row].title
+                            : presence.people[row].title + " in " + insights.figures.chapters[column].title + ": "
+                              + count + (count === 1 ? " mention" : " mentions")
+
+                        Text {
+                            anchors.fill: parent
+                            horizontalAlignment: cell.column < 0 ? Text.AlignLeft : Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            text: cell.column < 0 ? presence.people[cell.row].title : (cell.count > 0 ? cell.count : "")
+                            elide: Text.ElideRight
+                            font.family: cell.column < 0 ? Theme.type.reading : Theme.type.ui
+                            font.pixelSize: cell.column < 0 ? Theme.type.body + 1 : Theme.type.small
+                            color: cell.column >= 0 && cell.count / presence.most > 0.5 ? Theme.color.paper : Theme.color.ink
+                        }
                     }
                 }
             }
