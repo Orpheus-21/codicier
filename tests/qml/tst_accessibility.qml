@@ -454,4 +454,35 @@ TestCase {
         verify((count.children[0] as Text).text.includes("of 500"));
         Settings.sessionTarget = 0;
     }
+
+    function test_goalAndDeadlineInTheDialog() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_G, Qt.ControlModifier | Qt.ShiftModifier);
+        const overlay = view.T.Overlay.overlay;
+        const goal = findChild(overlay, "goalWords") as TextField;
+        const deadline = findChild(overlay, "deadline") as TextField;
+        tryVerify(() => goal && goal.visible);
+        goal.forceActiveFocus();
+        goal.selectAll();
+        for (const c of "5000")
+            keyClick(c);
+        keyClick(Qt.Key_Tab);
+        deadline.forceActiveFocus();
+        for (const c of "soon")
+            keyClick(c);
+        keyClick(Qt.Key_Tab);
+        const note = findChild(overlay, "dailyNeeded") as Text;
+        verify(note.text.startsWith("Write the deadline"), note.text);
+        deadline.selectAll();
+        deadline.forceActiveFocus();
+        const date = new Date(Date.now() + 4 * 86400000);
+        deadline.text = "";
+        for (const c of Qt.formatDate(date, "yyyy-MM-dd"))
+            keyClick(c);
+        keyClick(Qt.Key_Tab);
+        compare(view.session.goalWords, 5000);
+        verify(view.session.dailyNeeded > 0);
+        verify(note.text.includes("words each day"), note.text);
+    }
 }

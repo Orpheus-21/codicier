@@ -9,6 +9,18 @@ T.Popup {
     id: dialog
 
     required property ProjectSession session
+    property string goalError: ""
+
+    function saveGoal() {
+        const words = goalField.text === "" ? 0 : parseInt(goalField.text);
+        goalError = session.setGoal(words, deadlineField.text) ? ""
+                  : "Write the deadline as a date such as 2027-03-01.";
+    }
+
+    function longDate(iso: string): string {
+        return Date.fromLocaleDateString(Qt.locale("en_GB"), iso, "yyyy-MM-dd")
+            .toLocaleDateString(Qt.locale("en_GB"), "d MMMM yyyy");
+    }
 
     implicitWidth: 600
     implicitHeight: Math.min(form.implicitHeight + topPadding + bottomPadding,
@@ -100,6 +112,67 @@ T.Popup {
                     }
                     onEditingFinished: Settings.sessionTarget = text === "" ? 0 : parseInt(text)
                 }
+            }
+
+            Heading {
+                text: "The project"
+            }
+
+            Row {
+                spacing: Theme.space.l
+
+                Column {
+                    spacing: Theme.space.xs
+
+                    Caps {
+                        text: "Word goal"
+                    }
+
+                    TextField {
+                        id: goalField
+
+                        objectName: "goalWords"
+                        width: 160
+                        Accessible.name: "Word goal of the project"
+                        placeholderText: "No goal"
+                        text: dialog.session.goalWords > 0 ? String(dialog.session.goalWords) : ""
+                        validator: IntValidator {
+                            bottom: 0
+                            top: 100000000
+                        }
+                        onEditingFinished: dialog.saveGoal()
+                    }
+                }
+
+                Column {
+                    spacing: Theme.space.xs
+
+                    Caps {
+                        text: "Deadline"
+                    }
+
+                    TextField {
+                        id: deadlineField
+
+                        objectName: "deadline"
+                        width: 160
+                        Accessible.name: "Deadline of the project"
+                        placeholderText: "2027-03-01"
+                        text: dialog.session.deadline
+                        onEditingFinished: dialog.saveGoal()
+                    }
+                }
+            }
+
+            Note {
+                objectName: "dailyNeeded"
+                text: dialog.goalError !== "" ? dialog.goalError
+                    : dialog.session.dailyNeeded >= 0
+                      ? "To reach " + dialog.session.goalWords.toLocaleString(Qt.locale("en_GB"), "f", 0)
+                        + " words by " + dialog.longDate(dialog.session.deadline) + ", write "
+                        + dialog.session.dailyNeeded.toLocaleString(Qt.locale("en_GB"), "f", 0) + " words each day."
+                    : "Set a word goal and a deadline to see the words to write each day."
+                color: dialog.goalError !== "" ? Theme.color.accent : Theme.color.inkMuted
             }
 
             Item {

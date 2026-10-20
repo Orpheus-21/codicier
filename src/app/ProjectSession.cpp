@@ -7,6 +7,7 @@
 #include "ProjectStore.h"
 #include "Snapshots.h"
 
+#include <QDate>
 #include <QDir>
 #include <QFile>
 #include <QLocale>
@@ -743,6 +744,48 @@ int ProjectSession::chapterWords() const
         return binderModel.wordsOf(current);
     const QString chapter = binderModel.chapterOf(current);
     return chapter.isEmpty() ? -1 : binderModel.wordsOf(chapter);
+}
+
+QString ProjectSession::deadline() const
+{
+    const auto date = project.data["goals"]["deadline"].value<toml::date>();
+    if (!date)
+        return { };
+    return QDate(date->year, date->month, date->day).toString(Qt::ISODate);
+}
+
+int ProjectSession::dailyNeeded() const
+{
+    const QDate end = QDate::fromString(deadline(), Qt::ISODate);
+    const qint64 days = QDate::currentDate().daysTo(end) + 1;
+    if (goalWords() <= 0 || !end.isValid() || days < 1)
+        return -1;
+    // ponytail: counts from the words of now, so the figure falls while the
+    // author writes today; use the words at the start of the day from the
+    // history if that confuses.
+    const int left = std::max(0, goalWords() - manuscriptWords());
+    return static_cast<int>((left + days - 1) / days);
+}
+
+bool ProjectSession::setGoal(int words, const QString &deadline)
+{
+    const QDate date = QDate::fromString(deadline.trimmed(), Qt::ISODate);
+    if (project.readOnly || words < 0 || (!deadline.trimmed().isEmpty() && !date.isValid()))
+        return false;
+    if (project.data.get_as<toml::table>("goals") == nullptr)
+        project.data.insert_or_assign("goals", toml::table { });
+    toml::table &goals = *project.data.get_as<toml::table>("goals");
+    if (words > 0)
+        goals.insert_or_assign("words", words);
+    else
+        goals.erase("words");
+    if (date.isValid())
+        goals.insert_or_assign("deadline", toml::date(date.year(), date.month(), date.day()));
+    else
+        goals.erase("deadline");
+    if (goals.empty())
+        project.data.erase("goals");
+    return commit({ });
 }
 
 int ProjectSession::goalWords() const

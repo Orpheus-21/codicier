@@ -1,6 +1,7 @@
 #include "ProjectSession.h"
 #include "ProjectStore.h"
 
+#include <QDate>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -931,6 +932,28 @@ private slots:
         // Fewer words than at the start count as 0.
         editor.setPlainText("Short.");
         QTRY_COMPARE(session->sessionWords(), 0);
+    }
+
+    void goalAndDeadlineGiveTheDailyWords()
+    {
+        // The fixture has a goal of 90000 and a deadline of 2027-03-01.
+        QCOMPARE(session->goalWords(), 90000);
+        QCOMPARE(session->deadline(), QStringLiteral("2027-03-01"));
+        const QString date = QDate::currentDate().addDays(9).toString(Qt::ISODate);
+        QVERIFY(session->setGoal(1028, date));
+        QCOMPARE(session->deadline(), date);
+        // 1028 goal minus 28 words is 1000, over 10 days with today.
+        QCOMPARE(session->dailyNeeded(), 100);
+        QVERIFY(readFile("project.toml").contains("deadline = " + date.toUtf8()));
+
+        QVERIFY(!session->setGoal(1000, "next week"));
+        QVERIFY(!session->setGoal(-1, ""));
+        QVERIFY(session->setGoal(1000, QDate::currentDate().addDays(-1).toString(Qt::ISODate)));
+        QCOMPARE(session->dailyNeeded(), -1);
+        QVERIFY(session->setGoal(0, ""));
+        QCOMPARE(session->goalWords(), 0);
+        QVERIFY(!readFile("project.toml").contains("deadline ="));
+        QVERIFY(!readFile("project.toml").contains("words = "));
     }
 
     void readOnlyProjectRefusesEdits()

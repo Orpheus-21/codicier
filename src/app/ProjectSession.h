@@ -43,7 +43,12 @@ class ProjectSession : public QObject
     // The words added to the manuscript since the project opened, 0 or more.
     Q_PROPERTY(int sessionWords READ sessionWords NOTIFY wordsChanged)
     // The word goal from project.toml, or 0.
-    Q_PROPERTY(int goalWords READ goalWords NOTIFY loaded)
+    Q_PROPERTY(int goalWords READ goalWords NOTIFY wordsChanged)
+    // The deadline of the project as yyyy-MM-dd, or "".
+    Q_PROPERTY(QString deadline READ deadline NOTIFY wordsChanged)
+    // The words to write each day, from today to the deadline, to reach the
+    // goal. -1 with no goal or no deadline, or after the deadline.
+    Q_PROPERTY(int dailyNeeded READ dailyNeeded NOTIFY wordsChanged)
     // Where a zip backup goes when the project closes, and how many to keep.
     // An empty folder means no backup.
     Q_PROPERTY(QString backupFolder MEMBER backupFolder NOTIFY backupChanged)
@@ -195,6 +200,11 @@ public:
     int manuscriptWords() const { return binderModel.manuscriptWords(); }
     int sessionWords() const { return std::max(0, manuscriptWords() - sessionStart); }
     int goalWords() const;
+    QString deadline() const;
+    int dailyNeeded() const;
+    // Sets the word goal (0 for none) and the deadline (yyyy-MM-dd, or "" for
+    // none) in project.toml. Returns false for a date that is not valid.
+    Q_INVOKABLE bool setGoal(int words, const QString &deadline);
 
 signals:
     void loaded();

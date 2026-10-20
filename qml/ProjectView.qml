@@ -629,6 +629,11 @@ Item {
             }
 
             Count {
+                visible: view.session.dailyNeeded >= 0
+                text: statusBar.number(view.session.dailyNeeded) + " a day to the deadline"
+            }
+
+            Count {
                 objectName: "keyWarnings"
                 visible: view.keys.warnings.length > 0
                 text: "Key map: " + view.keys.warnings.join(" ")
