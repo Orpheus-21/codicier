@@ -21,6 +21,7 @@ the-salt-ledger/
     binder.toml         the binder: the tree, the order, and the scene data
     manuscript/         one Markdown file for each scene
     matter/             one Markdown file for each page of front or back matter
+    codex/              one Markdown file for each entity of the codex
     notes/              one Markdown file for each note
     research/           any files: images, PDF files, and other documents
     snapshots/          copies of a text at a moment, one folder for each item
@@ -102,7 +103,7 @@ Do not say so yet."""
 |---|---|---|---|
 | `id` | string | all | The item id. See "Item ids". |
 | `kind` | string | all | The kind of item. See "Kinds of items". |
-| `section` | string | top level only | `manuscript`, `front`, `back`, `notes`, `research`, `searches`, or `trash`. |
+| `section` | string | top level only | `manuscript`, `front`, `back`, `codex`, `notes`, `research`, `searches`, or `trash`. |
 | `parent` | string | all below the top level | The id of the parent item. |
 | `title` | string | all | The title in the binder. |
 | `file` | string | text and file items | The path of the file, relative to the project folder, with `/` between the parts. |
@@ -111,6 +112,7 @@ Do not say so yet."""
 | `place` | string | scenes | Where the scene happens. |
 | `time` | string | scenes | When the scene happens, in free text. |
 | `synopsis` | string | text items | A short summary. |
+| `aliases` | array of strings | entities | Other names of the entity, such as a nickname or a title. |
 | `tags` | array of strings | text items | Tags. |
 | `target` | integer | text items | The word target. |
 | `include` | boolean | text items | False leaves the item out of the manuscript: no total counts its words. The default is true, and the app writes the key only when it is false. |
@@ -133,6 +135,14 @@ An item at the top level has a `section` and no `parent`. An item below the top 
 | `note` | a note | yes, in `notes/` | `notes` |
 | `file` | a research file | yes, in `research/` | `research` |
 | `search` | a saved search | no | `searches` |
+| `character` | a person or a being of the story | yes, in `codex/` | `codex` |
+| `place` | a place of the story | yes, in `codex/` | `codex` |
+| `item` | an object of the story | yes, in `codex/` | `codex` |
+| `faction` | a group, a family, or an institution | yes, in `codex/` | `codex` |
+| `lore` | history, a custom, or a rule of the world | yes, in `codex/` | `codex` |
+| `term` | a word of the story, for the glossary | yes, in `codex/` | `codex` |
+
+The kinds `character`, `place`, `item`, `faction`, `lore`, and `term` are the entities of the codex. The file of an entity holds its description as prose. Its data, such as `aliases`, `tags`, and `notes`, is in `binder.toml`, as for a scene.
 
 A short story or an essay can have scenes at the top of the manuscript, with no parts or chapters.
 
