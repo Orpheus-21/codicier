@@ -109,6 +109,7 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Alt+C | Edit the calendar of the story. |
 | Ctrl+Alt+R | Show or hide the relationship graph. |
 | Ctrl+Alt+F | Show or hide the family tree. |
+| Ctrl+Alt+I | Show or hide the insights. |
 | Ctrl+Shift+G | Open goals and progress. |
 | Ctrl+Shift+T | Start or stop a sprint. |
 | Ctrl+Shift+F | Search the project. |
@@ -151,6 +152,7 @@ The buttons at the top right of the page, and the keys in the table above, chang
 - Timeline: the scenes and entities with a date in the story, on a track for each POV character or each plotline.
 - Relationship graph: the characters, and the other entities with a relation, with an arrow for each relation.
 - Family tree: the people with a parent link, one row for each generation.
+- Insights: charts of the manuscript. They show the words of each chapter and scene, the share of each POV and of dialogue in each chapter, the 30 most used words without common English words, and how often each character of the codex is named in each chapter.
 
 Give a scene or an entity a date in its inspector, as year-month-day, such as `1847-03-04`. To use your own months, press Ctrl+Alt+C and write one month on each line with its number of days, such as `Frostmonth 40`.
 
