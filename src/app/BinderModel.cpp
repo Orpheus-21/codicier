@@ -43,7 +43,7 @@ void BinderModel::setProject(const Project &project)
         node.children = item.children;
         node.missing = item.missingFile;
         node.included = item.data["include"].value_or(true);
-        if (!item.file.isEmpty() && item.kind != QLatin1String("file") && !item.missingFile)
+        if (!item.file.isEmpty() && !holdsNoText(item.kind) && !item.missingFile)
             node.words = wordsInFile(dir.filePath(item.file));
         nodes.append(node);
     }

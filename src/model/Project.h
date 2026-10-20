@@ -27,6 +27,13 @@ struct ProjectItem
     toml::table data;
 };
 
+// True for a kind whose file is not text: a research file, or the image of
+// a map. The search, the word counts, and the spell check skip such files.
+inline bool holdsNoText(const QString &kind)
+{
+    return kind == QLatin1String("file") || kind == QLatin1String("map");
+}
+
 struct Project
 {
     QString folder;

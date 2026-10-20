@@ -798,4 +798,18 @@ TestCase {
         mouseClick(findChild(treeView, "treePerson") as Item);
         compare(view.viewMode, "page");
     }
+
+    function test_mapShowsItsImage() {
+        const view = makeView();
+        compare(view.session.addMap("file:///no/such/map.png"), "");
+        const map = view.session.addMap("file://" + Qt.resolvedUrl("../fixtures/map.png").toString().replace("file://", ""));
+        verify(map !== "");
+        compare(view.session.currentId, map);
+        compare(view.currentKind, "map");
+        const mapView = findChild(view, "mapView") as MapView;
+        verify(mapView.visible);
+        const image = findChild(mapView, "mapImage") as Image;
+        tryCompare(image, "status", Image.Ready);
+        compare(image.sourceSize.width, 8);
+    }
 }

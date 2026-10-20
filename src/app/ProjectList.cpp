@@ -158,8 +158,7 @@ ProjectList::Entry ProjectList::read(const QString &projectFolder)
     const QDir dir(projectFolder);
     QDateTime newestText;
     for (const ProjectItem &item : project.items) {
-        if (item.file.isEmpty() || item.kind == QLatin1String("file")
-            || item.section == QLatin1String("trash"))
+        if (item.file.isEmpty() || holdsNoText(item.kind) || item.section == QLatin1String("trash"))
             continue;
         const QString path = dir.filePath(item.file);
         const QString text = readText(path);

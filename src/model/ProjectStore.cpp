@@ -45,7 +45,7 @@ struct KindRule
     std::string_view otherSection;
 };
 
-constexpr std::array<KindRule, 14> kindRules { {
+constexpr std::array<KindRule, 15> kindRules { {
     { "part", "", "manuscript", "" },
     { "chapter", "", "manuscript", "" },
     { "folder", "", "", "" },
@@ -61,6 +61,8 @@ constexpr std::array<KindRule, 14> kindRules { {
     { "faction", "codex/", "codex", "" },
     { "lore", "codex/", "codex", "" },
     { "term", "codex/", "codex", "" },
+    // A map: an image in maps/, in the codex.
+    { "map", "maps/", "codex", "" },
 } };
 
 template <std::size_t N>

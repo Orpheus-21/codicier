@@ -7,12 +7,14 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QImage>
 #include <QProcess>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextCursor>
 #include <QTextDocument>
+#include <QUrl>
 
 namespace {
 
@@ -1280,6 +1282,37 @@ private slots:
         // A loop of parent links does not hang the tree.
         QVERIFY(session->addRelation(ids[2], ids[0], { }, true));
         QVERIFY(!session->familyTree().value("generations").toList().isEmpty());
+    }
+
+    void mapsCopyTheImageIntoTheProject()
+    {
+        QTemporaryDir source;
+        QImage image(40, 30, QImage::Format_RGB32);
+        image.fill(Qt::darkCyan);
+        QVERIFY(image.save(source.filePath("The Harbour.png")));
+        QFile text(source.filePath("notes.txt"));
+        QVERIFY(text.open(QIODevice::WriteOnly));
+        text.close();
+
+        QVERIFY(session->addMap(QUrl::fromLocalFile(source.filePath("notes.txt"))).isEmpty());
+        QVERIFY(!session->lastError().isEmpty());
+        const QString id = session->addMap(QUrl::fromLocalFile(source.filePath("The Harbour.png")));
+        QVERIFY(!id.isEmpty());
+        const ProjectItem map = onDisk(dir.path(), id);
+        QCOMPARE(map.kind, QStringLiteral("map"));
+        QCOMPARE(map.section, QStringLiteral("codex"));
+        QCOMPARE(map.title, QStringLiteral("The Harbour"));
+        QCOMPARE(map.file, QStringLiteral("maps/the-harbour.png"));
+        QVERIFY(QImage(QDir(dir.path()).filePath(map.file)).size() == QSize(40, 30));
+        QCOMPARE(session->fileUrl(id), QUrl::fromLocalFile(QDir(dir.path()).filePath(map.file)));
+        // A second copy gets a new file name.
+        const QString again
+            = session->addMap(QUrl::fromLocalFile(source.filePath("The Harbour.png")));
+        QCOMPARE(onDisk(dir.path(), again).file, QStringLiteral("maps/the-harbour-2.png"));
+        // The image is not a text: the editor does not open it, and it has no words.
+        QCOMPARE(session->document()->file(), QString());
+        QCOMPARE(session->binder()->wordsOf(id), 0);
+        QVERIFY(session->search("harbour").size() >= 1);
     }
 
     void readOnlyProjectRefusesEdits()

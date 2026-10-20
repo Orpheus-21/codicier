@@ -9,6 +9,7 @@
 #include <QPointer>
 #include <QSet>
 #include <QString>
+#include <QUrl>
 #include <QVariantMap>
 
 #include <QtQml/qqmlregistration.h>
@@ -120,6 +121,11 @@ public:
     // in binder.toml, from, to, their titles, the name, and parent. A
     // relation to an item in the trash does not show.
     Q_INVOKABLE QVariantList relations(const QString &id = QString()) const;
+    // Copies a local image into maps/ and adds it as a map in the codex.
+    // Returns the new id, or "" with the reason in lastError.
+    Q_INVOKABLE QString addMap(const QUrl &image);
+    // The URL of the file of an item, such as the image of a map.
+    Q_INVOKABLE QUrl fileUrl(const QString &id) const;
     // Links two entities with a name, such as "sister of". With parent,
     // from is a parent of to, and the name is "parent of". Returns false on
     // an error.

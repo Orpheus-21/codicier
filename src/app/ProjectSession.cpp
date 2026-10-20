@@ -188,7 +188,7 @@ void ProjectSession::setCurrentId(const QString &id)
         if (item.id != id)
             continue;
         known = true;
-        if (item.kind != QLatin1String("file") && !item.missingFile)
+        if (!holdsNoText(item.kind) && !item.missingFile)
             file = item.file;
     }
     if (!known)
@@ -215,8 +215,8 @@ constexpr std::array<std::pair<QStringView, QStringView>, 6> builtInTypes { {
 // types of the project when it loads or adds an item.
 bool isEntity(const QString &kind)
 {
-    static const QStringList base { "part", "chapter", "folder", "scene",
-                                    "page", "note",    "file",   "search" };
+    static const QStringList base { "part", "chapter", "folder", "scene", "page",
+                                    "note", "file",    "search", "map" };
     return !kind.isEmpty() && !base.contains(kind);
 }
 
@@ -362,6 +362,54 @@ QVariantList ProjectSession::plotlines() const
         }
     }
     return list;
+}
+
+QString ProjectSession::addMap(const QUrl &image)
+{
+    editError.clear();
+    const QFileInfo source(image.isLocalFile() ? image.toLocalFile() : image.toString());
+    static const QStringList kinds { "png", "jpg", "jpeg", "webp", "gif", "bmp" };
+    if (project.readOnly || !source.isFile() || !kinds.contains(source.suffix().toLower())) {
+        editError = QStringLiteral("Choose an image file: PNG, JPEG, WebP, GIF, or BMP.");
+        emit edited();
+        return { };
+    }
+    // The image is copied into maps/, with a name that no other file has.
+    const QDir dir(project.folder);
+    dir.mkpath(QStringLiteral("maps"));
+    const QString extension = u'.' + source.suffix().toLower();
+    QString name = Naming::fileNameFor(source.completeBaseName(), { });
+    name.chop(3);
+    QString file = QStringLiteral("maps/") + name + extension;
+    for (int n = 2; QFileInfo::exists(dir.filePath(file)); ++n)
+        file = QStringLiteral("maps/%1-%2%3").arg(name).arg(n).arg(extension);
+    if (!QFile::copy(source.absoluteFilePath(), dir.filePath(file))) {
+        editError = QStringLiteral("Cannot copy the image into the project.");
+        emit edited();
+        return { };
+    }
+    QSet<QString> ids;
+    for (const ProjectItem &each : std::as_const(project.items))
+        ids.insert(each.id);
+    ProjectItem item;
+    item.id = Naming::newItemId(ids);
+    item.kind = QStringLiteral("map");
+    item.title = source.completeBaseName();
+    item.file = file;
+    project.items.append(item);
+    place(static_cast<int>(project.items.size() - 1), -1, static_cast<int>(project.roots.size()),
+          QStringLiteral("codex"));
+    commit({ file });
+    setCurrentId(item.id);
+    return item.id;
+}
+
+QUrl ProjectSession::fileUrl(const QString &id) const
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.items.at(index).file.isEmpty())
+        return { };
+    return QUrl::fromLocalFile(QDir(project.folder).filePath(project.items.at(index).file));
 }
 
 QVariantList ProjectSession::relations(const QString &id) const
@@ -1722,7 +1770,7 @@ QVariantList ProjectSession::outlineOf(const QString &id) const
     };
     const std::function<void(int)> walk = [&](int at) {
         const ProjectItem &item = project.items.at(at);
-        if (!item.file.isEmpty() && item.kind != QLatin1String("file")) {
+        if (!item.file.isEmpty() && !holdsNoText(item.kind)) {
             QVariantMap values;
             if (const toml::table *fields = item.data.get_as<toml::table>("fields")) {
                 for (const auto &[key, value] : *fields)
@@ -1760,7 +1808,7 @@ QVariantList ProjectSession::textsUnder(const QString &id) const
     const std::function<void(int)> walk = [&](int at) {
         for (const int child : project.items.at(at).children) {
             const ProjectItem &item = project.items.at(child);
-            if (!item.file.isEmpty() && item.kind != QLatin1String("file") && !item.missingFile)
+            if (!item.file.isEmpty() && !holdsNoText(item.kind) && !item.missingFile)
                 list.append(QVariantMap { { QStringLiteral("id"), item.id },
                                           { QStringLiteral("title"), item.title },
                                           { QStringLiteral("file"), item.file } });
@@ -1877,7 +1925,7 @@ QString ProjectSession::takeSnapshot(const QString &id, const QString &title)
 {
     const int index = indexOf(id);
     if (index < 0 || project.items.at(index).file.isEmpty()
-        || project.items.at(index).kind == QLatin1String("file"))
+        || holdsNoText(project.items.at(index).kind))
         return { };
     // The snapshot holds the latest typing.
     if (current == id)
@@ -2118,7 +2166,7 @@ QVariantList ProjectSession::search(const QString &query, bool regex)
         for (const ProjectItem &item : std::as_const(project.items)) {
             if (binderModel.isInTrash(item.id) || item.kind == QLatin1String("search"))
                 continue;
-            const bool isText = !item.file.isEmpty() && item.kind != QLatin1String("file");
+            const bool isText = !item.file.isEmpty() && !holdsNoText(item.kind);
             const QString body
                 = isText ? readFile(QDir(project.folder).filePath(item.file)) : QString();
             const auto [start, length] = regexMatch(pattern, body);
@@ -2222,7 +2270,7 @@ QList<ReplaceTarget> replaceTargets(const Project &project, const BinderModel &b
         return targets;
     for (const ProjectItem &item : project.items) {
         if (item.section != QLatin1String("manuscript") || item.file.isEmpty()
-            || item.kind == QLatin1String("file") || binder.isInTrash(item.id))
+            || holdsNoText(item.kind) || binder.isInTrash(item.id))
             continue;
         ReplaceTarget target {
             item.id, item.title, item.file, readFile(QDir(project.folder).filePath(item.file)), { }

@@ -63,6 +63,8 @@ T.ItemDelegate {
             return "book-open";
         case "term":
             return "tag";
+        case "map":
+            return "map-pin";
         case "search":
             return "search";
         default:

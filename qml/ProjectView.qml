@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQml
 import QtQuick
+import QtQuick.Dialogs
 import QtQuick.Templates as T
 
 // The writing view of one project: the binder on the left, the page on the
@@ -98,6 +99,9 @@ Item {
     function toggleViewMode(mode: string) {
         viewMode = viewMode === mode ? "page" : mode;
     }
+
+    // The kind of the open item, such as "scene" or "map".
+    readonly property string currentKind: session.currentId !== "" ? (session.fields(session.currentId).kind ?? "") : ""
 
     // The result of the last action on versions, for the status bar.
     property string versionsMessage: ""
@@ -303,6 +307,14 @@ Item {
         }
     }
 
+    FileDialog {
+        id: mapDialog
+
+        title: "Choose the image of a map"
+        nameFilters: ["Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)"]
+        onAccepted: view.session.addMap(selectedFile)
+    }
+
     CalendarDialog {
         id: calendarDialog
 
@@ -434,6 +446,7 @@ Item {
                 T.Action { text: "New faction"; onTriggered: binder.addItem("faction") }
                 T.Action { text: "New lore"; onTriggered: binder.addItem("lore") }
                 T.Action { text: "New term"; onTriggered: binder.addItem("term") }
+                T.Action { text: "New map…"; onTriggered: mapDialog.open() }
             }
 
             Menu {
@@ -566,6 +579,17 @@ Item {
                     session: view.session
                     itemId: view.session.currentId
                 }
+            }
+
+            MapView {
+                objectName: "mapView"
+                visible: view.viewMode === "page" && view.currentKind === "map"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 3
+                session: view.session
+                itemId: visible ? view.session.currentId : ""
             }
 
             Corkboard {

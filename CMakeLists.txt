@@ -50,7 +50,7 @@ qt_add_qml_module(codicier_ui
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
         qml/Binder.qml qml/BinderRow.qml qml/Editor.qml qml/TextArea.qml qml/Inspector.qml
         qml/PageText.qml qml/Composite.qml qml/CompositeBlock.qml
-        qml/CompareView.qml qml/SettingsDialog.qml qml/SearchPanel.qml qml/CommandPalette.qml qml/Choice.qml qml/FontPicker.qml qml/DeleteProjectDialog.qml qml/CodexPanel.qml qml/TypeDialog.qml qml/Corkboard.qml qml/Outliner.qml qml/ProgressDialog.qml qml/VersionDialog.qml qml/VersionsPanel.qml qml/BeatBoard.qml qml/PlotGrid.qml qml/Timeline.qml qml/CalendarDialog.qml qml/RelationGraph.qml qml/FamilyTree.qml
+        qml/CompareView.qml qml/SettingsDialog.qml qml/SearchPanel.qml qml/CommandPalette.qml qml/Choice.qml qml/FontPicker.qml qml/DeleteProjectDialog.qml qml/CodexPanel.qml qml/TypeDialog.qml qml/Corkboard.qml qml/Outliner.qml qml/ProgressDialog.qml qml/VersionDialog.qml qml/VersionsPanel.qml qml/BeatBoard.qml qml/PlotGrid.qml qml/Timeline.qml qml/CalendarDialog.qml qml/RelationGraph.qml qml/FamilyTree.qml qml/MapView.qml
     SOURCES src/app/Workspaces.cpp src/app/Workspaces.h
         src/app/ProjectList.cpp src/app/ProjectList.h
         src/app/ProjectSession.cpp src/app/ProjectSession.h

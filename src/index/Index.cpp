@@ -98,7 +98,7 @@ QString insertItem(QSqlDatabase &db, const ProjectItem &entry, const QDir &dir)
     item.prepare(QStringLiteral("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?)"));
     text.prepare(QStringLiteral("INSERT INTO text (id, title, body) VALUES (?, ?, ?)"));
     // A research file is not text, so only its title is searched.
-    const bool isText = !entry.file.isEmpty() && entry.kind != QLatin1String("file");
+    const bool isText = !entry.file.isEmpty() && !holdsNoText(entry.kind);
     const QString body = isText ? readText(dir.filePath(entry.file)) : QString();
     // A null QString binds as NULL, so an item with no file stores "".
     const QString file = entry.file.isEmpty() ? QStringLiteral("") : entry.file;
