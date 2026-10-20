@@ -599,4 +599,28 @@ TestCase {
         verify(view.comparePath.startsWith("version:"));
         keyClick(Qt.Key_Escape);
     }
+
+    function test_beatBoardDragPutsASceneOnABeat() {
+        const view = makeView();
+        view.session.setFramework("kishotenketsu");
+        view.forceActiveFocus();
+        keyClick(Qt.Key_B, Qt.ControlModifier | Qt.AltModifier);
+        compare(view.viewMode, "beats");
+        const list = findChild(view, "beatColumns") as ListView;
+        tryCompare(list, "count", 5);
+        waitForRendering(view);
+        compare(faults(findChild(view, "beatBoard") as Item), []);
+        const card = findChild(list.itemAtIndex(0), "beatScene") as Item;
+        verify(card);
+        const target = list.itemAtIndex(2);
+        const from = card.mapToItem(view, card.width / 2, card.height / 2);
+        const to = target.mapToItem(view, target.width / 2, target.height / 2);
+        mousePress(view, from.x, from.y);
+        for (let i = 1; i <= 10; ++i)
+            mouseMove(view, from.x + (to.x - from.x) * i / 10, from.y + (to.y - from.y) * i / 10);
+        mouseRelease(view, to.x, to.y);
+        const columns = view.session.beatBoard();
+        compare(columns[2].scenes.length, 1);
+        compare(columns[2].id, "sho");
+    }
 }

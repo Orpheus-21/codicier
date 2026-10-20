@@ -347,6 +347,66 @@ bool ProjectSession::commit(const QStringList &newFiles)
     return errors.isEmpty();
 }
 
+QString ProjectSession::framework() const
+{
+    return QString::fromStdString(project.data["framework"].value_or(std::string()));
+}
+
+bool ProjectSession::setFramework(const QString &id)
+{
+    if (project.readOnly || std::ranges::none_of(Frameworks::all(), [&id](const auto &each) {
+            return each.id == id;
+        }))
+        return false;
+    project.data.insert_or_assign("framework", id.toStdString());
+    return commit({ });
+}
+
+QVariantList ProjectSession::beatBoard() const
+{
+    QVariantList columns;
+    const auto found = std::ranges::find_if(
+        Frameworks::all(), [this](const auto &each) { return each.id == framework(); });
+    if (found == Frameworks::all().end())
+        return columns;
+    // The scenes of the manuscript, in binder order, by beat.
+    QHash<QString, QVariantList> byBeat;
+    const std::function<void(int)> walk = [&](int at) {
+        const ProjectItem &item = project.items.at(at);
+        if (item.kind == QLatin1String("scene"))
+            byBeat[QString::fromStdString(item.data["beat"].value_or(std::string()))].append(
+                QVariantMap { { QStringLiteral("id"), item.id },
+                              { QStringLiteral("title"), item.title } });
+        for (const int child : item.children)
+            walk(child);
+    };
+    for (const int root : project.roots) {
+        if (project.items.at(root).section == QLatin1String("manuscript"))
+            walk(root);
+    }
+    QSet<QString> known;
+    for (const Frameworks::Beat &beat : found->beats) {
+        known.insert(beat.id);
+        columns.append(QVariantMap { { QStringLiteral("id"), beat.id },
+                                     { QStringLiteral("name"), beat.name },
+                                     { QStringLiteral("description"), beat.description },
+                                     { QStringLiteral("scenes"), byBeat.value(beat.id) } });
+    }
+    // A scene with no beat, or with a beat of another framework.
+    QVariantList loose;
+    for (auto it = byBeat.cbegin(); it != byBeat.cend(); ++it) {
+        if (!known.contains(it.key()))
+            loose += it.value();
+    }
+    columns.prepend(
+        QVariantMap { { QStringLiteral("id"), QString() },
+                      { QStringLiteral("name"), QStringLiteral("No beat") },
+                      { QStringLiteral("description"),
+                        QStringLiteral("Scenes that are on no beat of this framework.") },
+                      { QStringLiteral("scenes"), loose } });
+    return columns;
+}
+
 QVariantList ProjectSession::frameworks() const
 {
     QVariantList list;
@@ -1237,7 +1297,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
     map.insert(QStringLiteral("status"),
                status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
                                                                        : status);
-    for (const char *key : { "pov", "place", "time", "synopsis", "notes" })
+    for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat" })
         map.insert(QString::fromLatin1(key), string(key));
     QStringList tags;
     if (const toml::array *list = item.data.get_as<toml::array>("tags")) {
@@ -1315,9 +1375,9 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
             && status != QLatin1String("final"))
             return false;
         data.insert_or_assign(name, status.toStdString());
-    } else if (key == QLatin1String("pov") || key == QLatin1String("place")
-               || key == QLatin1String("time") || key == QLatin1String("synopsis")
-               || key == QLatin1String("notes")) {
+    } else if (key == QLatin1String("beat") || key == QLatin1String("pov")
+               || key == QLatin1String("place") || key == QLatin1String("time")
+               || key == QLatin1String("synopsis") || key == QLatin1String("notes")) {
         const QString text = value.toString().trimmed();
         if (text.isEmpty())
             data.erase(name);

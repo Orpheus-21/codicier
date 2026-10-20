@@ -1091,6 +1091,32 @@ private slots:
         QVERIFY(!catalyst.value("description").toString().isEmpty());
     }
 
+    void beatBoardPlacesScenesOnBeats()
+    {
+        QVERIFY(session->beatBoard().isEmpty());
+        QVERIFY(!session->setFramework("no-such-framework"));
+        QVERIFY(session->setFramework("kishotenketsu"));
+        QCOMPARE(session->framework(), QStringLiteral("kishotenketsu"));
+        QVERIFY(readFile("project.toml").contains("framework = \"kishotenketsu\""));
+        QVERIFY(session->setField("m1n2p3q4r5", "beat", "ten"));
+        QCOMPARE(session->fields("m1n2p3q4r5").value("beat").toString(), QStringLiteral("ten"));
+
+        const QVariantList columns = session->beatBoard();
+        QCOMPARE(columns.size(), 5);
+        QCOMPARE(columns.first().toMap().value("name").toString(), QStringLiteral("No beat"));
+        QCOMPARE(columns.first().toMap().value("scenes").toList().size(), 1);
+        const QVariantMap ten = columns.at(3).toMap();
+        QCOMPARE(ten.value("id").toString(), QStringLiteral("ten"));
+        QCOMPARE(ten.value("scenes").toList().first().toMap().value("id").toString(),
+                 QStringLiteral("m1n2p3q4r5"));
+
+        // A beat of another framework counts as no beat.
+        QVERIFY(session->setFramework("three-act"));
+        QCOMPARE(session->beatBoard().first().toMap().value("scenes").toList().size(), 2);
+        QVERIFY(session->setField("m1n2p3q4r5", "beat", ""));
+        QVERIFY(session->fields("m1n2p3q4r5").value("beat").toString().isEmpty());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

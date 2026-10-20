@@ -100,6 +100,14 @@ public:
     // The plot frameworks: the id, the name, and the beats of each, with the
     // id, name, description, and place of each beat.
     Q_INVOKABLE QVariantList frameworks() const;
+    // The framework of the project, by id, or "".
+    Q_PROPERTY(QString framework READ framework NOTIFY edited)
+    QString framework() const;
+    Q_INVOKABLE bool setFramework(const QString &id);
+    // The beat board: a column for scenes with no beat, then a column for
+    // each beat of the framework, with the id, name, description, and the
+    // scenes (id and title) of each. Empty with no framework.
+    Q_INVOKABLE QVariantList beatBoard() const;
     // Sets the name and the fields of a type in project.toml. An empty kind
     // makes a new type from the name. Returns the kind, or "" on an error.
     Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,

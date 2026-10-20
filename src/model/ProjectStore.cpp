@@ -282,7 +282,7 @@ private:
         if (table->get("created") == nullptr)
             error(file, 0, QStringLiteral("`created` is missing"));
         checkType(*table, "created", toml::node_type::date_time, file);
-        for (const std::string_view key : { "subtitle", "author", "language" })
+        for (const std::string_view key : { "subtitle", "author", "language", "framework" })
             checkType(*table, key, toml::node_type::string, file);
         if (checkType(*table, "goals", toml::node_type::table, file)) {
             if (const toml::table *goals = table->get_as<toml::table>("goals")) {
@@ -353,7 +353,7 @@ private:
         const auto parent = string(entry, "parent", file, line, false);
 
         for (const std::string_view key :
-             { "pov", "place", "time", "synopsis", "notes", "restore", "query" })
+             { "pov", "place", "time", "synopsis", "notes", "restore", "query", "beat" })
             checkType(entry, key, toml::node_type::string, file);
         checkType(entry, "target", toml::node_type::integer, file);
         checkType(entry, "include", toml::node_type::boolean, file);
@@ -480,15 +480,16 @@ private:
 };
 
 // The key order of docs/format.md. Other keys follow in alphabetical order.
-constexpr std::array<std::string_view, 7> projectOrder { "format", "title",    "subtitle", "author",
-                                                         "kind",   "language", "created" };
+constexpr std::array<std::string_view, 8> projectOrder { "format",  "title",    "subtitle",
+                                                         "author",  "kind",     "language",
+                                                         "created", "framework" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 19> itemOrder { "id",      "kind",    "section", "parent",
-                                                       "title",   "file",    "status",  "include",
-                                                       "pov",     "place",   "time",    "synopsis",
-                                                       "aliases", "tags",    "target",  "query",
-                                                       "regex",   "restore", "notes" };
+constexpr std::array<std::string_view, 20> itemOrder { "id",       "kind",    "section", "parent",
+                                                       "title",    "file",    "status",  "include",
+                                                       "pov",      "place",   "time",    "beat",
+                                                       "synopsis", "aliases", "tags",    "target",
+                                                       "query",    "regex",   "restore", "notes" };
 
 TomlWriter::Order orderFor(std::string_view path)
 {

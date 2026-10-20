@@ -89,8 +89,8 @@ Item {
     // The search panel takes the place of the binder list.
     property bool searchOpen: false
 
-    // What the editor area shows: "page", "board" for the corkboard, or
-    // "outline" for the outliner.
+    // What the editor area shows: "page", "board" for the corkboard,
+    // "outline" for the outliner, or "beats" for the beat board.
     property string viewMode: "page"
 
     function toggleViewMode(mode: string) {
@@ -257,6 +257,7 @@ Item {
         { id: "item.trash", name: "Move the item to the trash", sequence: "Ctrl+Shift+Del", run: () => session.moveToTrash(session.currentId) },
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
+        { id: "beats", name: "Show or hide the beat board", sequence: "Ctrl+Alt+B", run: () => view.toggleViewMode("beats") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
         { id: "versions.list", name: "Show the versions", sequence: "Ctrl+Alt+H", run: () => view.openVersions() },
@@ -561,6 +562,17 @@ Item {
                 z: 4
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
+            }
+
+            BeatBoard {
+                objectName: "beatBoard"
+                visible: view.viewMode === "beats"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
                 onOpened: id => view.openText(id)
             }
 
