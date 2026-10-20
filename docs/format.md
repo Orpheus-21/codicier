@@ -26,6 +26,7 @@ the-salt-ledger/
     research/           any files: images, PDF files, and other documents
     snapshots/          copies of a text at a moment, one folder for each item
     history.toml        the words that the author wrote on each day
+    dictionary.txt      the words of the project for the spell check, one on each line
     .codicier/          app data that the app can build again or lose with no harm
 ```
 
