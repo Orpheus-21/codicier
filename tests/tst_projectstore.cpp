@@ -223,6 +223,11 @@ private slots:
         QTest::newRow("project goals words")
             << projectText() + "[goals]\nwords = \"many\"\n"
             << goodBinder() << "project.toml:6: `words` must be an integer";
+        QTest::newRow("aliases not strings") << projectText()
+                                             << goodBinder()
+                + "\n[[item]]\nid = \"c0c1c2c3c4\"\nkind = \"character\"\nsection = \"codex\"\n"
+                  "title = \"Mara\"\nfile = \"codex/mara.md\"\naliases = [ 1 ]\n"
+                                             << "`aliases` must hold only strings";
         QTest::newRow("search regex not a boolean") << projectText()
                                                     << goodBinder()
                 + "\n[[item]]\nid = \"s0s1s2s3s4\"\nkind = \"search\"\nsection = \"searches\"\n"

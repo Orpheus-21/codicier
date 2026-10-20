@@ -51,6 +51,18 @@ T.ItemDelegate {
             return "bookmark";
         case "folder":
             return "folder";
+        case "character":
+            return "users";
+        case "place":
+            return "map-pin";
+        case "item":
+            return "target";
+        case "faction":
+            return "layout-grid";
+        case "lore":
+            return "book-open";
+        case "term":
+            return "tag";
         case "search":
             return "search";
         default:

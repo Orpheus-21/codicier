@@ -758,6 +758,35 @@ private slots:
         QCOMPARE(again.viewState().value("binder").toBool(), true);
     }
 
+    void entitiesLiveInTheCodex()
+    {
+        QStringList ids;
+        for (const char *kind : { "character", "place", "item", "faction", "lore", "term" }) {
+            const QString id = session->add(kind);
+            QVERIFY2(!id.isEmpty(), kind);
+            ids.append(id);
+        }
+        const ProjectItem character = onDisk(dir.path(), ids.first());
+        QCOMPARE(character.kind, QStringLiteral("character"));
+        QCOMPARE(character.section, QStringLiteral("codex"));
+        QVERIFY(character.file.startsWith("codex/"));
+        QVERIFY(QFile::exists(QDir(dir.path()).filePath(character.file)));
+
+        QVERIFY(session->setField(ids.first(), "aliases",
+                                  QStringList { " Mara ", "", "the clerk", "Mara" }));
+        QCOMPARE(session->fields(ids.first()).value("aliases").toStringList(),
+                 (QStringList { "Mara", "the clerk" }));
+        QVERIFY(session->setField(ids.first(), "aliases", QStringList()));
+        QVERIFY(session->fields(ids.first()).value("aliases").toStringList().isEmpty());
+        QVERIFY(session->setField(ids.first(), "aliases", QStringList { "Mara" }));
+
+        // The binder file comes back byte for byte after a load and a save.
+        Project project;
+        onDisk(dir.path(), ids.first(), &project);
+        QCOMPARE(ProjectStore::binderFile(project), readFile("binder.toml"));
+        QVERIFY(readFile("binder.toml").contains("aliases = [\"Mara\"]"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

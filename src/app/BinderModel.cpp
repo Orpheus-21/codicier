@@ -9,8 +9,8 @@
 
 namespace {
 
-constexpr std::array<const char *, 7> sectionOrder { "front",    "manuscript", "back", "notes",
-                                                     "research", "searches",   "trash" };
+constexpr std::array<const char *, 8> sectionOrder { "front", "manuscript", "back",     "codex",
+                                                     "notes", "research",   "searches", "trash" };
 
 int wordsInFile(const QString &path)
 {

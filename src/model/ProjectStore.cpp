@@ -27,8 +27,9 @@ namespace {
 constexpr std::array<std::string_view, 7> projectKinds {
     "short-story", "novella", "novel", "series", "essay", "essay-collection", "non-fiction"
 };
-constexpr std::array<std::string_view, 7> sections { "manuscript", "front",    "back", "notes",
-                                                     "research",   "searches", "trash" };
+constexpr std::array<std::string_view, 8> sections {
+    "manuscript", "front", "back", "codex", "notes", "research", "searches", "trash"
+};
 constexpr std::array<std::string_view, 3> statuses { "draft", "revised", "final" };
 constexpr std::string_view idAlphabet = "0123456789abcdefghjkmnpqrstvwxyz";
 constexpr std::size_t idLength = 10;
@@ -43,7 +44,7 @@ struct KindRule
     std::string_view otherSection;
 };
 
-constexpr std::array<KindRule, 8> kindRules { {
+constexpr std::array<KindRule, 14> kindRules { {
     { "part", "", "manuscript", "" },
     { "chapter", "", "manuscript", "" },
     { "folder", "", "", "" },
@@ -52,6 +53,13 @@ constexpr std::array<KindRule, 8> kindRules { {
     { "note", "notes/", "notes", "" },
     { "file", "research/", "research", "" },
     { "search", "", "searches", "" },
+    // The entities of the codex: the people, places, and things of the story.
+    { "character", "codex/", "codex", "" },
+    { "place", "codex/", "codex", "" },
+    { "item", "codex/", "codex", "" },
+    { "faction", "codex/", "codex", "" },
+    { "lore", "codex/", "codex", "" },
+    { "term", "codex/", "codex", "" },
 } };
 
 template <std::size_t N>
@@ -288,10 +296,13 @@ private:
             status && !contains(statuses, *status))
             error(file, lineOf(*entry.get("status")),
                   QStringLiteral("`status` must be draft, revised, or final"));
-        if (checkType(entry, "tags", toml::node_type::array, file)) {
-            const toml::array *tags = entry.get_as<toml::array>("tags");
-            if (tags != nullptr && !tags->is_homogeneous(toml::node_type::string))
-                error(file, lineOf(*tags), QStringLiteral("`tags` must hold only strings"));
+        for (const std::string_view key : { "tags", "aliases" }) {
+            if (!checkType(entry, key, toml::node_type::array, file))
+                continue;
+            const toml::array *list = entry.get_as<toml::array>(key);
+            if (list != nullptr && !list->is_homogeneous(toml::node_type::string))
+                error(file, lineOf(*list),
+                      QStringLiteral("`%1` must hold only strings").arg(qs(key)));
         }
 
         if (!item.id.isEmpty() && indexOf.contains(item.id))
@@ -402,10 +413,11 @@ constexpr std::array<std::string_view, 7> projectOrder { "format", "title",    "
                                                          "kind",   "language", "created" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 18> itemOrder {
-    "id",    "kind", "section",  "parent", "title",  "file",  "status", "include", "pov",
-    "place", "time", "synopsis", "tags",   "target", "query", "regex",  "restore", "notes"
-};
+constexpr std::array<std::string_view, 19> itemOrder { "id",      "kind",    "section", "parent",
+                                                       "title",   "file",    "status",  "include",
+                                                       "pov",     "place",   "time",    "synopsis",
+                                                       "aliases", "tags",    "target",  "query",
+                                                       "regex",   "restore", "notes" };
 
 TomlWriter::Order orderFor(std::string_view path)
 {

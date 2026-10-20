@@ -166,6 +166,12 @@ void ProjectSession::setCurrentId(const QString &id)
 namespace {
 
 // What each kind can hold, and where a new item of a kind goes.
+bool isEntity(const QString &kind)
+{
+    static const QStringList kinds { "character", "place", "item", "faction", "lore", "term" };
+    return kinds.contains(kind);
+}
+
 bool canHold(const QString &parentKind, const QString &kind)
 {
     if (parentKind == QLatin1String("folder"))
@@ -185,6 +191,8 @@ QString homeSection(const QString &kind)
         return QStringLiteral("notes");
     if (kind == QLatin1String("search"))
         return QStringLiteral("searches");
+    if (isEntity(kind))
+        return QStringLiteral("codex");
     return QStringLiteral("manuscript");
 }
 
@@ -196,6 +204,8 @@ QString folderOf(const QString &kind)
         return QStringLiteral("matter/");
     if (kind == QLatin1String("note"))
         return QStringLiteral("notes/");
+    if (isEntity(kind))
+        return QStringLiteral("codex/");
     return { };
 }
 
@@ -675,6 +685,12 @@ QVariantMap ProjectSession::fields(const QString &id) const
             tags.append(QString::fromStdString(tag.value_or(std::string())));
     }
     map.insert(QStringLiteral("tags"), tags);
+    QStringList aliases;
+    if (const toml::array *list = item.data.get_as<toml::array>("aliases")) {
+        for (const toml::node &alias : *list)
+            aliases.append(QString::fromStdString(alias.value_or(std::string())));
+    }
+    map.insert(QStringLiteral("aliases"), aliases);
     map.insert(QStringLiteral("target"),
                static_cast<int>(item.data["target"].value_or(std::int64_t { 0 })));
     map.insert(QStringLiteral("words"), binderModel.wordsOf(id));
@@ -691,8 +707,8 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
         return false;
     toml::table &data = project.items[index].data;
     const std::string name = key.toStdString();
-    if (key == QLatin1String("tags")) {
-        // Tags: trimmed, no empty tags, no copies, in the order given.
+    if (key == QLatin1String("tags") || key == QLatin1String("aliases")) {
+        // A list of names: trimmed, no empty names, no copies, in the order given.
         QStringList tags;
         for (const QString &tag : value.toStringList()) {
             const QString clean = tag.trimmed();
