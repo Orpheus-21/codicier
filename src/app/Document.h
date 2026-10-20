@@ -9,6 +9,7 @@
 #include <QString>
 #include <QTextDocument>
 #include <QTimer>
+#include <QVariantList>
 #include <QtQml/qqmlregistration.h>
 
 // The open text file: it loads the file into the editor and saves it one
@@ -30,6 +31,8 @@ class Document : public QObject
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     // The theme colours for the Markdown marks and the footnote marks.
     Q_PROPERTY(QColor markColor READ markColor WRITE setMarkColor NOTIFY styleChanged)
+    // The colors of the draft passes, in pass order.
+    Q_PROPERTY(QVariantList passColors READ passColors WRITE setPassColors NOTIFY styleChanged)
     Q_PROPERTY(QColor accentColor READ accentColor WRITE setAccentColor NOTIFY styleChanged)
     // The space in pixels that the editor adds between two lines.
     Q_PROPERTY(qreal lineDistance READ lineDistance WRITE setLineDistance NOTIFY styleChanged)
@@ -79,6 +82,10 @@ public:
     void recheckSpelling();
     // The style checks, as MarkdownHighlighter::StyleCheck flags.
     void setStyleChecks(int checks);
+    // The parts of the text that each draft pass wrote, for the tints.
+    void setPasses(const QList<MarkdownHighlighter::PassRange> &ranges);
+    QVariantList passColors() const { return colorsOfPasses; }
+    void setPassColors(const QVariantList &colors);
     // Reads the file again, if there are no unsaved edits.
     void reloadIfClean();
     // The watcher saw an outside edit while the text was not saved.
@@ -105,6 +112,8 @@ private:
     QPointer<MarkdownHighlighter> highlighter;
     const SpellChecker *spell = nullptr;
     int styleChecks = 0;
+    QVariantList colorsOfPasses;
+    QList<MarkdownHighlighter::PassRange> passes;
     QColor mark { 0x70, 0x6b, 0x65 };
     QColor accent { 0x94, 0x55, 0x2a };
     qreal distance = 0;

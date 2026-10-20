@@ -90,6 +90,23 @@ private slots:
         QCOMPARE(segments.at(3), (Segment { Segment::Same, " " }));
         QCOMPARE(side(segments, Segment::Added), "Start " + before);
     }
+
+    void originsGiveTheVersionOfEachCharacter()
+    {
+        const QString one = "The tide came.";
+        const QString two = "The tide came in fast.";
+        const QString three = "The slow tide came in fast.";
+        const QList<int> origin = Diff::origins({ one, two, three });
+        QCOMPARE(origin.size(), three.size());
+        // "The " is from the first version.
+        QCOMPARE(origin.at(0), 0);
+        // "slow" came in the third version, "fast" in the second.
+        QCOMPARE(origin.at(three.indexOf("slow")), 2);
+        QCOMPARE(origin.at(three.indexOf("fast")), 1);
+        QCOMPARE(origin.at(three.indexOf("tide")), 0);
+        QVERIFY(Diff::origins({ }).isEmpty());
+        QCOMPARE(Diff::origins({ "abc" }), (QList<int> { 0, 0, 0 }));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestDiff)

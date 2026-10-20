@@ -46,6 +46,12 @@ TextEdit {
         value: Theme.color.accent
     }
 
+    Binding {
+        target: pageText.document
+        property: "passColors"
+        value: Theme.color.series
+    }
+
     // The reading line height, as space added to the natural line.
     Binding {
         target: pageText.document

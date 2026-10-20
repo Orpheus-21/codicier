@@ -172,6 +172,20 @@ private slots:
         highlighter.setStyleChecks(0);
         QVERIFY(!tinted(37));
     }
+
+    void passRangesTintTheText()
+    {
+        QTextDocument document;
+        document.setPlainText("Old words. New words.");
+        MarkdownHighlighter highlighter(&document);
+        highlighter.setPasses({ { 11, 10, 2 } }, { QColor("#2a78d6"), QColor("#eb6834") });
+        QVERIFY(!formatAt(document, 2).hasProperty(QTextFormat::BackgroundBrush));
+        const QColor tint = formatAt(document, 12).background().color();
+        QCOMPARE(tint.rgb(), QColor("#eb6834").rgb());
+        QVERIFY(tint.alpha() < 255);
+        highlighter.setPasses({ }, { });
+        QVERIFY(!formatAt(document, 12).hasProperty(QTextFormat::BackgroundBrush));
+    }
 };
 
 QTEST_MAIN(TestHighlighter)

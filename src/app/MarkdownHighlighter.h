@@ -33,6 +33,18 @@ public:
     };
     void setStyleChecks(int checks);
 
+    // A part of the text that a draft pass wrote: the start and the length
+    // in the whole text, and the pass number from 1.
+    struct PassRange
+    {
+        int start = 0;
+        int length = 0;
+        int pass = 1;
+    };
+    // Tints each range with the color of its pass. The colors repeat after
+    // the last one. No ranges turns the tints off.
+    void setPasses(const QList<PassRange> &ranges, const QList<QColor> &colors);
+
 protected:
     void highlightBlock(const QString &text) override;
 
@@ -56,6 +68,10 @@ private:
     // Underlines the unknown words, but not in links and footnote marks.
     void checkSpelling(const QString &text);
     unsigned styleChecks = 0;
+    QList<PassRange> passRanges;
+    QList<QColor> passColors;
+    // Tints the parts of this block that a pass wrote.
+    void tintPasses(const QString &text);
     bool has(StyleCheck check) const { return (styleChecks & static_cast<unsigned>(check)) != 0U; }
     QTextCharFormat styleFormat;
     // Tints the words of the style checks that are on.

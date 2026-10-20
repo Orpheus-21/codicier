@@ -26,11 +26,25 @@
 #include <sstream>
 #include <utility>
 
+namespace {
+
+// Defined below, next to the snapshots that use it most.
+QString readTextFile(const QString &path, bool *ok);
+
+} // namespace
+
 ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 {
     connect(&text, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);
+        // The tints follow the text after each save.
+        if (passTints)
+            applyPasses();
+    });
+    connect(this, &ProjectSession::currentIdChanged, this, [this] {
+        if (passTints)
+            applyPasses();
     });
     connect(this, &ProjectSession::snapshotsChanged, this, [this] { changedSinceBackup = true; });
     // The live count of the open text goes into the binder, so the counts of
@@ -1541,6 +1555,112 @@ QString ProjectSession::turnOnVersions()
               .turnOn(QString::fromStdString(project.data["author"].value_or(std::string())));
     emit versionsChanged();
     return error;
+}
+
+void ProjectSession::setShowPasses(bool on)
+{
+    if (passTints == on)
+        return;
+    passTints = on;
+    applyPasses();
+    emit passesChanged();
+}
+
+QVariantList ProjectSession::passes() const
+{
+    QVariantList list;
+    if (const toml::array *passes = project.data.get_as<toml::array>("pass")) {
+        int number = 0;
+        for (const toml::node &node : *passes) {
+            if (const toml::table *pass = node.as_table())
+                list.append(QVariantMap {
+                    { QStringLiteral("number"), ++number },
+                    { QStringLiteral("name"),
+                      QString::fromStdString((*pass)["name"].value_or(std::string())) } });
+        }
+    }
+    return list;
+}
+
+int ProjectSession::startPass(const QString &name)
+{
+    const QString clean = name.trimmed();
+    if (project.readOnly || !loadError.isEmpty() || clean.isEmpty())
+        return 0;
+    saveAll();
+    const int number = static_cast<int>(passes().size()) + 1;
+    // A snapshot of each text marks where the pass starts.
+    for (const ProjectItem &item : std::as_const(project.items)) {
+        if (!item.file.isEmpty() && !holdsNoText(item.kind) && !item.missingFile
+            && item.section != QLatin1String("trash"))
+            Snapshots::take(project.folder, item.id, item.file,
+                            QStringLiteral("Pass %1 start").arg(number));
+    }
+    if (project.data.get_as<toml::array>("pass") == nullptr)
+        project.data.insert_or_assign("pass", toml::array { });
+    project.data.get_as<toml::array>("pass")->push_back(
+        toml::table { { "name", clean.toStdString() } });
+    if (!commit({ }))
+        return 0;
+    emit snapshotsChanged();
+    applyPasses();
+    emit passesChanged();
+    return number;
+}
+
+QVariantList ProjectSession::passRanges(const QString &id) const
+{
+    QVariantList list;
+    const int index = indexOf(id);
+    const qsizetype count = passes().size();
+    if (index < 0 || count == 0 || project.items.at(index).file.isEmpty())
+        return list;
+    // The text at the start of each pass, then the text now. A text that is
+    // newer than a pass has no snapshot of it, and was empty then.
+    QHash<QString, QString> starts;
+    for (const Snapshots::Snapshot &snapshot : Snapshots::list(project.folder, id)) {
+        if (!starts.contains(snapshot.title)) {
+            bool ok = false;
+            const QString body = readTextFile(QDir(project.folder).filePath(snapshot.path), &ok);
+            if (ok)
+                starts.insert(snapshot.title, body);
+        }
+    }
+    QStringList versions;
+    for (qsizetype n = 1; n <= count; ++n)
+        versions.append(starts.value(QStringLiteral("Pass %1 start").arg(n)));
+    bool ok = false;
+    versions.append(
+        current == id
+            ? text.text()
+            : readTextFile(QDir(project.folder).filePath(project.items.at(index).file), &ok));
+    // Version k, from 1, holds what pass k wrote. Version 0 is older text.
+    const QList<int> origin = Diff::origins(versions);
+    for (qsizetype i = 0; i < origin.size();) {
+        qsizetype end = i;
+        while (end < origin.size() && origin.at(end) == origin.at(i))
+            ++end;
+        if (origin.at(i) > 0)
+            list.append(QVariantMap { { QStringLiteral("start"), static_cast<int>(i) },
+                                      { QStringLiteral("length"), static_cast<int>(end - i) },
+                                      { QStringLiteral("pass"), origin.at(i) } });
+        i = end;
+    }
+    return list;
+}
+
+void ProjectSession::applyPasses()
+{
+    QList<MarkdownHighlighter::PassRange> ranges;
+    if (passTints) {
+        for (const QVariant &each : passRanges(current)) {
+            const QVariantMap range = each.toMap();
+            ranges.append({ range.value(QStringLiteral("start")).toInt(),
+                            range.value(QStringLiteral("length")).toInt(),
+                            range.value(QStringLiteral("pass")).toInt() });
+        }
+    }
+    text.setPasses(ranges);
 }
 
 QString ProjectSession::saveVersion(const QString &message)

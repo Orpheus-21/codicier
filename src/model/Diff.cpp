@@ -110,4 +110,30 @@ QList<Segment> words(const QString &before, const QString &after)
     return out;
 }
 
+QList<int> origins(const QStringList &versions)
+{
+    if (versions.isEmpty())
+        return { };
+    QList<int> origin(versions.first().size(), 0);
+    for (qsizetype k = 1; k < versions.size(); ++k) {
+        QList<int> next;
+        next.reserve(versions.at(k).size());
+        qsizetype before = 0;
+        // The same text keeps its origin. Added text has this version.
+        for (const Segment &segment : words(versions.at(k - 1), versions.at(k))) {
+            if (segment.kind == Segment::Removed) {
+                before += segment.text.size();
+            } else if (segment.kind == Segment::Added) {
+                next.append(QList<int>(segment.text.size(), static_cast<int>(k)));
+            } else {
+                for (qsizetype i = 0; i < segment.text.size(); ++i)
+                    next.append(before + i < origin.size() ? origin.at(before + i) : 0);
+                before += segment.text.size();
+            }
+        }
+        origin = next;
+    }
+    return origin;
+}
+
 } // namespace Diff

@@ -273,6 +273,7 @@ Item {
         { id: "beats", name: "Show or hide the beat board", sequence: "Ctrl+Alt+B", run: () => view.toggleViewMode("beats") },
         { id: "outline", name: "Show or hide the outliner", sequence: "Ctrl+Shift+O", run: () => view.toggleViewMode("outline") },
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
+        { id: "passes", name: "Draft passes", sequence: "Ctrl+Alt+D", run: () => passDialog.open() },
         { id: "versions.list", name: "Show the versions", sequence: "Ctrl+Alt+H", run: () => view.openVersions() },
         { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
         { id: "versions.on", name: "Turn on versions", sequence: "Ctrl+Alt+V", run: () => view.turnOnVersions() },
@@ -315,6 +316,14 @@ Item {
         title: "Choose the image of a map"
         nameFilters: ["Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)"]
         onAccepted: view.session.addMap(selectedFile)
+    }
+
+    PassDialog {
+        id: passDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
     }
 
     CalendarDialog {

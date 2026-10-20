@@ -1419,6 +1419,41 @@ private slots:
         QCOMPARE(presence.at(1).toInt(), 0);
     }
 
+    void passesColorTheTextOfEachPass()
+    {
+        QVERIFY(session->passes().isEmpty());
+        QCOMPARE(session->startPass("  "), 0);
+        QCOMPARE(session->startPass("Structure"), 1);
+        QCOMPARE(session->passes().first().toMap().value("name").toString(),
+                 QStringLiteral("Structure"));
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor cursor(&editor);
+        cursor.insertText("Rain. ");
+        QCOMPARE(session->startPass("Line edit"), 2);
+        cursor.movePosition(QTextCursor::End);
+        cursor.insertText(" Snow.");
+
+        const QString now = editor.toPlainText();
+        QVariantList ranges = session->passRanges("t6v4h9r2mz");
+        QCOMPARE(ranges.size(), 2);
+        const QVariantMap first = ranges.first().toMap();
+        QCOMPARE(first.value("pass").toInt(), 1);
+        QCOMPARE(now.mid(first.value("start").toInt(), first.value("length").toInt()).trimmed(),
+                 QStringLiteral("Rain."));
+        const QVariantMap second = ranges.last().toMap();
+        QCOMPARE(second.value("pass").toInt(), 2);
+        QCOMPARE(now.mid(second.value("start").toInt(), second.value("length").toInt()).trimmed(),
+                 QStringLiteral("Snow."));
+
+        // A text from before the first pass has no tint at all.
+        QVERIFY(session->passRanges("m1n2p3q4r5").isEmpty());
+        QVERIFY(readFile("project.toml").contains("name = \"Line edit\""));
+        session->setShowPasses(true);
+        QVERIFY(session->showPasses());
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

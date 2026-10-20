@@ -56,6 +56,8 @@ class ProjectSession : public QObject
     Q_PROPERTY(int styleChecks MEMBER checksOfStyle WRITE setStyleChecks NOTIFY spellChanged)
     // True if a git repository holds the project, so it has versions.
     Q_PROPERTY(bool versionsOn READ versionsOn NOTIFY versionsChanged)
+    // True tints the text of the open scene by the draft pass that wrote it.
+    Q_PROPERTY(bool showPasses READ showPasses WRITE setShowPasses NOTIFY passesChanged)
     // The word goal from project.toml, or 0.
     Q_PROPERTY(int goalWords READ goalWords NOTIFY wordsChanged)
     // The deadline of the project as yyyy-MM-dd, or "".
@@ -286,6 +288,17 @@ public:
     // Turns on versions for the project and saves a first version. Returns
     // an error text, or "".
     Q_INVOKABLE QString turnOnVersions();
+    bool showPasses() const { return passTints; }
+    void setShowPasses(bool on);
+    // The draft passes, in order: the number and the name of each.
+    Q_INVOKABLE QVariantList passes() const;
+    // Starts a new draft pass: a snapshot "Pass N start" of every text, and
+    // a [[pass]] with the name in project.toml. Returns the pass number, or
+    // 0 on an error.
+    Q_INVOKABLE int startPass(const QString &name);
+    // The parts of the text of an item that each pass wrote: the start, the
+    // length, and the pass number of each.
+    Q_INVOKABLE QVariantList passRanges(const QString &id) const;
     // Saves a version of the project with a message, or with the date and
     // time for an empty message. Returns an error text, or "".
     Q_INVOKABLE QString saveVersion(const QString &message);
@@ -330,6 +343,7 @@ signals:
     void backupChanged();
     void spellChanged();
     void versionsChanged();
+    void passesChanged();
     // A text file changed: the app saved it, or another program changed it.
     void textsChanged();
 
@@ -352,6 +366,9 @@ private:
     std::unique_ptr<History> history;
     std::unique_ptr<SpellChecker> spell;
     bool checkSpelling = true;
+    bool passTints = false;
+    // Gives the pass ranges of the open text to its document.
+    void applyPasses();
     int checksOfStyle = 0;
     void setStyleChecks(int checks);
     // Gives the checker, or none, to the open text and the tracked texts.

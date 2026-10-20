@@ -865,4 +865,20 @@ TestCase {
         verify(cell.Accessible.name.startsWith("Harbour in "), cell.Accessible.name);
         compare(faults(grid), []);
     }
+
+    function test_passDialogStartsAPass() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_D, Qt.ControlModifier | Qt.AltModifier);
+        const overlay = view.T.Overlay.overlay;
+        const field = findChild(overlay, "passName") as TextField;
+        tryVerify(() => field && field.activeFocus);
+        compare(faults(field.parent.parent), []);
+        for (const c of "Structure")
+            keyClick(c);
+        keyClick(Qt.Key_Return);
+        compare(view.session.passes().length, 1);
+        verify(view.session.showPasses);
+        compare(field.text, "");
+    }
 }

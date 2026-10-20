@@ -4,6 +4,7 @@
 
 #include <QColor>
 #include <QFont>
+#include <QTextBlock>
 
 #include <algorithm>
 
@@ -64,8 +65,37 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
     styleSpans(text, emphasis, 1, emphasisFormat);
     styleSpans(text, footnote, 0, footnoteFormat);
     styleSpans(text, link, 2, linkFormat);
+    tintPasses(text);
     checkSpelling(text);
     checkStyle(text);
+}
+
+void MarkdownHighlighter::setPasses(const QList<PassRange> &ranges, const QList<QColor> &colors)
+{
+    if (ranges.isEmpty() && passRanges.isEmpty())
+        return;
+    passRanges = ranges;
+    passColors = colors;
+    rehighlight();
+}
+
+void MarkdownHighlighter::tintPasses(const QString &text)
+{
+    if (passRanges.isEmpty() || passColors.isEmpty())
+        return;
+    const int first = currentBlock().position();
+    const auto last = static_cast<int>(first + text.size());
+    for (const PassRange &range : std::as_const(passRanges)) {
+        const int start = std::max(range.start, first);
+        const int end = std::min(range.start + range.length, last);
+        if (start >= end)
+            continue;
+        QColor tint = passColors.at((range.pass - 1) % passColors.size());
+        tint.setAlpha(0x38);
+        QTextCharFormat merged = format(start - first);
+        merged.setBackground(tint);
+        setFormat(start - first, end - start, merged);
+    }
 }
 
 void MarkdownHighlighter::setStyleChecks(int checks)

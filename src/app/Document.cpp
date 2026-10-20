@@ -82,6 +82,7 @@ void Document::attach(QTextDocument *value)
     highlighter = new MarkdownHighlighter(document);
     highlighter->setSpellChecker(spell);
     highlighter->setStyleChecks(styleChecks);
+    setPasses(passes);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
     showText();
 }
@@ -91,6 +92,27 @@ void Document::setSpellChecker(const SpellChecker *checker)
     spell = checker;
     if (highlighter != nullptr)
         highlighter->setSpellChecker(checker);
+}
+
+void Document::setPasses(const QList<MarkdownHighlighter::PassRange> &ranges)
+{
+    passes = ranges;
+    if (highlighter == nullptr)
+        return;
+    QList<QColor> colors;
+    for (const QVariant &color : std::as_const(colorsOfPasses))
+        colors.append(color.value<QColor>());
+    highlighter->setPasses(ranges, colors);
+}
+
+void Document::setPassColors(const QVariantList &colors)
+{
+    if (colors == colorsOfPasses)
+        return;
+    colorsOfPasses = colors;
+    // A theme change paints the tints in the new colors.
+    setPasses(passes);
+    emit styleChanged();
 }
 
 void Document::setStyleChecks(int checks)
