@@ -459,7 +459,52 @@ QVariantList ProjectSession::timeline(const QString &groupBy) const
 
 Calendar ProjectSession::calendar() const
 {
-    return { };
+    QList<Calendar::Month> months;
+    if (const toml::array *list = project.data["calendar"]["month"].as_array()) {
+        for (const toml::node &node : *list) {
+            const toml::table *month = node.as_table();
+            if (month == nullptr)
+                continue;
+            months.append({ QString::fromStdString((*month)["name"].value_or(std::string())),
+                            static_cast<int>((*month)["days"].value_or(std::int64_t { 30 })) });
+        }
+    }
+    return Calendar(months);
+}
+
+QVariantList ProjectSession::calendarMonths() const
+{
+    QVariantList list;
+    // Keep the calendar alive while the loop reads its months.
+    const Calendar own = calendar();
+    for (const Calendar::Month &month : own.months())
+        list.append(QVariantMap { { QStringLiteral("name"), month.name },
+                                  { QStringLiteral("days"), month.days } });
+    return list;
+}
+
+bool ProjectSession::setCalendar(const QVariantList &months)
+{
+    if (project.readOnly)
+        return false;
+    toml::array list;
+    for (const QVariant &each : months) {
+        const QVariantMap month = each.toMap();
+        const QString name = month.value(QStringLiteral("name")).toString().trimmed();
+        const int days = month.value(QStringLiteral("days")).toInt();
+        if (name.isEmpty() || days < 1 || days > 1000)
+            return false;
+        list.push_back(toml::table { { "name", name.toStdString() }, { "days", days } });
+    }
+    // No months is the Gregorian calendar.
+    if (list.empty()) {
+        project.data.erase("calendar");
+    } else {
+        if (project.data.get_as<toml::table>("calendar") == nullptr)
+            project.data.insert_or_assign("calendar", toml::table { });
+        project.data.get_as<toml::table>("calendar")->insert_or_assign("month", std::move(list));
+    }
+    return commit({ });
 }
 
 QString ProjectSession::framework() const

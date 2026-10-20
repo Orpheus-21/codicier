@@ -1192,6 +1192,36 @@ private slots:
         QCOMPARE(session->timeline("pov").first().toMap().value("events").toList().size(), 1);
     }
 
+    void customCalendarSetsTheDates()
+    {
+        QVERIFY(session->calendarMonths().isEmpty());
+        QVERIFY(!session->setCalendar({ QVariantMap { { "name", "Bad" }, { "days", 0 } } }));
+        QVERIFY(session->setCalendar({ QVariantMap { { "name", "Frostmonth" }, { "days", 40 } },
+                                       QVariantMap { { "name", "Thaw" }, { "days", 20 } } }));
+        QCOMPARE(session->calendarMonths().size(), 2);
+        QVERIFY(session->setField("t6v4h9r2mz", "date", "312-1-40"));
+        QCOMPARE(session->fields("t6v4h9r2mz").value("dateLabel").toString(),
+                 QStringLiteral("40 Frostmonth 312"));
+        QVERIFY(!session->setField("t6v4h9r2mz", "date", "312-3-1"));
+        QCOMPARE(session->timeline("pov")
+                     .first()
+                     .toMap()
+                     .value("events")
+                     .toList()
+                     .first()
+                     .toMap()
+                     .value("label")
+                     .toString(),
+                 QStringLiteral("40 Frostmonth 312"));
+        // Both files load again and come back byte for byte.
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY(result.ok());
+        QCOMPARE(ProjectStore::projectFile(result.project), readFile("project.toml"));
+        // No months is the Gregorian calendar again.
+        QVERIFY(session->setCalendar({ }));
+        QVERIFY(!readFile("project.toml").contains("[calendar"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

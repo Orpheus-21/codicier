@@ -258,6 +258,7 @@ Item {
         { id: "item.trash", name: "Move the item to the trash", sequence: "Ctrl+Shift+Del", run: () => session.moveToTrash(session.currentId) },
         { id: "snapshot.take", name: "Take a snapshot", sequence: "Ctrl+Shift+S", run: () => session.takeSnapshot(session.currentId, "") },
         { id: "board", name: "Show or hide the corkboard", sequence: "Ctrl+Shift+K", run: () => view.toggleViewMode("board") },
+        { id: "calendar", name: "Edit the calendar of the story", sequence: "Ctrl+Alt+C", run: () => calendarDialog.open() },
         { id: "timeline", name: "Show or hide the timeline", sequence: "Ctrl+Alt+T", run: () => view.toggleViewMode("timeline") },
         { id: "grid", name: "Show or hide the plot grid", sequence: "Ctrl+Alt+G", run: () => view.toggleViewMode("grid") },
         { id: "beats", name: "Show or hide the beat board", sequence: "Ctrl+Alt+B", run: () => view.toggleViewMode("beats") },
@@ -297,6 +298,14 @@ Item {
             enabled: modelData.sequence !== ""
             onActivated: modelData.run()
         }
+    }
+
+    CalendarDialog {
+        id: calendarDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
     }
 
     VersionDialog {
@@ -577,6 +586,7 @@ Item {
                 z: 4
                 session: view.session
                 onOpened: id => view.openText(id)
+                onCalendarRequested: calendarDialog.open()
             }
 
             PlotGrid {

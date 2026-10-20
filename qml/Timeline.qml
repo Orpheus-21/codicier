@@ -12,6 +12,8 @@ Item {
 
     // A click on a card asks to open the item.
     signal opened(id: string)
+    // The author wants to change the calendar.
+    signal calendarRequested
 
     property string groupBy: "pov"
     property var tracks: []
@@ -73,6 +75,13 @@ Item {
             label: "By plotline"
             chosen: timeline.groupBy === "plotline"
             onClicked: timeline.groupBy = "plotline"
+        }
+
+        Button {
+            objectName: "calendarButton"
+            text: "Calendar"
+            iconName: "calendar"
+            onClicked: timeline.calendarRequested()
         }
     }
 

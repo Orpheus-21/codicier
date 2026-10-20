@@ -292,6 +292,28 @@ private:
             }
         }
         loadEntityTypes(*table, file);
+        // The calendar of story time: [[calendar.month]] with a name and days.
+        if (checkType(*table, "calendar", toml::node_type::table, file)) {
+            const toml::table *calendar = table->get_as<toml::table>("calendar");
+            const toml::array *months
+                = calendar != nullptr ? calendar->get_as<toml::array>("month") : nullptr;
+            if (calendar != nullptr && checkType(*calendar, "month", toml::node_type::array, file)
+                && months != nullptr) {
+                for (const toml::node &node : *months) {
+                    const toml::table *month = node.as_table();
+                    if (month == nullptr) {
+                        error(file, lineOf(node),
+                              QStringLiteral("`month` must be a list of tables"));
+                        continue;
+                    }
+                    string(*month, "name", file, lineOf(node), true);
+                    const auto days = (*month)["days"].value<std::int64_t>();
+                    if (!days || *days < 1 || *days > 1000)
+                        error(file, lineOf(node),
+                              QStringLiteral("`days` must be a whole number from 1 to 1000"));
+                }
+            }
+        }
         // The plotlines: [[plotline]] with an id and a name.
         if (checkType(*table, "plotline", toml::node_type::array, file)) {
             if (const toml::array *lines = table->get_as<toml::array>("plotline")) {

@@ -708,4 +708,26 @@ TestCase {
         compare(view.session.currentId, scenes[0].id);
         compare(view.viewMode, "page");
     }
+
+    function test_calendarDialogSetsTheMonths() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_C, Qt.ControlModifier | Qt.AltModifier);
+        const overlay = view.T.Overlay.overlay;
+        const field = findChild(overlay, "calendarMonths") as TextArea;
+        tryVerify(() => field && field.visible);
+        compare(faults(field.parent), []);
+        field.text = "Frostmonth\nThaw 30";
+        mouseClick(findChild(overlay, "saveCalendar") as Item);
+        compare(view.session.calendarMonths().length, 0);
+        field.text = "Frostmonth 40\nThaw 30";
+        mouseClick(findChild(overlay, "saveCalendar") as Item);
+        compare(view.session.calendarMonths().length, 2);
+        compare(view.session.calendarMonths()[0].name, "Frostmonth");
+        keyClick(Qt.Key_C, Qt.ControlModifier | Qt.AltModifier);
+        tryVerify(() => field.visible);
+        compare(field.text, "Frostmonth 40\nThaw 30");
+        mouseClick(findChild(overlay, "gregorian") as Item);
+        compare(view.session.calendarMonths().length, 0);
+    }
 }

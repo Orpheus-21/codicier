@@ -121,6 +121,13 @@ public:
     // each track, by day. Each event has an id, title, kind, day number,
     // and a label of its date.
     Q_INVOKABLE QVariantList timeline(const QString &groupBy) const;
+    // The months of the calendar of the project, with the name and days of
+    // each, or none for the Gregorian calendar.
+    Q_INVOKABLE QVariantList calendarMonths() const;
+    // Sets the months of the calendar, each a map with a name and days from
+    // 1 to 1000. No months sets the Gregorian calendar. Returns false and
+    // changes nothing for a month that is not valid.
+    Q_INVOKABLE bool setCalendar(const QVariantList &months);
     // Sets the name and the fields of a type in project.toml. An empty kind
     // makes a new type from the name. Returns the kind, or "" on an error.
     Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,
