@@ -74,6 +74,15 @@ public:
     // or "note") near the selected item, saves the binder, and selects the
     // new item. Returns its id, or "" with an error in lastError.
     Q_INVOKABLE QString add(const QString &kind);
+    // The entity types: the six of the app, then the types of project.toml.
+    // Each has a kind, a name for the heading, its fields, and custom.
+    Q_INVOKABLE QVariantList entityTypes() const;
+    // Sets the name and the fields of a type in project.toml. An empty kind
+    // makes a new type from the name. Returns the kind, or "" on an error.
+    Q_INVOKABLE QString saveEntityType(const QString &kind, const QString &name,
+                                       const QStringList &fields);
+    // Sets the value of one field of an entity. An empty value removes it.
+    Q_INVOKABLE bool setEntityField(const QString &id, const QString &field, const QString &value);
     // Gives the item a new title and saves the binder.
     Q_INVOKABLE bool rename(const QString &id, const QString &title);
     // Saves a search in the binder, in the searches section. Its title is

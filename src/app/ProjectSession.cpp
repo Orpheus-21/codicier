@@ -14,6 +14,7 @@
 #include <QSaveFile>
 #include <QSet>
 
+#include <array>
 #include <functional>
 #include <sstream>
 #include <utility>
@@ -166,10 +167,39 @@ void ProjectSession::setCurrentId(const QString &id)
 namespace {
 
 // What each kind can hold, and where a new item of a kind goes.
+// The entity types that come with the app, with the heading of each.
+constexpr std::array<std::pair<QStringView, QStringView>, 6> builtInTypes { {
+    { u"character", u"Characters" },
+    { u"place", u"Places" },
+    { u"item", u"Items" },
+    { u"faction", u"Factions" },
+    { u"lore", u"Lore" },
+    { u"term", u"Terms" },
+} };
+
+// Every other kind is an entity type: the app checks the kind against the
+// types of the project when it loads or adds an item.
 bool isEntity(const QString &kind)
 {
-    static const QStringList kinds { "character", "place", "item", "faction", "lore", "term" };
-    return kinds.contains(kind);
+    static const QStringList base { "part", "chapter", "folder", "scene",
+                                    "page", "note",    "file",   "search" };
+    return !kind.isEmpty() && !base.contains(kind);
+}
+
+// The [[entity-type]] tables of project.toml.
+toml::array *typeTables(Project &project)
+{
+    return project.data.get_as<toml::array>("entity-type");
+}
+
+QStringList strings(const toml::node *node)
+{
+    QStringList list;
+    if (const toml::array *array = node != nullptr ? node->as_array() : nullptr) {
+        for (const toml::node &each : *array)
+            list.append(QString::fromStdString(each.value_or(std::string())));
+    }
+    return list;
 }
 
 bool canHold(const QString &parentKind, const QString &kind)
@@ -282,9 +312,139 @@ bool ProjectSession::commit(const QStringList &newFiles)
     return errors.isEmpty();
 }
 
+QVariantList ProjectSession::entityTypes() const
+{
+    QVariantList list;
+    const toml::array *tables = project.data.get_as<toml::array>("entity-type");
+    const auto tableOf = [tables](const QString &kind) -> const toml::table * {
+        if (tables == nullptr)
+            return nullptr;
+        for (const toml::node &node : *tables) {
+            const toml::table *table = node.as_table();
+            if (table != nullptr
+                && QString::fromStdString((*table)["kind"].value_or(std::string())) == kind)
+                return table;
+        }
+        return nullptr;
+    };
+    const auto append = [&list, &tableOf](const QString &kind, const QString &name, bool custom) {
+        const toml::table *table = tableOf(kind);
+        const QString own = table != nullptr
+            ? QString::fromStdString((*table)["name"].value_or(std::string()))
+            : QString();
+        list.append(QVariantMap {
+            { QStringLiteral("kind"), kind },
+            { QStringLiteral("name"), own.isEmpty() ? name : own },
+            { QStringLiteral("fields"),
+              table != nullptr ? strings(table->get("fields")) : QStringList() },
+            { QStringLiteral("custom"), custom },
+        });
+    };
+    for (const auto &[kind, name] : builtInTypes)
+        append(kind.toString(), name.toString(), false);
+    if (tables != nullptr) {
+        for (const toml::node &node : *tables) {
+            const toml::table *table = node.as_table();
+            const QString kind = table != nullptr
+                ? QString::fromStdString((*table)["kind"].value_or(std::string()))
+                : QString();
+            if (!kind.isEmpty() && std::ranges::none_of(builtInTypes, [&kind](const auto &type) {
+                    return type.first == kind;
+                }))
+                append(kind, kind, true);
+        }
+    }
+    return list;
+}
+
+QString ProjectSession::saveEntityType(const QString &kind, const QString &name,
+                                       const QStringList &fields)
+{
+    editError.clear();
+    if (project.readOnly || !loadError.isEmpty())
+        return { };
+    QString type = kind;
+    if (type.isEmpty()) {
+        // A new type takes its kind from its name: "Ships" becomes "ships".
+        type = name.trimmed().toLower();
+        type.replace(QRegularExpression(QStringLiteral("[^a-z0-9]+")), QStringLiteral("-"));
+        type.remove(QRegularExpression(QStringLiteral("^[-0-9]+|-+$")));
+        for (const QVariant &each : entityTypes()) {
+            if (each.toMap().value(QStringLiteral("kind")).toString() == type)
+                type.clear();
+        }
+        if (type.isEmpty() || !isEntity(type)) {
+            editError = QStringLiteral("Choose a name that no other type has.");
+            emit edited();
+            return { };
+        }
+    }
+    QStringList clean;
+    for (const QString &field : fields) {
+        if (!field.trimmed().isEmpty() && !clean.contains(field.trimmed()))
+            clean.append(field.trimmed());
+    }
+    if (typeTables(project) == nullptr)
+        project.data.insert_or_assign("entity-type", toml::array { });
+    toml::array &tables = *typeTables(project);
+    toml::table *table = nullptr;
+    for (toml::node &node : tables) {
+        if (toml::table *each = node.as_table(); each != nullptr
+            && QString::fromStdString((*each)["kind"].value_or(std::string())) == type)
+            table = each;
+    }
+    if (table == nullptr) {
+        tables.push_back(toml::table { { "kind", type.toStdString() } });
+        table = tables.back().as_table();
+    }
+    const bool builtIn = std::ranges::any_of(
+        builtInTypes, [&type](const auto &each) { return each.first == type; });
+    if (!builtIn && !name.trimmed().isEmpty())
+        table->insert_or_assign("name", name.trimmed().toStdString());
+    toml::array list;
+    for (const QString &field : std::as_const(clean))
+        list.push_back(field.toStdString());
+    if (clean.isEmpty())
+        table->erase("fields");
+    else
+        table->insert_or_assign("fields", std::move(list));
+    // A built-in type with no fields left needs no table.
+    if (builtIn && clean.isEmpty())
+        tables.erase(std::ranges::find_if(
+            tables, [table](const toml::node &node) { return node.as_table() == table; }));
+    if (tables.empty())
+        project.data.erase("entity-type");
+    commit({ });
+    return type;
+}
+
+bool ProjectSession::setEntityField(const QString &id, const QString &field, const QString &value)
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.readOnly || field.trimmed().isEmpty())
+        return false;
+    toml::table &data = project.items[index].data;
+    if (data.get_as<toml::table>("fields") == nullptr)
+        data.insert_or_assign("fields", toml::table { });
+    toml::table &fields = *data.get_as<toml::table>("fields");
+    const QString text = value.trimmed();
+    if (text.isEmpty())
+        fields.erase(field.trimmed().toStdString());
+    else
+        fields.insert_or_assign(field.trimmed().toStdString(), text.toStdString());
+    if (fields.empty())
+        data.erase("fields");
+    return commit({ });
+}
+
 QString ProjectSession::add(const QString &kind)
 {
     editError.clear();
+    // An entity needs a type of the project.
+    if (isEntity(kind) && std::ranges::none_of(entityTypes(), [&kind](const QVariant &type) {
+            return type.toMap().value(QStringLiteral("kind")).toString() == kind;
+        }))
+        return { };
     if (project.readOnly || !loadError.isEmpty()) {
         editError = QStringLiteral("This project cannot change.");
         emit edited();
@@ -691,6 +851,15 @@ QVariantMap ProjectSession::fields(const QString &id) const
             aliases.append(QString::fromStdString(alias.value_or(std::string())));
     }
     map.insert(QStringLiteral("aliases"), aliases);
+    // The values of the fields of the entity type, by field name.
+    QVariantMap values;
+    if (const toml::table *fields = item.data.get_as<toml::table>("fields")) {
+        for (const auto &[key, value] : *fields)
+            values.insert(
+                QString::fromUtf8(key.str().data(), static_cast<qsizetype>(key.str().size())),
+                QString::fromStdString(value.value_or(std::string())));
+    }
+    map.insert(QStringLiteral("values"), values);
     map.insert(QStringLiteral("target"),
                static_cast<int>(item.data["target"].value_or(std::int64_t { 0 })));
     map.insert(QStringLiteral("words"), binderModel.wordsOf(id));

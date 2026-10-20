@@ -787,6 +787,51 @@ private slots:
         QVERIFY(readFile("binder.toml").contains("aliases = [\"Mara\"]"));
     }
 
+    void customEntityTypesAndFields()
+    {
+        QVERIFY(session->add("ship").isEmpty());
+        QCOMPARE(session->saveEntityType(QString(), "Ships",
+                                         { "Captain", " Home port ", "", "Captain" }),
+                 QStringLiteral("ships"));
+        QVERIFY(session->saveEntityType(QString(), "ships", { }).isEmpty());
+        QVERIFY(session->saveEntityType(QString(), "Scene", { }).isEmpty());
+        QCOMPARE(session->saveEntityType("character", "Ignored", { "Age" }),
+                 QStringLiteral("character"));
+
+        QVariantMap ships;
+        for (const QVariant &type : session->entityTypes()) {
+            if (type.toMap().value("kind") == QStringLiteral("ships"))
+                ships = type.toMap();
+            if (type.toMap().value("kind") == QStringLiteral("character")) {
+                QCOMPARE(type.toMap().value("name").toString(), QStringLiteral("Characters"));
+                QCOMPARE(type.toMap().value("fields").toStringList(), QStringList { "Age" });
+            }
+        }
+        QCOMPARE(ships.value("name").toString(), QStringLiteral("Ships"));
+        QCOMPARE(ships.value("fields").toStringList(), (QStringList { "Captain", "Home port" }));
+        QVERIFY(ships.value("custom").toBool());
+
+        const QString id = session->add("ships");
+        QVERIFY(!id.isEmpty());
+        QVERIFY(session->setEntityField(id, "Captain", " Ahab "));
+        QVERIFY(session->setEntityField(id, "Home port", "Nantucket"));
+        QVERIFY(session->setEntityField(id, "Home port", ""));
+        QCOMPARE(session->fields(id).value("values").toMap(),
+                 (QVariantMap { { "Captain", "Ahab" } }));
+
+        // Both files load again with no error and come back byte for byte.
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY2(result.ok(), result.ok() ? "" : qPrintable(result.errors.first().text()));
+        QCOMPARE(ProjectStore::projectFile(result.project), readFile("project.toml"));
+        QCOMPARE(ProjectStore::binderFile(result.project), readFile("binder.toml"));
+        const ProjectItem ship = onDisk(dir.path(), id);
+        QCOMPARE(ship.section, QStringLiteral("codex"));
+
+        // A built-in type with no fields leaves project.toml.
+        QCOMPARE(session->saveEntityType("character", QString(), { }), QStringLiteral("character"));
+        QVERIFY(!readFile("project.toml").contains("kind = \"character\""));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 
+import QtQml
 import QtQuick
+import QtQuick.Templates as T
 
 // The codex: the entities of the project, grouped by type, with a filter.
 // A click or Enter opens an entity for edit.
@@ -13,28 +15,32 @@ Item {
     signal opened(id: string)
     // Escape in the panel.
     signal closeRequested
+    // The author wants a new entity of a kind.
+    signal addRequested(kind: string)
 
-    // The types in the order of the list, with the heading of each.
-    readonly property var types: [
-        ["character", "Characters"], ["place", "Places"], ["item", "Items"],
-        ["faction", "Factions"], ["lore", "Lore"], ["term", "Terms"]
-    ]
+    // The entity types in the order of the list: kind, name, and fields.
+    property var types: []
     property var entities: []
 
     function heading(kind: string): string {
-        const type = types.find(entry => entry[0] === kind);
-        return type ? type[1] : kind;
+        const type = types.find(entry => entry.kind === kind);
+        return type ? type.name : kind;
     }
 
     function refresh() {
+        types = session.entityTypes();
         const query = field.text.trim().toLowerCase();
-        const order = kind => types.findIndex(entry => entry[0] === kind);
+        const order = kind => types.findIndex(entry => entry.kind === kind);
         entities = session.items()
             .filter(item => order(item.kind) >= 0 && item.title.toLowerCase().includes(query))
             .sort((a, b) => order(a.kind) - order(b.kind) || a.title.localeCompare(b.title));
         // The open entity is the current row, else the first row.
         list.currentIndex = Math.max(entities.findIndex(item => item.id === session.currentId),
                                      entities.length > 0 ? 0 : -1);
+    }
+
+    function editTypes() {
+        typeDialog.open();
     }
 
     function start() {
@@ -64,7 +70,7 @@ Item {
         id: field
 
         objectName: "codexField"
-        width: parent.width
+        width: parent.width - addButton.width - Theme.space.xs
         iconName: "search"
         placeholderText: "Find in the codex"
         onTextChanged: panel.refresh()
@@ -74,6 +80,49 @@ Item {
         Keys.onUpPressed: list.currentIndex = Math.max(list.currentIndex - 1, 0)
     }
 
+    IconButton {
+        id: addButton
+
+        objectName: "codexAdd"
+        anchors.right: parent.right
+        anchors.verticalCenter: field.verticalCenter
+        iconName: "plus"
+        label: "Add to the codex"
+        onClicked: addMenu.popup(addButton, 0, addButton.height)
+    }
+
+    Menu {
+        id: addMenu
+
+        Instantiator {
+            model: panel.types
+
+            delegate: T.Action {
+                required property var modelData
+
+                text: "Add to " + modelData.name
+                onTriggered: panel.addRequested(modelData.kind)
+            }
+
+            onObjectAdded: (index, action) => addMenu.insertAction(index, action as T.Action)
+            onObjectRemoved: (index, action) => addMenu.removeAction(action as T.Action)
+        }
+
+        T.Action {
+            text: "Types and fields"
+            onTriggered: panel.editTypes()
+        }
+    }
+
+    TypeDialog {
+        id: typeDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: panel.session
+        onClosed: panel.refresh()
+    }
+
     Text {
         visible: panel.entities.length === 0
         anchors.top: field.bottom
@@ -81,7 +130,7 @@ Item {
         width: parent.width
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.Wrap
-        text: field.text.trim() === "" ? "The codex is empty. Add a character or a place with the + button."
+        text: field.text.trim() === "" ? "The codex is empty. Add an entity with the + button."
                                         : "No match"
         font.family: Theme.type.ui
         font.pixelSize: Theme.type.body

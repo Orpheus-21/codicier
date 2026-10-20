@@ -250,4 +250,51 @@ TestCase {
         keyClick(Qt.Key_Tab);
         compare(view.session.fields(first).aliases, ["the clerk", "M"]);
     }
+
+    function test_customTypeWithFields() {
+        const view = makeView();
+        view.openCodex();
+        waitForRendering(view);
+        (findChild(view, "codexPanel") as CodexPanel).editTypes();
+        const overlay = view.T.Overlay.overlay;
+        tryVerify(() => (findChild(overlay, "typeName") as Item)?.visible ?? false);
+        compare(faults((findChild(overlay, "typeName") as Item).parent.parent), []);
+        mouseClick(findChild(overlay, "newType") as Item);
+        const name = findChild(overlay, "typeName") as TextField;
+        name.forceActiveFocus();
+        for (const c of "Ships")
+            keyClick(c);
+        const fields = findChild(overlay, "typeFields") as TextField;
+        fields.forceActiveFocus();
+        for (const c of "Captain, Port")
+            keyClick(c);
+        keyClick(Qt.Key_Return);
+        const ships = view.session.entityTypes().find(type => type.kind === "ships");
+        verify(ships !== undefined);
+        compare(ships.fields, ["Captain", "Port"]);
+        keyClick(Qt.Key_Escape);
+
+        // An entity of the type shows its fields in the inspector.
+        const id = view.session.add("ships");
+        view.session.currentId = id;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const inspector = findChild(view, "inspector") as Item;
+        let captain = null;
+        const find = item => {
+            for (let i = 0; i < item.children.length; ++i) {
+                const child = item.children[i];
+                if (child instanceof TextField && child.Accessible.name === "Captain" && child.visible)
+                    captain = child;
+                find(child);
+            }
+        };
+        find(inspector);
+        verify(captain !== null);
+        captain.forceActiveFocus();
+        for (const c of "Ahab")
+            keyClick(c);
+        keyClick(Qt.Key_Tab);
+        compare(view.session.fields(id).values.Captain, "Ahab");
+    }
 }

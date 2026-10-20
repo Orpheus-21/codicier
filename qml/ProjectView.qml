@@ -354,6 +354,7 @@ Item {
             CodexPanel {
                 id: codex
 
+                objectName: "codexPanel"
                 visible: view.codexOpen
                 anchors.top: projectButton.bottom
                 anchors.topMargin: Theme.space.s
@@ -367,6 +368,11 @@ Item {
                 onOpened: id => {
                     view.session.currentId = id;
                     editor.focusText();
+                }
+                // The new entity starts with a rename in the binder.
+                onAddRequested: kind => {
+                    view.codexOpen = false;
+                    binder.addItem(kind);
                 }
             }
 

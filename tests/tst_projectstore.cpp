@@ -223,6 +223,25 @@ private slots:
         QTest::newRow("project goals words")
             << projectText() + "[goals]\nwords = \"many\"\n"
             << goodBinder() << "project.toml:6: `words` must be an integer";
+        QTest::newRow("entity type of a base kind")
+            << projectText() + "\n[[entity-type]]\nkind = \"scene\"\n"
+            << goodBinder() << "`kind` \"scene\" is not a kind of entity";
+        QTest::newRow("entity type bad kind")
+            << projectText() + "\n[[entity-type]]\nkind = \"Big Ship\"\n"
+            << goodBinder() << "must use lowercase letters, digits, and hyphens";
+        QTest::newRow("entity type not a table")
+            << projectText() + "entity-type = [ 1 ]\n"
+            << goodBinder() << "`entity-type` must be a list of tables";
+        QTest::newRow("field value not text") << projectText()
+                                              << goodBinder()
+                + "\n[[item]]\nid = \"c0c1c2c3c4\"\nkind = \"character\"\nsection = \"codex\"\n"
+                  "title = \"Mara\"\nfile = \"codex/mara.md\"\nfields = { Age = 40 }\n"
+                                              << "the field `Age` must be a string";
+        QTest::newRow("item of an unknown entity type") << projectText()
+                                                        << goodBinder()
+                + "\n[[item]]\nid = \"c0c1c2c3c4\"\nkind = \"ship\"\nsection = \"codex\"\n"
+                  "title = \"Pequod\"\nfile = \"codex/pequod.md\"\n"
+                                                        << "`kind` \"ship\" is not a kind of item";
         QTest::newRow("aliases not strings") << projectText()
                                              << goodBinder()
                 + "\n[[item]]\nid = \"c0c1c2c3c4\"\nkind = \"character\"\nsection = \"codex\"\n"

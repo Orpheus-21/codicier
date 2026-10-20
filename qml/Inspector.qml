@@ -17,8 +17,12 @@ Pane {
     // The fields of the selected item, read again after each change.
     property var fields: ({})
 
+    // The entity type of the selected item, or undefined for another kind.
+    property var entityType: undefined
+
     function refresh() {
         inspector.fields = session.fields(session.currentId);
+        inspector.entityType = session.entityTypes().find(type => type.kind === inspector.fields.kind);
     }
 
     // Saves one field if its value changed. Returns true if it saved.
@@ -278,7 +282,7 @@ Pane {
 
             Column {
                 // A word target is for the texts of the book, not for an entity.
-                visible: !["character", "place", "item", "faction", "lore", "term"].includes(inspector.fields.kind)
+                visible: inspector.entityType === undefined
                 width: parent.width
                 spacing: Theme.space.xs
 
@@ -335,7 +339,7 @@ Pane {
             }
 
             Column {
-                visible: ["character", "place", "item", "faction", "lore", "term"].includes(inspector.fields.kind)
+                visible: inspector.entityType !== undefined
                 width: parent.width
                 spacing: Theme.space.xs
 
@@ -350,6 +354,34 @@ Pane {
                     Accessible.name: "Aliases"
                     text: (inspector.fields.aliases ?? []).join(", ")
                     onEditingFinished: inspector.save("aliases", text.split(",").map(t => t.trim()).filter(t => t !== ""))
+                }
+            }
+
+            // One field for each field of the entity type.
+            Repeater {
+                model: inspector.entityType ? inspector.entityType.fields : []
+
+                Column {
+                    id: typeField
+
+                    required property string modelData
+
+                    width: parent.width
+                    spacing: Theme.space.xs
+
+                    Caps {
+                        text: typeField.modelData
+                    }
+
+                    TextField {
+                        width: parent.width
+                        Accessible.name: typeField.modelData
+                        text: (inspector.fields.values ?? {})[typeField.modelData] ?? ""
+                        onEditingFinished: {
+                            if (text !== ((inspector.fields.values ?? {})[typeField.modelData] ?? ""))
+                                inspector.session.setEntityField(inspector.session.currentId, typeField.modelData, text);
+                        }
+                    }
                 }
             }
 

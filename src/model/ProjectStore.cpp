@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <array>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -66,6 +67,19 @@ template <std::size_t N>
 bool contains(const std::array<std::string_view, N> &list, std::string_view value)
 {
     return std::ranges::find(list, value) != list.end();
+}
+
+// The rule of an entity type that the author defines in project.toml.
+constexpr KindRule customEntity { "", "codex/", "codex", "" };
+
+// A kind that the author defines: lowercase letters, digits, and hyphens,
+// with a letter first.
+bool validKind(std::string_view kind)
+{
+    return !kind.empty() && kind.front() >= 'a' && kind.front() <= 'z'
+        && std::ranges::all_of(kind, [](char c) {
+               return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+           });
 }
 
 const KindRule *ruleFor(std::string_view kind)
@@ -132,6 +146,57 @@ public:
 private:
     QDir dir;
     LoadResult result;
+    // The entity types that project.toml defines.
+    std::set<std::string, std::less<>> customKinds;
+
+    // The rule of a kind, also of an entity type from project.toml.
+    const KindRule *rule(std::string_view kind) const
+    {
+        if (const KindRule *known = ruleFor(kind))
+            return known;
+        return customKinds.contains(kind) ? &customEntity : nullptr;
+    }
+
+    // Checks that a key holds a list of strings.
+    void checkStrings(const toml::table &table, std::string_view key, const QString &file)
+    {
+        if (!checkType(table, key, toml::node_type::array, file))
+            return;
+        const toml::array *list = table.get_as<toml::array>(key);
+        if (list != nullptr && !list->is_homogeneous(toml::node_type::string))
+            error(file, lineOf(*list), QStringLiteral("`%1` must hold only strings").arg(qs(key)));
+    }
+
+    // The entity types: [[entity-type]] with a kind, a name, and fields.
+    void loadEntityTypes(const toml::table &table, const QString &file)
+    {
+        const toml::array *types = table.get_as<toml::array>("entity-type");
+        if (!checkType(table, "entity-type", toml::node_type::array, file) || types == nullptr)
+            return;
+        for (const toml::node &node : *types) {
+            const toml::table *type = node.as_table();
+            if (type == nullptr) {
+                error(file, lineOf(node), QStringLiteral("`entity-type` must be a list of tables"));
+                continue;
+            }
+            checkType(*type, "name", toml::node_type::string, file);
+            checkStrings(*type, "fields", file);
+            const auto kind = string(*type, "kind", file, lineOf(node), true);
+            if (!kind)
+                continue;
+            const KindRule *known = ruleFor(*kind);
+            if (known != nullptr && known->section != "codex")
+                error(file, lineOf(node),
+                      QStringLiteral("`kind` \"%1\" is not a kind of entity").arg(qs(*kind)));
+            else if (known == nullptr && !validKind(*kind))
+                error(file, lineOf(node),
+                      QStringLiteral("`kind` \"%1\" must use lowercase letters, digits, and "
+                                     "hyphens")
+                          .arg(qs(*kind)));
+            else if (known == nullptr)
+                customKinds.insert(*kind);
+        }
+    }
 
     void error(const QString &file, int line, const QString &message)
     {
@@ -226,6 +291,7 @@ private:
                 checkType(*goals, "deadline", toml::node_type::date, file);
             }
         }
+        loadEntityTypes(*table, file);
         result.project.data = *table;
     }
 
@@ -273,7 +339,7 @@ private:
             item.id = qs(*id);
         }
         if (const auto kind = string(entry, "kind", file, line, true)) {
-            if (ruleFor(*kind) == nullptr)
+            if (rule(*kind) == nullptr)
                 error(file, lineOf(*entry.get("kind")),
                       QStringLiteral("`kind` \"%1\" is not a kind of item").arg(qs(*kind)));
             item.kind = qs(*kind);
@@ -296,13 +362,18 @@ private:
             status && !contains(statuses, *status))
             error(file, lineOf(*entry.get("status")),
                   QStringLiteral("`status` must be draft, revised, or final"));
-        for (const std::string_view key : { "tags", "aliases" }) {
-            if (!checkType(entry, key, toml::node_type::array, file))
-                continue;
-            const toml::array *list = entry.get_as<toml::array>(key);
-            if (list != nullptr && !list->is_homogeneous(toml::node_type::string))
-                error(file, lineOf(*list),
-                      QStringLiteral("`%1` must hold only strings").arg(qs(key)));
+        checkStrings(entry, "tags", file);
+        checkStrings(entry, "aliases", file);
+        // The values of the fields of an entity type: text only.
+        const toml::table *fields = entry.get_as<toml::table>("fields");
+        if (checkType(entry, "fields", toml::node_type::table, file) && fields != nullptr) {
+            for (const auto &[key, value] : *fields) {
+                if (!value.is_string())
+                    error(file, lineOf(value),
+                          QStringLiteral("the field `%1` must be a string")
+                              .arg(QString::fromUtf8(key.str().data(),
+                                                     static_cast<qsizetype>(key.str().size()))));
+            }
         }
 
         if (!item.id.isEmpty() && indexOf.contains(item.id))
@@ -343,7 +414,7 @@ private:
                 linked = false;
                 continue;
             }
-            const KindRule *parentRule = ruleFor(items.at(*parent).kind.toStdString());
+            const KindRule *parentRule = rule(items.at(*parent).kind.toStdString());
             if (parentRule != nullptr && !parentRule->folder.empty()) {
                 error(file, line,
                       QStringLiteral("a %1 cannot hold other items").arg(items.at(*parent).kind));
@@ -377,7 +448,7 @@ private:
     void checkPlace(int index, const QString &file)
     {
         ProjectItem &item = result.project.items[index];
-        const KindRule *rule = ruleFor(item.kind.toStdString());
+        const KindRule *rule = this->rule(item.kind.toStdString());
         if (rule == nullptr)
             return;
         const int line = item.line;
