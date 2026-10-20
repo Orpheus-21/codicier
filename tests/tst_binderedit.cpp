@@ -956,6 +956,25 @@ private slots:
         QVERIFY(!readFile("project.toml").contains("words = "));
     }
 
+    void historyCountsTheWordsOfToday()
+    {
+        QCOMPARE(session->streak(), 0);
+        session->setCurrentId("t6v4h9r2mz");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QTextCursor(&editor).insertText("Five more words go here. ");
+        QTRY_COMPARE(session->sessionWords(), 5);
+        QCOMPARE(session->streak(), 1);
+        const QVariantList days = session->historyDays(3);
+        QCOMPARE(days.size(), 3);
+        QCOMPARE(days.last().toMap().value("words").toInt(), 5);
+        QCOMPARE(days.last().toMap().value("date").toString(),
+                 QDate::currentDate().toString(Qt::ISODate));
+        // The save of the text writes the history too.
+        QVERIFY(session->document()->save());
+        QVERIFY(readFile("history.toml").contains(" = 5\n"));
+    }
+
     void readOnlyProjectRefusesEdits()
     {
         QFile file(dir.filePath("binder.toml"));

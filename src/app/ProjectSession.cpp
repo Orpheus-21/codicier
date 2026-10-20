@@ -2,6 +2,7 @@
 
 #include "Backup.h"
 #include "Diff.h"
+#include "History.h"
 #include "Index.h"
 #include "Naming.h"
 #include "ProjectStore.h"
@@ -37,6 +38,13 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
     connect(this, &ProjectSession::currentIdChanged, this, &ProjectSession::wordsChanged);
     connect(this, &ProjectSession::edited, this, &ProjectSession::wordsChanged);
     connect(this, &ProjectSession::loaded, this, &ProjectSession::wordsChanged);
+    // Each change of the manuscript words goes to the history of today.
+    connect(this, &ProjectSession::wordsChanged, this, [this] {
+        const int total = manuscriptWords();
+        if (history && total != historyTotal)
+            history->add(QDate::currentDate(), total - historyTotal);
+        historyTotal = total;
+    });
     connect(&text, &Document::dirtyChanged, this, [this] {
         if (watcher && !text.file().isEmpty())
             watcher->setUnsaved(text.file(), text.dirty());
@@ -50,6 +58,8 @@ ProjectSession::~ProjectSession()
 
 void ProjectSession::noteSaved(const QString &file)
 {
+    if (history)
+        history->save();
     staleFiles.insert(file);
     emit textsChanged();
     if (watcher)
@@ -59,6 +69,8 @@ void ProjectSession::noteSaved(const QString &file)
 QString ProjectSession::backup()
 {
     saveAll();
+    if (history)
+        history->save();
     if (!changedSinceBackup || project.folder.isEmpty() || !loadError.isEmpty()
         || backupFolder.isEmpty())
         return { };
@@ -81,9 +93,13 @@ void ProjectSession::setFolder(const QString &folder)
     project = Project();
     project.folder = folder;
     changedSinceBackup = false;
+    history.reset();
     reload();
-    // The session counts the words added from now on.
+    // The session and the history count the words added from now on.
     sessionStart = manuscriptWords();
+    historyTotal = sessionStart;
+    if (!folder.isEmpty() && loadError.isEmpty() && !project.readOnly)
+        history = std::make_unique<History>(folder);
     emit wordsChanged();
 }
 
@@ -744,6 +760,23 @@ int ProjectSession::chapterWords() const
         return binderModel.wordsOf(current);
     const QString chapter = binderModel.chapterOf(current);
     return chapter.isEmpty() ? -1 : binderModel.wordsOf(chapter);
+}
+
+int ProjectSession::streak() const
+{
+    return history ? history->streak(QDate::currentDate()) : 0;
+}
+
+QVariantList ProjectSession::historyDays(int count) const
+{
+    QVariantList list;
+    const QDate today = QDate::currentDate();
+    for (int i = count - 1; i >= 0; --i) {
+        const QDate day = today.addDays(-i);
+        list.append(QVariantMap { { QStringLiteral("date"), day.toString(Qt::ISODate) },
+                                  { QStringLiteral("words"), history ? history->words(day) : 0 } });
+    }
+    return list;
 }
 
 QString ProjectSession::deadline() const

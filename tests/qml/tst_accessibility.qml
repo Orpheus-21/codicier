@@ -485,4 +485,16 @@ TestCase {
         verify(view.session.dailyNeeded > 0);
         verify(note.text.includes("words each day"), note.text);
     }
+
+    function test_historyShowsTheHeatMap() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_G, Qt.ControlModifier | Qt.ShiftModifier);
+        const overlay = view.T.Overlay.overlay;
+        const map = findChild(overlay, "heatMap") as Grid;
+        tryVerify(() => map && map.visible);
+        compare(map.children.length - 1, 182);
+        const streak = findChild(overlay, "streak") as Text;
+        compare(streak.text, "0 days in a row with words.");
+    }
 }

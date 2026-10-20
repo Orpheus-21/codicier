@@ -125,6 +125,11 @@ target_compile_definitions(tst_backup PRIVATE
 target_link_libraries(tst_backup PRIVATE codicier_core Qt6::CorePrivate Qt6::Test)
 add_test(NAME tst_backup COMMAND tst_backup)
 
+qt_add_executable(tst_history tst_history.cpp)
+target_compile_options(tst_history PRIVATE -Wall -Wextra)
+target_link_libraries(tst_history PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_history COMMAND tst_history)
+
 qt_add_executable(tst_settings tst_settings.cpp)
 target_compile_options(tst_settings PRIVATE -Wall -Wextra)
 target_link_libraries(tst_settings PRIVATE codicier_ui Qt6::Test)

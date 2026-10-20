@@ -175,6 +175,51 @@ T.Popup {
                 color: dialog.goalError !== "" ? Theme.color.accent : Theme.color.inkMuted
             }
 
+            Heading {
+                text: "History"
+            }
+
+            // The net words of each of the last 26 weeks, oldest first, a
+            // column for each week. A darker square is a day with more words.
+            Grid {
+                id: heatMap
+
+                readonly property var days: dialog.opened ? dialog.session.historyDays(182) : []
+                // The most words of a day, 0 with no history.
+                readonly property int best: Math.max(0, ...days.map(day => day.words))
+
+                objectName: "heatMap"
+                rows: 7
+                flow: Grid.TopToBottom
+                spacing: 3
+
+                Repeater {
+                    model: heatMap.days
+
+                    Rectangle {
+                        required property var modelData
+
+                        width: 15
+                        height: 15
+                        radius: 3
+                        color: modelData.words > 0
+                               ? Qt.alpha(Theme.color.accent, 0.25 + 0.75 * modelData.words / Math.max(1, heatMap.best))
+                               : Theme.color.surface
+                        border.width: modelData.words > 0 ? 0 : 1
+                        border.color: Theme.color.rule
+                        Accessible.role: Accessible.StaticText
+                        Accessible.name: modelData.date + ": " + modelData.words + " words"
+                    }
+                }
+            }
+
+            Note {
+                objectName: "streak"
+                text: (dialog.session.streak === 1 ? "1 day in a row" : dialog.session.streak + " days in a row")
+                      + " with words."
+                      + (heatMap.best > 0 ? "  Best day: " + heatMap.best.toLocaleString(Qt.locale("en_GB"), "f", 0) + " words." : "")
+            }
+
             Item {
                 width: parent.width
                 height: doneButton.height
