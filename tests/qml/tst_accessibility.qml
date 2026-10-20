@@ -166,4 +166,50 @@ TestCase {
         verify(second !== first);
         verify((second as BinderRow).Accessible.name !== "");
     }
+
+    Component {
+        id: deleteComponent
+
+        DeleteProjectDialog {
+            projects: workspace
+        }
+    }
+
+    TextInput {
+        id: source
+
+        text: "Harbour"
+    }
+
+    function test_deleteNeedsTheTitleTypedByHand() {
+        makeView().destroy();
+        const folder = workspace.folder + "/harbour";
+        const dialog = createTemporaryObject(deleteComponent, testCase) as DeleteProjectDialog;
+        dialog.ask(folder, "Harbour");
+        tryVerify(() => dialog.opened);
+        compare(faults(dialog.contentItem), []);
+        const field = findChild(dialog.contentItem, "confirmTitle") as TextField;
+        const button = findChild(dialog.contentItem, "confirmDelete") as Button;
+        tryVerify(() => field.activeFocus);
+
+        // Paste does nothing.
+        source.selectAll();
+        source.copy();
+        keyClick(Qt.Key_V, Qt.ControlModifier);
+        keyClick(Qt.Key_Insert, Qt.ShiftModifier);
+        compare(field.text, "");
+
+        for (const c of "Harbou")
+            keyClick(c);
+        verify(!button.enabled);
+        keyClick(Qt.Key_Return);
+        verify(dialog.opened);
+        keyClick("r");
+        verify(button.enabled);
+        keyClick(Qt.Key_Return);
+        compare(dialog.error, "");
+        tryVerify(() => !dialog.opened);
+        verify(!workspace.get(0).folder || workspace.get(0).folder !== folder);
+        compare(workspace.count, 0);
+    }
 }

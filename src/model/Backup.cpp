@@ -12,9 +12,13 @@
 // qt6-base, so it adds no package, but a Qt release can change it; CI
 // builds with the newest Qt, so a change shows at once. A small zip writer
 // of our own can replace it if that happens.
+#include <private/qzipreader_p.h>
 #include <private/qzipwriter_p.h>
 
+#include <toml++/toml.hpp>
+
 #include <algorithm>
+#include <sstream>
 
 namespace {
 
@@ -23,6 +27,24 @@ bool fail(QString *error, const QString &reason)
     if (error != nullptr)
         *error = reason;
     return false;
+}
+
+// The created time in the text of a project.toml, or "" if there is none.
+QString createdIn(const QByteArray &projectToml)
+{
+    try {
+        const toml::table table
+            = toml::parse(std::string_view(projectToml.constData(), projectToml.size()));
+        if (const auto *created = table.get_as<toml::date_time>("created")) {
+            std::ostringstream out;
+            out << created->get();
+            return QString::fromStdString(out.str());
+        }
+    } catch (const toml::parse_error &) {
+        // A project.toml that does not parse has no created time.
+        return { };
+    }
+    return { };
 }
 
 } // namespace
@@ -95,6 +117,36 @@ QString write(const QString &projectFolder, const QString &backupFolder, int kee
     while (zips.size() > keep)
         QFile::remove(target.filePath(zips.takeFirst()));
     return target.filePath(zipName);
+}
+
+int removeAll(const QString &projectFolder, const QString &backupFolder, QString *error)
+{
+    const QDir project(projectFolder);
+    QFile file(project.filePath(QStringLiteral("project.toml")));
+    const QString created = file.open(QIODevice::ReadOnly) ? createdIn(file.readAll()) : QString();
+    if (created.isEmpty()) {
+        fail(error, QStringLiteral("The project has no created time, so its backups are unknown."));
+        return -1;
+    }
+    const QString name = QFileInfo(project.absolutePath()).fileName();
+    QDir target(QDir(backupFolder).filePath(name));
+    if (backupFolder.isEmpty() || !target.exists())
+        return 0;
+    int removed = 0;
+    for (const QString &zip : target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files)) {
+        const QString path = target.filePath(zip);
+        const QByteArray toml = QZipReader(path).fileData(name + QStringLiteral("/project.toml"));
+        if (createdIn(toml) != created)
+            continue;
+        if (!QFile::remove(path)) {
+            fail(error, QStringLiteral("Cannot delete %1.").arg(path));
+            return -1;
+        }
+        ++removed;
+    }
+    // rmdir removes only an empty folder.
+    QDir(backupFolder).rmdir(name);
+    return removed;
 }
 
 } // namespace Backup

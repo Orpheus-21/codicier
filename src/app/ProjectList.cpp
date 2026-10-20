@@ -1,5 +1,6 @@
 #include "ProjectList.h"
 
+#include "Backup.h"
 #include "Index.h"
 #include "Naming.h"
 #include "ProjectStore.h"
@@ -208,6 +209,27 @@ QString ProjectList::create(const QString &title, const QString &kind, const QSt
         = Templates::create(dir.filePath(folderName), kind, name, author.trimmed());
     if (!errors.isEmpty())
         return errors.first().text();
+    refresh();
+    return { };
+}
+
+QString ProjectList::remove(const QString &projectFolder, const QString &backupFolder)
+{
+    const QFileInfo info(projectFolder);
+    // Only a real project folder in this workspace: never a link, a parent,
+    // or a folder somewhere else.
+    if (workspace.isEmpty() || info.isSymLink() || !info.isDir()
+        || info.absolutePath() != QDir(workspace).absolutePath()
+        || !QFileInfo::exists(QDir(projectFolder).filePath(QStringLiteral("project.toml"))))
+        return QStringLiteral("This folder is not a project in the workspace.");
+    // The backups go first: the match needs the project.toml of the folder.
+    QString error;
+    if (!backupFolder.isEmpty() && Backup::removeAll(projectFolder, backupFolder, &error) < 0)
+        return error;
+    if (!QDir(projectFolder).removeRecursively()) {
+        refresh();
+        return QStringLiteral("Some files of the project could not be deleted.");
+    }
     refresh();
     return { };
 }

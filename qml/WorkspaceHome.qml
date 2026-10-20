@@ -160,6 +160,14 @@ Item {
                     width: 100
                     text: row.editedLabel
                 }
+
+                IconButton {
+                    objectName: "deleteProject"
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconName: "trash"
+                    label: "Delete " + (row.title || row.folder)
+                    onClicked: deleteDialog.ask(row.folder, row.title || row.folder.split("/").pop())
+                }
             }
         }
     }
@@ -362,6 +370,13 @@ Item {
 
     function openNewProject() {
         newProject.open();
+    }
+
+    DeleteProjectDialog {
+        id: deleteDialog
+
+        anchors.centerIn: parent
+        projects: projectList
     }
 
     NewProjectDialog {

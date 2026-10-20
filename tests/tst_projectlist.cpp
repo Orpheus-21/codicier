@@ -1,3 +1,4 @@
+#include "Backup.h"
 #include "ProjectList.h"
 #include "Templates.h"
 
@@ -174,6 +175,57 @@ private slots:
         QVERIFY(!list.data(list.index(0), Qt::DisplayRole).isValid());
         QVERIFY(!list.data(list.index(3), ProjectList::TitleRole).isValid());
         QCOMPARE(list.rowCount(list.index(0)), 0);
+    }
+
+    void removeDeletesTheFolderAndItsBackups()
+    {
+        QTemporaryDir dir;
+        QTemporaryDir backups;
+        ProjectList list;
+        list.setFolder(dir.path());
+        QCOMPARE(list.create("The Salt Ledger", "novel", QString()), QString());
+        QCOMPARE(list.create("Other", "essay", QString()), QString());
+        const QString folder = dir.filePath("the-salt-ledger");
+        QVERIFY(!Backup::write(folder, backups.path(), 10).isEmpty());
+        QVERIFY(!Backup::write(dir.filePath("other"), backups.path(), 10).isEmpty());
+
+        QCOMPARE(list.remove(folder, backups.path()), QString());
+        QVERIFY(!QFileInfo::exists(folder));
+        QVERIFY(!QFileInfo::exists(QDir(backups.path()).filePath("the-salt-ledger")));
+        QCOMPARE(list.count(), 1);
+        // The other project and its backups stay.
+        QVERIFY(QFileInfo::exists(dir.filePath("other/project.toml")));
+        QCOMPARE(QDir(QDir(backups.path()).filePath("other")).entryList(QDir::Files).size(), 1);
+    }
+
+    void removeRefusesFoldersThatAreNotProjects()
+    {
+        QTemporaryDir dir;
+        QTemporaryDir outside;
+        ProjectList list;
+        const QString notSet = list.remove(dir.path(), QString());
+        QVERIFY(!notSet.isEmpty());
+        list.setFolder(dir.path());
+        QCOMPARE(list.create("Kept", "essay", QString()), QString());
+        QCOMPARE(list.create("Kept", "essay", QString()), QString());
+
+        // The workspace itself, a folder outside it, and a plain folder.
+        QVERIFY(!list.remove(dir.path(), QString()).isEmpty());
+        QVERIFY(QDir().mkpath(outside.filePath("elsewhere")));
+        QFile toml(outside.filePath("elsewhere/project.toml"));
+        QVERIFY(toml.open(QIODevice::WriteOnly));
+        toml.close();
+        QVERIFY(!list.remove(outside.filePath("elsewhere"), QString()).isEmpty());
+        QVERIFY(QFileInfo::exists(outside.filePath("elsewhere/project.toml")));
+        QVERIFY(QDir().mkpath(dir.filePath("plain")));
+        QVERIFY(!list.remove(dir.filePath("plain"), QString()).isEmpty());
+        QVERIFY(QFileInfo::exists(dir.filePath("plain")));
+
+        // A link to a project: the link target must stay.
+        QVERIFY(QFile::link(dir.filePath("kept"), dir.filePath("link")));
+        QVERIFY(!list.remove(dir.filePath("link"), QString()).isEmpty());
+        QVERIFY(QFileInfo::exists(dir.filePath("kept/project.toml")));
+        QCOMPARE(list.count(), 2);
     }
 };
 

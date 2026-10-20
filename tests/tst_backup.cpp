@@ -104,6 +104,50 @@ private slots:
         QCOMPARE(Backup::write(root.path(), root.filePath("file"), 5, &error), QString());
         QCOMPARE(error, QStringLiteral("Cannot make the backup folder."));
     }
+
+    void removeAllDeletesOnlyThisProject()
+    {
+        // Two projects with the same folder name in two workspaces share a
+        // backup folder. Only the created time tells them apart.
+        QTemporaryDir root;
+        const QString first = root.filePath("one/novel");
+        const QString second = root.filePath("two/novel");
+        copyFixture(first);
+        copyFixture(second);
+        const QString toml = QDir(second).filePath("project.toml");
+        QByteArray text = read(toml);
+        QVERIFY(text.contains("created = 2026-"));
+        text.replace("created = 2026-", "created = 2025-");
+        QFile out(toml);
+        QVERIFY(out.open(QIODevice::WriteOnly));
+        out.write(text);
+        out.close();
+
+        const QString backups = root.filePath("backups");
+        for (int i = 0; i < 2; ++i) {
+            QVERIFY(!Backup::write(first, backups, 10).isEmpty());
+            QVERIFY(!Backup::write(second, backups, 10).isEmpty());
+        }
+        const QDir target(QDir(backups).filePath("novel"));
+        QCOMPARE(target.entryList(QDir::Files).size(), 4);
+
+        QString error;
+        QCOMPARE(Backup::removeAll(first, backups, &error), 2);
+        QCOMPARE(target.entryList(QDir::Files).size(), 2);
+        QVERIFY(target.exists());
+        QCOMPARE(Backup::removeAll(second, backups, &error), 2);
+        // The empty folder goes too.
+        QVERIFY(!target.exists());
+
+        // No backups is no error.
+        QCOMPARE(Backup::removeAll(first, backups, &error), 0);
+        QCOMPARE(Backup::removeAll(first, QString(), &error), 0);
+
+        // A project with no created time cannot be matched.
+        QFile::remove(QDir(first).filePath("project.toml"));
+        QCOMPARE(Backup::removeAll(first, backups, &error), -1);
+        QVERIFY(!error.isEmpty());
+    }
 };
 
 QTEST_GUILESS_MAIN(TestBackup)

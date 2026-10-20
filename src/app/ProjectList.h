@@ -67,6 +67,10 @@ public:
     Q_INVOKABLE void refresh();
     // Makes a new project from a template. Returns an error text, or "".
     Q_INVOKABLE QString create(const QString &title, const QString &kind, const QString &author);
+    // Deletes a project for good: its folder and its backups in
+    // backupFolder, with no copy in a trash. The folder must be a project
+    // directly in the workspace. Returns an error text, or "".
+    Q_INVOKABLE QString remove(const QString &projectFolder, const QString &backupFolder);
     // The values of row as a map, for the Continue block.
     Q_INVOKABLE QVariantMap get(int row) const;
 
