@@ -97,6 +97,10 @@ These are the default keys. The key map file can change each key. See "Configura
 | Key | Action |
 |---|---|
 | Ctrl+Shift+P | Find a command or an item. |
+| Ctrl+B | Make the selection, or the word at the cursor, bold. Press again to undo the bold. |
+| Ctrl+I | Make the selection, or the word at the cursor, italic. Press again to undo the italic. |
+| Ctrl+F | Find in the open scene. Enter goes to the next match, and Shift+Enter to the match before. |
+| Ctrl+R | Find and replace in the open scene. |
 | F6 | Move to the next pane: the binder, the page, then the inspector. |
 | Ctrl+N | Make a new scene. |
 | Ctrl+Shift+N | Make a new chapter. |
@@ -127,13 +131,21 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Shift+F | Search the project. |
 | Ctrl+H | Replace across the manuscript. |
 | Ctrl+Shift+B | Show or hide the binder. |
-| Ctrl+I | Show or hide the inspector. |
+| Ctrl+Shift+I | Show or hide the inspector. If your key map file still has the old default, Ctrl+I, the app moves it to Ctrl+Shift+I. |
 | F11 | Start or stop focus mode. |
 | Escape | Stop focus mode, or close the search panel. |
 | Ctrl+W | Close the project and go back to the workspace. |
 | F1 | Show every command and its key. |
 
 Tab types a tab character on the page. Use F6 to move the keyboard focus to the page and away from the page.
+
+As you type, the page changes straight quotes to curly quotes, `--` to an em dash, and `...` to an ellipsis. Press Ctrl+Z once to get back the characters that you typed. The settings turn each change off.
+
+The status bar shows the words of the scene, the chapter, the book, and the session. With text selected, it also shows the words of the selection. At the right end, it shows "Saved", "Saving", or "Not saved". "Not saved" stays until a save works.
+
+The inspector shows the reading time of the open item, and the insights show the reading time of each chapter and of the manuscript. The time uses 238 words a minute, the average speed of silent reading for adults.
+
+When you open a chapter or a part, its scenes show as one page. The project menu, under the title of the project, chooses the mark between two scenes: `* * *`, `#`, or a blank line.
 
 ### Keys in the binder
 
@@ -234,6 +246,7 @@ Click the settings button on the workspace screen to change these settings. Each
 | Size of the text | 19 px | The size of the text on the page, from 14 px to 28 px. |
 | Width of the page | 66 characters | The width of the text column, from 45 to 90 characters. |
 | Animations | On | Off stops all motion in the app. |
+| Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
 | First-run hints | On | The hints show once. "Show them again" shows them on the next project that opens. |
 | Save the text after a pause of | 1 s | The wait after the last edit before the app saves: 0.5 s, 1 s, 2 s, or 5 s. |
