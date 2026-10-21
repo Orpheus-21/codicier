@@ -336,6 +336,21 @@ TestCase {
         compare(main.text, "Dawn.");
     }
 
+    function test_zoomKeysChangeTheTextSize() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_0, Qt.ControlModifier);
+        compare(Settings.readingSize, 19);
+        keyClick(Qt.Key_Equal, Qt.ControlModifier);
+        keyClick(Qt.Key_Equal, Qt.ControlModifier);
+        compare(Settings.readingSize, 21);
+        compare(Theme.type.readingSize, 21);
+        keyClick(Qt.Key_Minus, Qt.ControlModifier);
+        compare(Settings.readingSize, 20);
+        keyClick(Qt.Key_0, Qt.ControlModifier);
+        compare(Settings.readingSize, 19);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

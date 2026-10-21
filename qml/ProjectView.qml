@@ -378,6 +378,9 @@ Item {
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
         { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() },
         { id: "help", name: "Show the keys", sequence: "F1", run: () => keySheet.open() },
+        { id: "zoom.in", name: "Larger text", sequence: "Ctrl+=", run: () => Settings.readingSize += 1 },
+        { id: "zoom.out", name: "Smaller text", sequence: "Ctrl+-", run: () => Settings.readingSize -= 1 },
+        { id: "zoom.reset", name: "Text at the normal size", sequence: "Ctrl+0", run: () => Settings.readingSize = 19 },
         { id: "beside", name: "Show or hide the second page", sequence: "Ctrl+\\", run: () => view.toggleBeside() },
         { id: "back", name: "Go back to the text before", sequence: "Alt+Left", run: () => view.walk(-1) },
         { id: "forward", name: "Go forward again", sequence: "Alt+Right", run: () => view.walk(1) }
