@@ -155,6 +155,10 @@ The status bar shows the words of the scene, the chapter, the book, and the sess
 
 The inspector shows the reading time of the open item, and the insights show the reading time of each chapter and of the manuscript. The time uses 238 words a minute, the average speed of silent reading for adults.
 
+In the binder, Ctrl+click adds an item to the selection, and Shift+click selects the items from the open item to the clicked one. The binder menu then sets the status, adds a tag, or moves to the trash on all selected items, and a drag moves all of them. The binder menu also gives an item a colour label, which the binder, the outliner, and the cards show, and duplicates an item with everything below it.
+
+The project menu turns on numbers for the chapters and the scenes in the binder and the outliner. The titles do not change.
+
 Right-click a misspelled word on the page to see spelling suggestions. Right-click a correct word to see its synonyms from the thesaurus. Click a word in the list to put it in place of the word on the page.
 
 The project menu, under the title of the project, chooses the spelling language from the Hunspell dictionaries on the computer. The settings list the dictionaries.
