@@ -101,6 +101,13 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+I | Make the selection, or the word at the cursor, italic. Press again to undo the italic. |
 | Ctrl+F | Find in the open scene. Enter goes to the next match, and Shift+Enter to the match before. |
 | Ctrl+R | Find and replace in the open scene. |
+| Ctrl+Shift+H | Highlight the selection, or the word at the cursor, with `==` marks. Press again to take the highlight away. |
+| Ctrl+= | Make the text of the page larger. |
+| Ctrl+- | Make the text of the page smaller. |
+| Ctrl+0 | Put the text of the page back to 19 px. |
+| Alt+Left | Go back to the text that was open before, with the cursor where you left it. |
+| Alt+Right | Go forward again. |
+| Ctrl+\\ | Show the text before this one on a second page, or close the second page. |
 | F6 | Move to the next pane: the binder, the page, then the inspector. |
 | Ctrl+N | Make a new scene. |
 | Ctrl+Shift+N | Make a new chapter. |
@@ -146,6 +153,12 @@ As you type, the page changes straight quotes to curly quotes, `--` to an em das
 The status bar shows the words of the scene, the chapter, the book, and the session. With text selected, it also shows the words of the selection. At the right end, it shows "Saved", "Saving", or "Not saved". "Not saved" stays until a save works.
 
 The inspector shows the reading time of the open item, and the insights show the reading time of each chapter and of the manuscript. The time uses 238 words a minute, the average speed of silent reading for adults.
+
+Right-click an item in the binder and choose "Open beside" to show it on a second page next to the main page. Each page saves its own text.
+
+In focus mode, the paragraph with the cursor stays bright and the other paragraphs are dim. The settings choose the sentence in place of the paragraph, or no dimming.
+
+Undo works across a restart: each save keeps the last 20 saved states of a text in `.codicier/undo/` in the project folder, and Ctrl+Z steps back through them when the text opens again. A change from another program starts a new history.
 
 When you open a chapter or a part, its scenes show as one page. The project menu, under the title of the project, chooses the mark between two scenes: `* * *`, `#`, or a blank line.
 
@@ -249,6 +262,9 @@ Click the settings button on the workspace screen to change these settings. Each
 | Width of the page | 66 characters | The width of the text column, from 45 to 90 characters. |
 | Animations | On | Off stops all motion in the app. |
 | Markdown marks | Hide outside the cursor | "Show" shows the marks in every paragraph. |
+| Line spacing | Normal | Close, Normal, or Wide: 1.3, 1.5, or 1.8 lines. |
+| Space between paragraphs | One line | Half a line, one line, or none with a first-line indent, as in a printed book. The file does not change. |
+| Focus mode dims | Other paragraphs | Nothing, other paragraphs, or other sentences. |
 | Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
 | First-run hints | On | The hints show once. "Show them again" shows them on the next project that opens. |
