@@ -55,6 +55,24 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: ctest --test-dir build --output-on-failure -E "^check_|floor_guard|coverage_diff|tst_icons"
 
+      # The app bundle: macdeployqt copies Qt, Hunspell, and the QML files into
+      # it. The check fails if the bundle still links to a library outside it.
+      - name: Make the app bundle
+        run: |
+          "$QT_ROOT_DIR/bin/macdeployqt" build/codicier.app -qmldir=qml -dmg
+          ! find build/codicier.app -type f -perm -u+x -exec otool -L {} + \
+            | grep -E "/opt/homebrew|/usr/local|$QT_ROOT_DIR"
+          status=0
+          # macOS has no timeout command. SIGALRM after 10 s gives status 142.
+          QT_QPA_PLATFORM=offscreen perl -e 'alarm 10; exec @ARGV' \
+            build/codicier.app/Contents/MacOS/codicier || status=$?
+          test "$status" -eq 142
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Codicier-macOS
+          path: build/codicier.dmg
+
   # The app on Windows, with the MinGW packages of MSYS2.
   # MSYS2 ships Qt 6.11, and the app needs Qt 6.12. Until MSYS2 ships
   # Qt 6.12, a failure of this job does not fail the run.
