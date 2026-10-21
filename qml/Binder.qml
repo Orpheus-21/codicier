@@ -186,6 +186,7 @@ ListView {
 
     // The accent line where the item lands, or a frame for "inside".
     Rectangle {
+        objectName: "dropMarker"
         readonly property BinderRow target: binder.dropRow >= 0 ? binder.itemAtIndex(binder.dropRow) as BinderRow : null
 
         visible: target !== null

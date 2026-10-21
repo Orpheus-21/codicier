@@ -444,6 +444,36 @@ TestCase {
         compare(binder.selectedIds, []);
     }
 
+    function test_binderDragShowsWhereTheItemLands() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const binder = findChild(view, "binder") as Binder;
+        const scene = view.session.currentId;
+        const second = view.session.add("scene");
+        const chapter = view.session.fields(scene).parent;
+        waitForRendering(binder);
+        const marker = findChild(binder, "dropMarker") as Rectangle;
+        const rowOf = id => binder.itemAtIndex(view.session.binder.rowOf(id));
+        binder.dragId = second;
+        // The top of a scene row: a line before it.
+        const top = rowOf(scene);
+        binder.dragTo(top.y - binder.contentY + 2);
+        compare(binder.dropPosition, "before");
+        verify(marker.visible);
+        compare(marker.height, 2);
+        // The middle of the chapter row: a frame, and the scene goes inside.
+        const folder = rowOf(chapter);
+        binder.dragTo(folder.y - binder.contentY + folder.height / 2);
+        compare(binder.dropPosition, "inside");
+        compare(marker.height, folder.height);
+        verify(marker.border.width > 0);
+        binder.dragId = "";
+        binder.dropRow = -1;
+        verify(!marker.visible);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
