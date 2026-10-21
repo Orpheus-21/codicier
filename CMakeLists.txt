@@ -65,9 +65,20 @@ qt_add_qml_module(codicier_ui
 qt_add_executable(codicier src/main.cpp src/OfflineGuard.cpp)
 target_compile_options(codicier PRIVATE -Wall -Wextra)
 target_link_libraries(codicier PRIVATE Qt6::Gui Qt6::Qml Qt6::Quick codicier_uiplugin)
+if(APPLE)
+    # The icon holds one 256 px PNG (made from packaging/linux/codicier.png).
+    target_sources(codicier PRIVATE packaging/macos/codicier.icns)
+    set_source_files_properties(packaging/macos/codicier.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    set_target_properties(codicier PROPERTIES MACOSX_BUNDLE ON
+        MACOSX_BUNDLE_BUNDLE_NAME Codicier
+        MACOSX_BUNDLE_GUI_IDENTIFIER io.github.Orpheus_21.Codicier
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+        MACOSX_BUNDLE_ICON_FILE codicier.icns)
+endif()
 
 include(GNUInstallDirs)
-install(TARGETS codicier RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS codicier RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} BUNDLE DESTINATION .)
 install(FILES packaging/linux/codicier.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(FILES packaging/linux/codicier.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps)
 install(FILES packaging/linux/codicier.metainfo.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
