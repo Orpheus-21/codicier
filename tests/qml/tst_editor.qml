@@ -421,6 +421,14 @@ TestCase {
         binder.drop();
         const after = rows();
         verify(after[1] < after[2] && after[2] < after[0], JSON.stringify(after));
+        // A colour label from the menu reaches the binder, the cards, and the
+        // outliner.
+        binder.selectedIds = [];
+        binder.menuId = first;
+        binder.setLabel(first, "green");
+        compare(view.session.fields(first).label, "green");
+        waitForRendering(binder);
+        verify(Qt.colorEqual(rowItem(first).labelColor, Theme.labelColor("green")));
         binder.selectedIds = [first, second, third];
         binder.trash(first);
         for (const id of [first, second, third])

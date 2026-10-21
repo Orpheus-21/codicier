@@ -111,6 +111,14 @@ Item {
                 Accessible.role: Accessible.ListItem
                 Accessible.name: cell.modelData.title
 
+                // The colour label: a stripe along the top of the card.
+                Rectangle {
+                    width: parent.width
+                    height: 4
+                    radius: Theme.radius.small
+                    color: Theme.labelColor(board.session.fields(cell.modelData.id).label ?? "")
+                }
+
                 Column {
                     x: Theme.space.m
                     y: Theme.space.m

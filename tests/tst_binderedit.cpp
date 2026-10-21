@@ -1124,6 +1124,16 @@ private slots:
         QVERIFY(!catalyst.value("description").toString().isEmpty());
     }
 
+    void colourLabelsAreChecked()
+    {
+        QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));
+        QCOMPARE(session->fields("m1n2p3q4r5").value("label").toString(), QStringLiteral("green"));
+        QVERIFY(readFile("binder.toml").contains("label = \"green\""));
+        QVERIFY(!session->setField("m1n2p3q4r5", "label", "mauve"));
+        QVERIFY(session->setField("m1n2p3q4r5", "label", ""));
+        QVERIFY(session->fields("m1n2p3q4r5").value("label").toString().isEmpty());
+    }
+
     void sceneBreakIsAProjectChoice()
     {
         QCOMPARE(session->sceneBreak(), QStringLiteral("***"));

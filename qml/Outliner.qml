@@ -210,6 +210,15 @@ Item {
                     color: Theme.color.rule
                     opacity: 0.6
                 }
+
+                // The colour label: a short bar at the left edge.
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 3
+                    height: parent.height - 12
+                    radius: 1.5
+                    color: Theme.labelColor(outliner.session.fields(row.modelData.id).label ?? "")
+                }
             }
         }
     }

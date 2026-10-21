@@ -2255,7 +2255,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
     map.insert(QStringLiteral("status"),
                status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
                                                                        : status);
-    for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat", "date" })
+    for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat", "date", "label" })
         map.insert(QString::fromLatin1(key), string(key));
     map.insert(QStringLiteral("dateLabel"), calendar().label(string("date")));
     QStringList tags;
@@ -2343,6 +2343,15 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
             data.erase(name);
         else if (calendar().dayOf(date))
             data.insert_or_assign(name, date.toStdString());
+        else
+            return false;
+    } else if (key == QLatin1String("label")) {
+        // A colour label: the name of a colour of the theme, or "" for none.
+        const QString label = value.toString();
+        if (label.isEmpty())
+            data.erase(name);
+        else if (QStringList { "blue", "orange", "green", "yellow", "pink" }.contains(label))
+            data.insert_or_assign(name, label.toStdString());
         else
             return false;
     } else if (key == QLatin1String("beat") || key == QLatin1String("pov")

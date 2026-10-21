@@ -58,6 +58,11 @@ ListView {
         return false;
     }
 
+    function setLabel(id: string, label: string) {
+        for (const each of targets(id))
+            session.setField(each, "label", label);
+    }
+
     function setStatus(id: string, status: string) {
         for (const each of targets(id))
             session.setField(each, "status", status);
@@ -198,6 +203,52 @@ ListView {
             text: "Open beside"
             enabled: binder.menuId !== "" && (binder.session.fields(binder.menuId).file ?? "") !== ""
             onTriggered: binder.besideRequested(binder.menuId)
+        }
+        // The colour labels, as a row of swatches. The first one takes the
+        // label away.
+        T.MenuItem {
+            objectName: "labelPicker"
+            implicitWidth: 212
+            implicitHeight: 36
+            leftPadding: Theme.space.m
+            Accessible.name: "Colour label"
+
+            contentItem: Row {
+                spacing: Theme.space.s
+
+                Repeater {
+                    model: [""].concat(Theme.labels)
+
+                    Rectangle {
+                        id: swatch
+
+                        required property string modelData
+
+                        objectName: "label-" + (modelData === "" ? "none" : modelData)
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 18
+                        height: 18
+                        radius: 9
+                        color: Theme.labelColor(modelData)
+                        border.width: modelData === "" ? 1 : 0
+                        border.color: Theme.color.inkMuted
+                        Accessible.role: Accessible.Button
+                        Accessible.name: modelData === "" ? "No label" : "Label " + modelData
+                        Accessible.onPressAction: choose()
+
+                        function choose() {
+                            binder.setLabel(binder.menuId, modelData);
+                            itemMenu.close();
+                        }
+
+                        TapHandler {
+                            onTapped: swatch.choose()
+                        }
+                    }
+                }
+            }
+
+            background: null
         }
         T.Action { text: "Status: draft"; onTriggered: binder.setStatus(binder.menuId, "draft") }
         T.Action { text: "Status: revised"; onTriggered: binder.setStatus(binder.menuId, "revised") }
@@ -385,6 +436,7 @@ ListView {
         focus: ListView.isCurrentItem
         current: itemId === binder.session.currentId
         selected: binder.selectedIds.includes(itemId)
+        labelColor: Theme.labelColor(binder.session.fields(itemId).label ?? "")
         renaming: itemId === binder.renamingId
         onRenameAccepted: newTitle => {
             const id = itemId;

@@ -64,6 +64,13 @@ QtObject {
             }
         })
     readonly property var color: palettes[name]
+    // The colour labels of binder items, from the chart series of the theme.
+    readonly property var labels: ["blue", "orange", "green", "yellow", "pink"]
+
+    function labelColor(label: string): color {
+        const at = labels.indexOf(label);
+        return at < 0 ? "transparent" : color.series[at];
+    }
 
     // The app bundles its fonts, so the text looks the same on each system.
     // The licences are in fonts/.

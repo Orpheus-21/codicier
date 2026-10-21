@@ -25,6 +25,8 @@ T.ItemDelegate {
     property bool current: false
     // One of many items that the author selected with Ctrl or Shift.
     property bool selected: false
+    // The colour label of the item, or transparent for none.
+    property color labelColor: "transparent"
     // The view sets this while the author renames this row.
     property bool renaming: false
 
@@ -233,6 +235,16 @@ T.ItemDelegate {
         radius: Theme.radius.small
         color: (row.current || row.selected) && !row.isSection ? Theme.color.selection
              : row.hovered && !row.isSection ? Qt.alpha(Theme.color.selection, 0.5) : "transparent"
+
+        // The colour label: a short bar at the left edge.
+        Rectangle {
+            x: 2
+            anchors.verticalCenter: parent.verticalCenter
+            width: 3
+            height: parent.height - 12
+            radius: 1.5
+            color: row.labelColor
+        }
 
         FocusRing {
             anchors.margins: 0
