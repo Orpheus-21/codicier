@@ -127,6 +127,17 @@ private slots:
         QVERIFY(!dimIn(1, 0));
     }
 
+    void highlightTintsItsWords()
+    {
+        document->setPlainText(QStringLiteral("a ==lamp== b"));
+        QVERIFY(formatAt(*document, 4).background().color().alpha() > 0);
+        QCOMPARE(formatAt(*document, 0).background().style(), Qt::NoBrush);
+        // The marks are pale like the other marks.
+        QVERIFY(formatAt(*document, 2).foreground() != formatAt(*document, 4).foreground());
+        document->setPlainText(QStringLiteral("a == b =="));
+        QCOMPARE(formatAt(*document, 2).background().style(), Qt::NoBrush);
+    }
+
     void headingIsLargerAndBold()
     {
         document->setPlainText(QStringLiteral("## Chapter 1"));

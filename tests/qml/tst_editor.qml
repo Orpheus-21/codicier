@@ -169,6 +169,13 @@ TestCase {
         keyClick(Qt.Key_B, Qt.ControlModifier);
         compare(text.text, "dusk ****");
         compare(text.cursorPosition, 7);
+        // Ctrl+Shift+H puts a highlight around the word.
+        text.text = "dusk";
+        text.cursorPosition = 2;
+        keyClick(Qt.Key_H, Qt.ControlModifier | Qt.ShiftModifier);
+        compare(text.text, "==dusk==");
+        keyClick(Qt.Key_H, Qt.ControlModifier | Qt.ShiftModifier);
+        compare(text.text, "dusk");
         // The inspector moved to Ctrl+Shift+I.
         compare(view.keys.sequences["inspector"], "Ctrl+Shift+I");
     }

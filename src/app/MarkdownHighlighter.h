@@ -83,10 +83,12 @@ private:
     QRegularExpression emphasis;
     QRegularExpression footnote;
     QRegularExpression link;
+    QRegularExpression highlight;
     QTextCharFormat markFormat;
     QTextCharFormat strongFormat;
     QTextCharFormat emphasisFormat;
     QTextCharFormat footnoteFormat;
+    QTextCharFormat highlightFormat;
     QTextCharFormat linkFormat;
     const SpellChecker *spell = nullptr;
     QRegularExpression word;

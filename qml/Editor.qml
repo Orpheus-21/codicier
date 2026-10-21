@@ -313,16 +313,18 @@ Item {
             editorArea.document.replace(at - 2, at + 1, "\u2026");
     }
 
-    // The number of "*" right before at (back) or right from at, up to 3.
-    function starsAt(at: int, back: bool): int {
+    // The number of mark characters right before at (back) or right from
+    // at, up to 3.
+    function runAt(at: int, back: bool, mark: string): int {
         const text = back ? textEdit.getText(Math.max(0, at - 3), at) : textEdit.getText(at, at + 3);
         let count = 0;
-        while (count < text.length && text[back ? text.length - 1 - count : count] === "*")
+        while (count < text.length && text[back ? text.length - 1 - count : count] === mark)
             ++count;
         return count;
     }
 
-    // Puts mark ("**" for bold, "*" for italic) around the selection, or
+    // Puts mark ("**" for bold, "*" for italic, "==" for a highlight) around
+    // the selection, or
     // takes it away when the selection already has it. With no selection,
     // the word at the cursor gets the mark. Outside a word, the mark goes in
     // as a pair with the cursor between.
@@ -344,13 +346,15 @@ Item {
             }
         }
         const n = mark.length;
-        // Italic needs an odd run of stars on each side, bold a run of two or more.
+        // Italic needs an odd run of stars on each side, bold or a highlight a
+        // run of two or more.
         const has = count => n === 1 ? count % 2 === 1 : count >= 2;
-        if (has(starsAt(start, true)) && has(starsAt(end, false))) {
+        const runAround = (at, back) => editorArea.runAt(at, back, mark[0]);
+        if (has(runAround(start, true)) && has(runAround(end, false))) {
             textEdit.remove(end, end + n);
             textEdit.remove(start - n, start);
             textEdit.select(start - n, end - n);
-        } else if (end - start > 2 * n && has(starsAt(start, false)) && has(starsAt(end, true))) {
+        } else if (end - start > 2 * n && has(runAround(start, false)) && has(runAround(end, true))) {
             textEdit.remove(end - n, end);
             textEdit.remove(start, start + n);
             textEdit.select(start, end - 2 * n);

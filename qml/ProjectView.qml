@@ -339,6 +339,7 @@ Item {
         { id: "palette", name: "Find a command or an item", sequence: "Ctrl+Shift+P", run: () => commandPalette.open(), hidden: true },
         { id: "format.bold", name: "Bold", sequence: "Ctrl+B", run: () => editor.toggleMark("**") },
         { id: "format.italic", name: "Italic", sequence: "Ctrl+I", run: () => editor.toggleMark("*") },
+        { id: "format.highlight", name: "Highlight", sequence: "Ctrl+Shift+H", run: () => editor.toggleMark("==") },
         { id: "find", name: "Find in the scene", sequence: "Ctrl+F", run: () => editor.openFind(false) },
         { id: "find.replace", name: "Replace in the scene", sequence: "Ctrl+R", run: () => editor.openFind(true) },
         { id: "scene.new", name: "New scene", sequence: "Ctrl+N", run: () => binder.addItem("scene") },

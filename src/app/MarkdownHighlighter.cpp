@@ -15,6 +15,8 @@ MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
       footnote(QStringLiteral("\\[\\^[^\\]\\s]+\\]")),
       // A link to an entity of the codex: [[Mara Vell]].
       link(QStringLiteral("\\[\\[[^\\[\\]\\n]+\\]\\]")),
+      // A highlight, as in Obsidian and Typora: ==words==.
+      highlight(QStringLiteral("==(?=\\S)(.+?)(?<=\\S)==")),
       word(QStringLiteral("\\p{L}+(?:['’]\\p{L}+)*"),
            QRegularExpression::UseUnicodePropertiesOption)
 {
@@ -26,6 +28,9 @@ MarkdownHighlighter::MarkdownHighlighter(QTextDocument *document)
     footnoteFormat.setVerticalAlignment(QTextCharFormat::AlignSuperScript);
     linkFormat.setForeground(QColor(0x94, 0x55, 0x2a));
     styleFormat.setBackground(QColor(0x94, 0x55, 0x2a, 0x30));
+    // A soft yellow under the words, as a highlighter pen. The ink keeps its
+    // contrast on it in each theme.
+    highlightFormat.setBackground(QColor(0xe0, 0xb8, 0x3c, 0x60));
 }
 
 void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
@@ -111,6 +116,7 @@ void MarkdownHighlighter::styleBlock(const QString &text)
     styleSpans(text, emphasis, 1, emphasisFormat);
     styleSpans(text, footnote, 0, footnoteFormat);
     styleSpans(text, link, 2, linkFormat);
+    styleSpans(text, highlight, 2, highlightFormat);
     tintPasses(text);
     // The comments: a dotted line in the accent color under the quote.
     const int first = currentBlock().position();
