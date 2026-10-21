@@ -178,11 +178,14 @@ add_test(NAME check_qmllint_tests
     COMMAND $<TARGET_FILE:Qt6::qmllint> --max-warnings 0
     @${CMAKE_BINARY_DIR}/.rcc/qmllint/codicier_ui.rsp ${QML_LINT_FILES})
 
-# Check the C++ format against .clang-format.
-find_program(CLANG_FORMAT clang-format REQUIRED)
-file(GLOB_RECURSE FORMAT_FILES CONFIGURE_DEPENDS
-    ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h ${PROJECT_SOURCE_DIR}/spike/*.cpp
-    ${PROJECT_SOURCE_DIR}/mocks/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-add_test(NAME check_format
-    COMMAND ${CLANG_FORMAT} --dry-run --Werror ${FORMAT_FILES})
+# Check the C++ format against .clang-format. The Linux CI has clang-format,
+# so the check runs there; a build on Windows or macOS can be without it.
+find_program(CLANG_FORMAT clang-format)
+if(CLANG_FORMAT)
+    file(GLOB_RECURSE FORMAT_FILES CONFIGURE_DEPENDS
+        ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h ${PROJECT_SOURCE_DIR}/spike/*.cpp
+        ${PROJECT_SOURCE_DIR}/mocks/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+    add_test(NAME check_format
+        COMMAND ${CLANG_FORMAT} --dry-run --Werror ${FORMAT_FILES})
+endif()

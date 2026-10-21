@@ -29,3 +29,58 @@ jobs:
         env:
           BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
         run: sh tools/check.sh task "$BASE"
+
+  # The app on macOS: build and the tests of the app. The tooling checks
+  # (format, lint, floor guard, coverage) run on Linux.
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Install build tools and Qt
+        run: brew install qt tomlplusplus hunspell pkgconf ninja
+
+      - uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="$(brew --prefix qt)"
+          cmake --build build
+
+      - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --output-on-failure -E "^check_|floor_guard|coverage_diff|tst_icons"
+
+  # The app on Windows, with the MinGW packages of MSYS2.
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            git
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-qt6-base
+            mingw-w64-ucrt-x86_64-qt6-declarative
+            mingw-w64-ucrt-x86_64-tomlplusplus
+            mingw-w64-ucrt-x86_64-hunspell
+            mingw-w64-ucrt-x86_64-python
+
+      - uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build
+
+      - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --output-on-failure -E "^check_|floor_guard|coverage_diff|tst_icons"
