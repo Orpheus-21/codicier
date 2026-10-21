@@ -103,6 +103,11 @@ private slots:
             return 0;
         };
         QCOMPARE(pixelsAt(2), 1);
+        // The paragraph with the cursor shows its marks.
+        document.cursorAt(3);
+        QVERIFY(pixelsAt(2) != 1);
+        document.cursorAt(-1);
+        QCOMPARE(pixelsAt(2), 1);
         document.setHideMarks(false);
         QVERIFY(pixelsAt(2) != 1);
     }

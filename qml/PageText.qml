@@ -23,6 +23,9 @@ TextEdit {
     selectByMouse: true
     persistentSelection: true
     Component.onCompleted: pageText.document.textDocument = pageText.textDocument
+    // The paragraph with the cursor shows its Markdown marks.
+    onCursorPositionChanged: pageText.document.cursorAt(activeFocus ? cursorPosition : -1)
+    onActiveFocusChanged: pageText.document.cursorAt(activeFocus ? cursorPosition : -1)
     // Save while the text still exists: the text goes before the document.
     Component.onDestruction: pageText.document.save()
 

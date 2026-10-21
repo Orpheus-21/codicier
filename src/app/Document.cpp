@@ -93,6 +93,7 @@ void Document::attach(QTextDocument *value)
     highlighter->setSpellChecker(spell);
     highlighter->setStyleChecks(styleChecks);
     highlighter->setHideMarks(hideMarks);
+    highlighter->setShownBlock(cursorBlock);
     setPasses(passes);
     highlighter->setComments(comments);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
@@ -132,6 +133,14 @@ void Document::setPassColors(const QVariantList &colors)
     // A theme change paints the tints in the new colors.
     setPasses(passes);
     emit styleChanged();
+}
+
+void Document::cursorAt(int position)
+{
+    cursorBlock
+        = position < 0 || document == nullptr ? -1 : document->findBlock(position).blockNumber();
+    if (highlighter != nullptr)
+        highlighter->setShownBlock(cursorBlock);
 }
 
 void Document::setHideMarks(bool hide)

@@ -72,6 +72,27 @@ private slots:
         QVERIFY(formatAt(*document, 2).foreground() != formatAt(*document, 3).foreground());
     }
 
+    void theShownBlockKeepsItsMarks()
+    {
+        const auto hiddenIn = [this](int block, int at) {
+            const QTextBlock found = document->findBlockByNumber(block);
+            for (const QTextLayout::FormatRange &range : found.layout()->formats()) {
+                if (at >= range.start && at < range.start + range.length)
+                    return range.format.foreground().color().alpha() == 0;
+            }
+            return false;
+        };
+        highlighter->setHideMarks(true);
+        document->setPlainText(QStringLiteral("a **b**\nc **d**"));
+        QVERIFY(hiddenIn(0, 2) && hiddenIn(1, 2));
+        highlighter->setShownBlock(0);
+        QVERIFY(!hiddenIn(0, 2) && hiddenIn(1, 2));
+        highlighter->setShownBlock(1);
+        QVERIFY(hiddenIn(0, 2) && !hiddenIn(1, 2));
+        highlighter->setShownBlock(-1);
+        QVERIFY(hiddenIn(0, 2) && hiddenIn(1, 2));
+    }
+
     void headingIsLargerAndBold()
     {
         document->setPlainText(QStringLiteral("## Chapter 1"));

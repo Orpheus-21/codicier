@@ -50,6 +50,9 @@ public:
     // True draws the Markdown marks (the # of a heading, the stars of bold
     // and italic) at 1 px with no colour. The text keeps them.
     void setHideMarks(bool hide);
+    // The block that shows its marks while the others hide them: the block
+    // with the cursor, or -1 for none.
+    void setShownBlock(int block);
 
 protected:
     void highlightBlock(const QString &text) override;
@@ -63,6 +66,9 @@ private:
     QTextCharFormat markOver(QTextCharFormat base) const;
 
     bool hideMarks = false;
+    int shownBlock = -1;
+    // True while highlightBlock styles a block that hides its marks.
+    bool hideHere = false;
     QRegularExpression heading;
     QRegularExpression strong;
     QRegularExpression emphasis;

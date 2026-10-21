@@ -43,6 +43,7 @@ void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
 
 void MarkdownHighlighter::highlightBlock(const QString &text)
 {
+    hideHere = hideMarks && currentBlock().blockNumber() != shownBlock;
     const QRegularExpressionMatch match = heading.match(text);
     if (match.hasMatch()) {
         // Level 1 is the largest. Each level down is a little smaller.
@@ -58,8 +59,7 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
             format.setFontPointSize(base.pointSizeF() * scale);
         setFormat(0, static_cast<int>(text.size()), format);
         // A hidden mark takes the space after it too.
-        setFormat(0, hideMarks ? static_cast<int>(match.capturedLength()) : level,
-                  markOver(format));
+        setFormat(0, hideHere ? static_cast<int>(match.capturedLength()) : level, markOver(format));
         return;
     }
     styleSpans(text, strong, 2, strongFormat);
@@ -234,9 +234,24 @@ void MarkdownHighlighter::setHideMarks(bool hide)
     rehighlight();
 }
 
+void MarkdownHighlighter::setShownBlock(int block)
+{
+    if (block == shownBlock)
+        return;
+    const int before = shownBlock;
+    shownBlock = block;
+    if (!hideMarks)
+        return;
+    for (const int number : { before, block }) {
+        const QTextBlock changed = document()->findBlockByNumber(number);
+        if (changed.isValid())
+            rehighlightBlock(changed);
+    }
+}
+
 QTextCharFormat MarkdownHighlighter::markOver(QTextCharFormat base) const
 {
-    if (!hideMarks) {
+    if (!hideHere) {
         base.setForeground(markFormat.foreground());
         return base;
     }

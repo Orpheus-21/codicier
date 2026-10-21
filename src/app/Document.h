@@ -90,6 +90,9 @@ public:
     void setStyleChecks(int checks);
     // True hides the Markdown marks on the page. See MarkdownHighlighter.
     void setHideMarks(bool hide);
+    // The cursor of the page, or -1 when the page has no focus. Its
+    // paragraph shows its Markdown marks.
+    Q_INVOKABLE void cursorAt(int position);
     // The parts of the text that each draft pass wrote, for the tints.
     void setPasses(const QList<MarkdownHighlighter::PassRange> &ranges);
     QVariantList passColors() const { return colorsOfPasses; }
@@ -123,6 +126,7 @@ private:
     const SpellChecker *spell = nullptr;
     int styleChecks = 0;
     bool hideMarks = false;
+    int cursorBlock = -1;
     QVariantList colorsOfPasses;
     QList<MarkdownHighlighter::PassRange> passes;
     QList<std::pair<int, int>> comments;
