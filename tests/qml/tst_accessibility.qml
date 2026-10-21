@@ -498,6 +498,24 @@ TestCase {
         compare(streak.text, "0 days in a row with words.");
     }
 
+    function test_heatMapColoursStayValid() {
+        failOnWarning(/setAlphaF/);
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.forceActiveFocus();
+        for (const c of "the lamp burned on")
+            keyClick(c);
+        // The history counts the words after the autosave.
+        wait(1500);
+        view.forceActiveFocus();
+        keyClick(Qt.Key_G, Qt.ControlModifier | Qt.ShiftModifier);
+        const map = findChild(view.T.Overlay.overlay, "heatMap") as Grid;
+        tryVerify(() => map && map.visible);
+        waitForRendering(map);
+        keyClick(Qt.Key_Escape);
+        tryVerify(() => !map.visible);
+    }
+
     function test_sprintCountsWordsUntilTheEnd() {
         const view = makeView();
         let scene = "";

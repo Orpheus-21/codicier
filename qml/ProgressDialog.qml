@@ -240,8 +240,10 @@ T.Popup {
                         width: 15
                         height: 15
                         radius: 3
+                        // When the dialog closes, best falls to 0 before the cells go.
                         color: modelData.words > 0
-                               ? Qt.alpha(Theme.color.accent, 0.25 + 0.75 * modelData.words / Math.max(1, heatMap.best))
+                               ? Qt.alpha(Theme.color.accent,
+                                          0.25 + 0.75 * Math.min(1, modelData.words / Math.max(1, heatMap.best)))
                                : Theme.color.surface
                         border.width: modelData.words > 0 ? 0 : 1
                         border.color: Theme.color.rule
