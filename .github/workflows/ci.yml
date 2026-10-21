@@ -117,8 +117,7 @@ jobs:
           sudo apt-get install -y flatpak flatpak-builder
           flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           flatpak remote-add --user --if-not-exists flathub-beta https://dl.flathub.org/beta-repo/flathub-beta.flatpakrepo
-          flatpak remote-add --user --if-not-exists kde-nightly https://cdn.kde.org/flatpak/kde-runtime-nightly/kde-runtime-nightly.flatpakrepo
-          for remote in flathub flathub-beta kde-nightly; do
+          for remote in flathub flathub-beta; do
             echo "$remote:"; flatpak remote-ls --user --runtime --all "$remote" | grep -E "org.kde.Sdk\s" || true
           done
 
