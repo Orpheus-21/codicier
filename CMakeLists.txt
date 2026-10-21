@@ -10,13 +10,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # CorePrivate gives QZipWriter for backups; it ships with qt6-base. The use is
 # on purpose (see src/model/Backup.cpp), so the notice about it is off.
 set(QT_NO_PRIVATE_MODULE_WARNING ON)
-find_package(Qt6 6.8 REQUIRED COMPONENTS Gui Qml Quick Sql CorePrivate)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Gui Qml Quick Sql CorePrivate)
 # Hunspell checks the spelling, offline, with the dictionaries of the system.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(HUNSPELL REQUIRED IMPORTED_TARGET hunspell)
 # toml++ reads the project files (docs/format.md).
 find_package(tomlplusplus 3 REQUIRED)
-qt_standard_project_setup(REQUIRES 6.8)
+qt_standard_project_setup(REQUIRES 6.12)
 
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
