@@ -180,6 +180,14 @@ private:
     // The block format of one paragraph: the line height, and for an empty
     // paragraph the gap.
     QTextBlockFormat formatOf(const QTextBlock &block) const;
+    // The last saves of the text, oldest first, which come back as undo
+    // steps when the text opens again. They live in .codicier/undo/.
+    static constexpr qsizetype undoSaves = 20;
+    QString undoFile() const;
+    QStringList keptUndo() const;
+    void keepUndo(const QString &before, const QString &after) const;
+    // Changes the text to target as one undo step, with the smallest change.
+    void replaceAll(const QString &target);
     // Styles the paragraphs that an edit touched, as part of that edit.
     void styleEdit(int position, int added);
     void countWords();

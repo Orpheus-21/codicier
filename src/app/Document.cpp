@@ -8,6 +8,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QQuickTextDocument>
 #include <QSaveFile>
 #include <QTextBlockFormat>
@@ -242,6 +244,60 @@ void Document::styleEdit(int position, int added)
         cursor.endEditBlock();
 }
 
+QString Document::undoFile() const
+{
+    QString name = path;
+    name.replace(u'/', u'_');
+    return QDir(folder).filePath(QStringLiteral(".codicier/undo/%1.json").arg(name));
+}
+
+QStringList Document::keptUndo() const
+{
+    QFile file(undoFile());
+    if (!file.open(QIODevice::ReadOnly))
+        return { };
+    QStringList saves;
+    const QJsonArray kept = QJsonDocument::fromJson(file.readAll()).array();
+    for (const auto &each : kept)
+        saves.append(each.toString());
+    return saves;
+}
+
+void Document::keepUndo(const QString &before, const QString &after) const
+{
+    QStringList saves = keptUndo();
+    // A list that does not end with the text before belongs to an older file.
+    if (saves.isEmpty() || saves.last() != before)
+        saves = { before };
+    if (saves.last() != after)
+        saves.append(after);
+    while (saves.size() > undoSaves)
+        saves.removeFirst();
+    if (!QDir(folder).mkpath(QStringLiteral(".codicier/undo")))
+        return;
+    QSaveFile file(undoFile());
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(QJsonDocument(QJsonArray::fromStringList(saves)).toJson(QJsonDocument::Compact));
+        file.commit();
+    }
+}
+
+void Document::replaceAll(const QString &target)
+{
+    const QString current = document->toPlainText();
+    qsizetype head = 0;
+    while (head < current.size() && head < target.size() && current.at(head) == target.at(head))
+        ++head;
+    qsizetype tail = 0;
+    while (tail < current.size() - head && tail < target.size() - head
+           && current.at(current.size() - 1 - tail) == target.at(target.size() - 1 - tail))
+        ++tail;
+    QTextCursor cursor(document);
+    cursor.setPosition(static_cast<int>(head));
+    cursor.setPosition(static_cast<int>(current.size() - tail), QTextCursor::KeepAnchor);
+    cursor.insertText(target.mid(head, target.size() - head - tail));
+}
+
 void Document::setFirstLineIndent(qreal value)
 {
     if (qFuzzyCompare(value + 1, indent + 1))
@@ -328,12 +384,23 @@ void Document::showText()
     if (document == nullptr)
         return;
     loading = true;
-    document->setPlainText(loadedText);
+    // The kept saves of the text come back as undo steps, when the last one
+    // is still the text of the file.
+    const QStringList saves = keptUndo();
+    const bool replay = saves.size() > 1 && saves.last() == loadedText;
+    document->setPlainText(replay ? saves.first() : loadedText);
     loading = false;
     applyStyle();
-    countWords();
-    // The loaded text is the start: no undo goes back past it.
+    // The style is no undo step. The loaded text, or the oldest kept save,
+    // is the start.
     document->clearUndoRedoStacks();
+    if (replay) {
+        loading = true;
+        for (qsizetype i = 1; i < saves.size(); ++i)
+            replaceAll(saves.at(i));
+        loading = false;
+    }
+    countWords();
     document->setModified(false);
 }
 
@@ -376,6 +443,7 @@ bool Document::save()
         return false;
     }
     setError(QString());
+    keepUndo(loadedText, current);
     // The saved text is now the text of the file.
     loadedText = current;
     setDirty(false);

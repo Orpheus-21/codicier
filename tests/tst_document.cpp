@@ -158,6 +158,47 @@ private slots:
         QCOMPARE(indentOf(2), 0.0);
     }
 
+    void undoReachesBackAfterARestart()
+    {
+        {
+            Document document;
+            QTextDocument text;
+            document.attach(&text);
+            document.open(dir.path(), scene);
+            // An edit through a cursor, as typing does, marks the text changed.
+            const auto edit = [&text](const QString &to) {
+                QTextCursor cursor(&text);
+                cursor.select(QTextCursor::Document);
+                cursor.insertText(to);
+            };
+            edit(QStringLiteral("First draft."));
+            QVERIFY(document.save());
+            edit(QStringLiteral("Second draft."));
+            QVERIFY(document.save());
+        }
+        Document again;
+        QTextDocument text;
+        again.attach(&text);
+        again.open(dir.path(), scene);
+        QCOMPARE(text.toPlainText(), QStringLiteral("Second draft."));
+        QVERIFY(!again.dirty());
+        text.undo();
+        QCOMPARE(text.toPlainText(), QStringLiteral("First draft."));
+        text.undo();
+        QVERIFY(text.toPlainText().startsWith("The letter said"));
+        // A change from another program drops the kept steps.
+        again.open(dir.path(), QString());
+        QFile file(QDir(dir.path()).filePath(scene));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("Outside.\n");
+        file.close();
+        Document third;
+        QTextDocument other;
+        third.attach(&other);
+        third.open(dir.path(), scene);
+        QVERIFY(!other.isUndoAvailable());
+    }
+
     void savesOneSecondAfterTheLastEdit()
     {
         Document document;
