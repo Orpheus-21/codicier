@@ -2210,6 +2210,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
     };
     map.insert(QStringLiteral("title"), item.title);
     map.insert(QStringLiteral("kind"), item.kind);
+    map.insert(QStringLiteral("file"), holdsNoText(item.kind) ? QString() : item.file);
     map.insert(QStringLiteral("parent"),
                item.parent >= 0 ? project.items.at(item.parent).id : QString());
     const QString status = string("status");

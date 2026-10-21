@@ -140,7 +140,27 @@ Item {
     property var cursors: ({})
     property bool walking: false
 
+    // The item on the second page, or "".
+    property string sideId: ""
+
+    // Opens a text on the second page. The open text of the main page cannot
+    // be there too, because two pages on one file would save over each other.
+    function openBeside(id: string) {
+        if (id !== session.currentId && (session.fields(id).file ?? "") !== "")
+            sideId = id;
+    }
+
+    // Closes the second page, or opens the text before this one beside it.
+    function toggleBeside() {
+        if (sideId !== "")
+            sideId = "";
+        else if (trailAt > 0)
+            openBeside(trail[trailAt - 1]);
+    }
+
     function noteVisit() {
+        if (session.currentId === sideId)
+            sideId = "";
         const id = session.currentId;
         if (walking || id === "" || trail[trailAt] === id)
             return;
@@ -358,6 +378,7 @@ Item {
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
         { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() },
         { id: "help", name: "Show the keys", sequence: "F1", run: () => keySheet.open() },
+        { id: "beside", name: "Show or hide the second page", sequence: "Ctrl+\\", run: () => view.toggleBeside() },
         { id: "back", name: "Go back to the text before", sequence: "Alt+Left", run: () => view.walk(-1) },
         { id: "forward", name: "Go forward again", sequence: "Alt+Right", run: () => view.walk(1) }
     ]
@@ -712,6 +733,7 @@ Item {
                 visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen && !view.inboxOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()
+                onBesideRequested: id => view.openBeside(id)
                 anchors.top: projectButton.bottom
                 anchors.topMargin: Theme.space.s
                 anchors.bottom: parent.bottom
@@ -877,7 +899,7 @@ Item {
 
                 anchors.top: editorBar.bottom
                 anchors.bottom: parent.bottom
-                width: parent.width
+                width: sidePage.visible ? parent.width / 2 : parent.width
                 document: view.session.document
                 session: view.session
                 typewriter: view.focusMode
@@ -887,6 +909,20 @@ Item {
                     if (!view.session.document.isLoading() && view.session.currentId !== "")
                         view.cursors[view.session.currentId] = cursorPosition;
                 }
+            }
+
+            SidePage {
+                id: sidePage
+
+                objectName: "sidePage"
+                visible: view.sideId !== "" && view.viewMode === "page"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                width: parent.width / 2
+                session: view.session
+                itemId: view.sideId
+                onCloseRequested: view.sideId = ""
             }
 
             Item {

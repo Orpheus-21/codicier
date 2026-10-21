@@ -12,6 +12,8 @@ ListView {
 
     // Enter opened an item. The view moves the focus to the page.
     signal activated
+    // The menu asked to open an item on the second page.
+    signal besideRequested(id: string)
 
     // The id of the row in rename mode, or "".
     property string renamingId: ""
@@ -131,6 +133,11 @@ ListView {
             text: "Merge with next scene"
             enabled: binder.menuId !== "" && binder.session.nextScene(binder.menuId) !== ""
             onTriggered: binder.session.mergeWithNext(binder.menuId)
+        }
+        T.Action {
+            text: "Open beside"
+            enabled: binder.menuId !== "" && (binder.session.fields(binder.menuId).file ?? "") !== ""
+            onTriggered: binder.besideRequested(binder.menuId)
         }
         T.Action { text: "Move to trash"; onTriggered: binder.session.moveToTrash(binder.menuId) }
     }

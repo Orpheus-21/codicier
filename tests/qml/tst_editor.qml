@@ -303,6 +303,39 @@ TestCase {
         tryCompare(text, "cursorPosition", 9);
     }
 
+    function test_secondPageEditsAnotherText() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const main = findChild(view, "editor") as TextEdit;
+        const first = view.session.currentId;
+        wait(0);
+        main.text = "Dusk.";
+        const second = view.session.add("scene");
+        view.session.currentId = second;
+        // The open text cannot go beside itself.
+        view.openBeside(second);
+        compare(view.sideId, "");
+        // Ctrl+\\ opens the text before this one beside it.
+        view.forceActiveFocus();
+        keyClick(Qt.Key_Backslash, Qt.ControlModifier);
+        compare(view.sideId, first);
+        const side = findChild(view, "sideText") as TextEdit;
+        verify(side.visible);
+        compare(side.text, "Dusk.");
+        main.text = "Dawn.";
+        side.text = "Dusk fell.";
+        tryVerify(() => !view.session.document.dirty && !side.document.dirty, 5000);
+        // Opening the side text on the main page closes the second page.
+        view.session.currentId = first;
+        compare(view.sideId, "");
+        // Each page saved its own file.
+        compare(main.text, "Dusk fell.");
+        view.session.currentId = second;
+        compare(main.text, "Dawn.");
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
