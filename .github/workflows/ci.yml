@@ -35,14 +35,19 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - name: Install build tools and Qt
-        run: brew install qt tomlplusplus hunspell pkgconf ninja
+      - name: Install build tools
+        run: brew install tomlplusplus hunspell pkgconf ninja
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.12.*'
+          cache: true
 
       - uses: actions/checkout@v5
 
       - name: Build
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="$(brew --prefix qt)"
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
           cmake --build build
 
       - name: Test
@@ -91,5 +96,8 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
         run: |
-          ./build/tests/tst_smoke.exe -o -,txt 2>&1 | head -60 || true
-          ./build/tests/tst_roundtrip.exe -o -,txt 2>&1 | head -60 || true
+          pacman -Q mingw-w64-ucrt-x86_64-qt6-base
+          find build -name 'tst_smoke*' -o -name 'tst_roundtrip*' | head
+          cd build/tests
+          ./tst_smoke.exe -o -,txt 2>&1 | head -60 || true
+          ./tst_roundtrip.exe -o -,txt 2>&1 | head -60 || true
