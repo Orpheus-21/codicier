@@ -178,7 +178,8 @@ jobs:
           docker run --rm -v "$PWD:/w" -w /w debian:13 sh -c '
             apt-get update -qq
             apt-get install -y -qq --no-install-recommends libgl1 libegl1 libopengl0 libglx0 \
-              libfontconfig1 libfreetype6 libglib2.0-0t64 libxkbcommon0 > /dev/null
+              libfontconfig1 libfreetype6 libglib2.0-0t64 libxkbcommon0 \
+              libcom-err2 libexpat1 libgpg-error0 > /dev/null
             status=0
             QT_QPA_PLATFORM=offscreen timeout 10 ./Codicier*.AppImage --appimage-extract-and-run || status=$?
             test "$status" -eq 124'
