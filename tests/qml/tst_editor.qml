@@ -252,6 +252,29 @@ TestCase {
         tryCompare(state, "text", "Saved", 5000);
     }
 
+    function test_marksHideOutsideTheCursorParagraph() {
+        const view = makeView();
+        verify(view.session.hideMarks);
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "a **b**\u2029c **d**";
+        text.forceActiveFocus();
+        text.cursorPosition = 1;
+        waitForRendering(text);
+        // The second paragraph hides its marks, so it is narrower than the
+        // first, which shows them.
+        const first = text.positionToRectangle(7).x - text.positionToRectangle(0).x;
+        const second = text.positionToRectangle(15).x - text.positionToRectangle(8).x;
+        verify(second < first - 5, first + " " + second);
+        // The cursor moves, and the marks move with it.
+        text.cursorPosition = 9;
+        waitForRendering(text);
+        verify(text.positionToRectangle(7).x - text.positionToRectangle(0).x < first - 5);
+        Settings.hideMarks = false;
+        waitForRendering(text);
+        fuzzyCompare(text.positionToRectangle(15).x - text.positionToRectangle(8).x, first, 3);
+        Settings.hideMarks = true;
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

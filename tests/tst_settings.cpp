@@ -162,6 +162,18 @@ private slots:
         QCOMPARE(again.typography(), 7);
     }
 
+    void hideMarksSurvivesARestart()
+    {
+        {
+            Settings settings;
+            QVERIFY(settings.hideMarks());
+            settings.setHideMarks(false);
+        }
+        Settings again;
+        QVERIFY(!again.hideMarks());
+        again.setHideMarks(true);
+    }
+
     void hintsSeenSurvivesARestart()
     {
         {

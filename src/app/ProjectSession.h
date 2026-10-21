@@ -54,6 +54,9 @@ class ProjectSession : public QObject
     Q_PROPERTY(QString dictionary READ dictionary NOTIFY spellChanged)
     // The style checks of the open texts, as MarkdownHighlighter flags.
     Q_PROPERTY(int styleChecks MEMBER checksOfStyle WRITE setStyleChecks NOTIFY spellChanged)
+    // True hides the Markdown marks of the open texts outside the paragraph
+    // with the cursor.
+    Q_PROPERTY(bool hideMarks MEMBER marksHidden WRITE setHideMarks NOTIFY spellChanged)
     // True if a git repository holds the project, so it has versions.
     Q_PROPERTY(bool versionsOn READ versionsOn NOTIFY versionsChanged)
     // True tints the text of the open scene by the draft pass that wrote it.
@@ -397,6 +400,8 @@ private:
     QString textOf(int index) const;
     int checksOfStyle = 0;
     void setStyleChecks(int checks);
+    bool marksHidden = false;
+    void setHideMarks(bool hide);
     // Gives the checker, or none, to the open text and the tracked texts.
     void applySpelling();
     // The calendar of story time of the project.

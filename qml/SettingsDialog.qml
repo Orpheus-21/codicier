@@ -392,6 +392,24 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Markdown marks"
+
+                    Choice {
+                        objectName: "marksHidden"
+                        label: "Hide outside the cursor"
+                        chosen: Settings.hideMarks
+                        onClicked: Settings.hideMarks = true
+                    }
+
+                    Choice {
+                        objectName: "marksShown"
+                        label: "Show"
+                        chosen: !Settings.hideMarks
+                        onClicked: Settings.hideMarks = false
+                    }
+                }
+
+                Setting {
                     label: "Change as you type"
 
                     Repeater {

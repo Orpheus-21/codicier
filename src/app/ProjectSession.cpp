@@ -1542,15 +1542,26 @@ void ProjectSession::setStyleChecks(int checks)
     emit spellChanged();
 }
 
+void ProjectSession::setHideMarks(bool hide)
+{
+    if (marksHidden == hide)
+        return;
+    marksHidden = hide;
+    applySpelling();
+    emit spellChanged();
+}
+
 void ProjectSession::applySpelling()
 {
     const SpellChecker *checker = checkSpelling ? spell.get() : nullptr;
     text.setSpellChecker(checker);
     text.setStyleChecks(checksOfStyle);
+    text.setHideMarks(marksHidden);
     for (const QPointer<Document> &document : std::as_const(tracked)) {
         if (document) {
             document->setSpellChecker(checker);
             document->setStyleChecks(checksOfStyle);
+            document->setHideMarks(marksHidden);
         }
     }
 }
@@ -2481,6 +2492,7 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
     tracked.append(document);
     document->setSpellChecker(checkSpelling ? spell.get() : nullptr);
     document->setStyleChecks(checksOfStyle);
+    document->setHideMarks(marksHidden);
     connect(document, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);

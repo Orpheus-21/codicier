@@ -19,6 +19,7 @@ Item {
         backupsToKeep: Settings.backupsToKeep
         spellCheck: Settings.spellCheck
         styleChecks: Settings.styleChecks
+        hideMarks: Settings.hideMarks
     }
     // The name of the workspace, for the way back.
     property string workspaceName: ""
