@@ -173,6 +173,40 @@ TestCase {
         compare(view.keys.sequences["inspector"], "Ctrl+Shift+I");
     }
 
+    function test_findInTheSceneStepsAndReplaces() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "The gull, the Gull, the gulls.";
+        text.forceActiveFocus();
+        text.cursorPosition = 0;
+        keyClick(Qt.Key_F, Qt.ControlModifier);
+        const bar = findChild(view, "findBar") as FindBar;
+        const field = findChild(bar, "findField") as TextField;
+        verify(bar.visible);
+        verify(field.activeFocus);
+        for (const c of "gull")
+            keyClick(c);
+        compare(bar.hits.length, 3);
+        compare(text.selectionStart, 4);
+        keyClick(Qt.Key_Return);
+        compare(text.selectionStart, 14);
+        keyClick(Qt.Key_Return, Qt.ShiftModifier);
+        compare(text.selectionStart, 4);
+        compare((findChild(bar, "findCount") as Text).text, "1 of 3");
+        keyClick(Qt.Key_Escape);
+        verify(!bar.visible);
+        verify(text.activeFocus);
+
+        // Ctrl+R opens the replace row. All replaces every match.
+        keyClick(Qt.Key_R, Qt.ControlModifier);
+        verify(bar.replacing);
+        (findChild(bar, "replaceField") as TextField).text = "tern";
+        waitForRendering(view);
+        mouseClick(findChild(bar, "replaceAll") as Item);
+        compare(text.text, "The tern, the tern, the terns.");
+        compare(bar.hits.length, 0);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

@@ -408,4 +408,23 @@ Item {
             }
         }
     }
+
+    FindBar {
+        id: findBar
+
+        objectName: "findBar"
+        anchors.top: page.top
+        anchors.right: parent.right
+        anchors.topMargin: Theme.space.s
+        anchors.rightMargin: Theme.space.l
+        z: 5
+        target: textEdit
+        onClosed: textEdit.forceActiveFocus()
+    }
+
+    // Opens the find bar of the page, with the replace row when replace is true.
+    function openFind(replace: bool) {
+        if (editorArea.document.file !== "")
+            findBar.open(replace);
+    }
 }

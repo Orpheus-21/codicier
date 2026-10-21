@@ -23,7 +23,7 @@ T.Popup {
         if (["format.bold", "format.italic", "scene.new", "chapter.new", "part.new", "note.new", "page.new", "item.rename", "scene.split",
              "scene.merge", "item.trash", "snapshot.take", "comment"].includes(id))
             return "Write";
-        if (["palette", "search", "replace"].includes(id))
+        if (["palette", "find", "find.replace", "search", "replace"].includes(id))
             return "Find";
         if (["calendar", "codex", "sprint", "progress", "passes", "inbox"].includes(id))
             return "Plan and track";
