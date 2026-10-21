@@ -640,6 +640,12 @@ TestCase {
         verify(composite);
         tryCompare(composite, "count", 2);
         verify(!composite.readOnly);
+        // The break mark shows before the second scene only.
+        const marks = [0, 1].map(i => findChild(composite.itemAtIndex(i), "sceneBreakMark") as Text);
+        verify(!marks[0].visible);
+        verify(marks[1].visible);
+        verify(view.session.setSceneBreak(""));
+        verify(!marks[1].visible);
     }
 
     function test_editsAtTheSceneBorderSaveToEachFile() {
