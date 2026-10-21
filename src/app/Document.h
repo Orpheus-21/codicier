@@ -88,6 +88,8 @@ public:
     void recheckSpelling();
     // The style checks, as MarkdownHighlighter::StyleCheck flags.
     void setStyleChecks(int checks);
+    // True hides the Markdown marks on the page. See MarkdownHighlighter.
+    void setHideMarks(bool hide);
     // The parts of the text that each draft pass wrote, for the tints.
     void setPasses(const QList<MarkdownHighlighter::PassRange> &ranges);
     QVariantList passColors() const { return colorsOfPasses; }
@@ -120,6 +122,7 @@ private:
     QPointer<MarkdownHighlighter> highlighter;
     const SpellChecker *spell = nullptr;
     int styleChecks = 0;
+    bool hideMarks = false;
     QVariantList colorsOfPasses;
     QList<MarkdownHighlighter::PassRange> passes;
     QList<std::pair<int, int>> comments;

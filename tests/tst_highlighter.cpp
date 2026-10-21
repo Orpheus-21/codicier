@@ -31,6 +31,7 @@ class TestHighlighter : public QObject
     Q_OBJECT
 
     std::unique_ptr<QTextDocument> document;
+    MarkdownHighlighter *highlighter = nullptr;
 
 private slots:
     void init()
@@ -40,7 +41,35 @@ private slots:
         // A document sends contentsChange only when it has a layout. The
         // editor makes one; a bare document makes it on the first request.
         document->documentLayout();
-        new MarkdownHighlighter(document.get());
+        highlighter = new MarkdownHighlighter(document.get());
+    }
+
+    void hiddenMarksTakeNoSpaceAndNoColour()
+    {
+        const auto hidden = [this](int at) {
+            const QTextCharFormat mark = formatAt(*document, at);
+            return mark.property(QTextFormat::FontPixelSize).toInt() == 1
+                && mark.foreground().color().alpha() == 0;
+        };
+        highlighter->setHideMarks(true);
+        // The heading mark hides with the space after it.
+        document->setPlainText(QStringLiteral("## Dusk"));
+        QVERIFY(hidden(0) && hidden(1) && hidden(2));
+        QVERIFY(!hidden(3));
+        QCOMPARE(formatAt(*document, 3).fontWeight(), int(QFont::DemiBold));
+
+        document->setPlainText(QStringLiteral("a *b* **c**"));
+        for (const int at : { 2, 4, 6, 7, 9, 10 })
+            QVERIFY2(hidden(at), qPrintable(QString::number(at)));
+        QVERIFY(formatAt(*document, 3).fontItalic() && !hidden(3));
+        QCOMPARE(formatAt(*document, 8).fontWeight(), int(QFont::Bold));
+        QVERIFY(!hidden(8));
+        // The text keeps every mark.
+        QCOMPARE(document->toPlainText(), QStringLiteral("a *b* **c**"));
+
+        highlighter->setHideMarks(false);
+        QVERIFY(!hidden(2));
+        QVERIFY(formatAt(*document, 2).foreground() != formatAt(*document, 3).foreground());
     }
 
     void headingIsLargerAndBold()

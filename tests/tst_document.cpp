@@ -13,6 +13,7 @@
 #include <QTextBlockFormat>
 #include <QTextCursor>
 #include <QTextDocument>
+#include <QTextLayout>
 #include <QThread>
 
 namespace {
@@ -81,6 +82,29 @@ private slots:
         QVERIFY(!text.toPlainText().endsWith('\n'));
         QVERIFY(!document.dirty());
         QCOMPARE(document.error(), QString());
+    }
+
+    void hiddenMarksReachTheHighlighter()
+    {
+        Document document;
+        document.setHideMarks(true);
+        QTextDocument text;
+        // The highlighter runs only on a document with a layout.
+        text.documentLayout();
+        // The switch before the attach reaches the new highlighter.
+        document.attach(&text);
+        text.setPlainText(QStringLiteral("a **b**"));
+        const QTextBlock block = text.firstBlock();
+        const auto pixelsAt = [&block](int at) {
+            for (const QTextLayout::FormatRange &range : block.layout()->formats()) {
+                if (at >= range.start && at < range.start + range.length)
+                    return range.format.property(QTextFormat::FontPixelSize).toInt();
+            }
+            return 0;
+        };
+        QCOMPARE(pixelsAt(2), 1);
+        document.setHideMarks(false);
+        QVERIFY(pixelsAt(2) != 1);
     }
 
     void savesOneSecondAfterTheLastEdit()

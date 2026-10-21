@@ -92,6 +92,7 @@ void Document::attach(QTextDocument *value)
     highlighter = new MarkdownHighlighter(document);
     highlighter->setSpellChecker(spell);
     highlighter->setStyleChecks(styleChecks);
+    highlighter->setHideMarks(hideMarks);
     setPasses(passes);
     highlighter->setComments(comments);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
@@ -131,6 +132,13 @@ void Document::setPassColors(const QVariantList &colors)
     // A theme change paints the tints in the new colors.
     setPasses(passes);
     emit styleChanged();
+}
+
+void Document::setHideMarks(bool hide)
+{
+    hideMarks = hide;
+    if (highlighter != nullptr)
+        highlighter->setHideMarks(hide);
 }
 
 void Document::setStyleChecks(int checks)

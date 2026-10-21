@@ -57,8 +57,9 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
         else
             format.setFontPointSize(base.pointSizeF() * scale);
         setFormat(0, static_cast<int>(text.size()), format);
-        format.setForeground(markFormat.foreground());
-        setFormat(0, level, format);
+        // A hidden mark takes the space after it too.
+        setFormat(0, hideMarks ? static_cast<int>(match.capturedLength()) : level,
+                  markOver(format));
         return;
     }
     styleSpans(text, strong, 2, strongFormat);
@@ -225,6 +226,25 @@ void MarkdownHighlighter::checkSpelling(const QString &text)
     }
 }
 
+void MarkdownHighlighter::setHideMarks(bool hide)
+{
+    if (hide == hideMarks)
+        return;
+    hideMarks = hide;
+    rehighlight();
+}
+
+QTextCharFormat MarkdownHighlighter::markOver(QTextCharFormat base) const
+{
+    if (!hideMarks) {
+        base.setForeground(markFormat.foreground());
+        return base;
+    }
+    base.setForeground(Qt::transparent);
+    base.setProperty(QTextFormat::FontPixelSize, 1);
+    return base;
+}
+
 void MarkdownHighlighter::styleSpans(const QString &text, const QRegularExpression &pattern,
                                      int markLength, const QTextCharFormat &body)
 {
@@ -238,8 +258,7 @@ void MarkdownHighlighter::styleSpans(const QString &text, const QRegularExpressi
         merged.merge(body);
         setFormat(start, length, merged);
         if (markLength > 0) {
-            QTextCharFormat mark = merged;
-            mark.setForeground(markFormat.foreground());
+            const QTextCharFormat mark = markOver(merged);
             setFormat(start, markLength, mark);
             setFormat(start + length - markLength, markLength, mark);
         }

@@ -47,6 +47,9 @@ public:
     // Underlines each commented part of the text, as a start and a length
     // in the whole text, with a dotted line.
     void setComments(const QList<std::pair<int, int>> &ranges);
+    // True draws the Markdown marks (the # of a heading, the stars of bold
+    // and italic) at 1 px with no colour. The text keeps them.
+    void setHideMarks(bool hide);
 
 protected:
     void highlightBlock(const QString &text) override;
@@ -56,6 +59,10 @@ private:
     void styleSpans(const QString &text, const QRegularExpression &pattern, int markLength,
                     const QTextCharFormat &body);
 
+    // The format of a mark: pale, or hidden.
+    QTextCharFormat markOver(QTextCharFormat base) const;
+
+    bool hideMarks = false;
     QRegularExpression heading;
     QRegularExpression strong;
     QRegularExpression emphasis;
