@@ -2185,6 +2185,8 @@ QVariantMap ProjectSession::fields(const QString &id) const
     };
     map.insert(QStringLiteral("title"), item.title);
     map.insert(QStringLiteral("kind"), item.kind);
+    map.insert(QStringLiteral("parent"),
+               item.parent >= 0 ? project.items.at(item.parent).id : QString());
     const QString status = string("status");
     map.insert(QStringLiteral("status"),
                status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")

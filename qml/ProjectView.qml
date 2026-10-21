@@ -107,6 +107,14 @@ Item {
     }
 
     // The kind of the open item, such as "scene" or "map".
+    // The board and the outliner show the children of the open item. For an
+    // item with no children, they show the children of its parent.
+    readonly property string boardId: {
+        const id = session.currentId;
+        if (id === "" || session.childrenOf(id).length > 0)
+            return id;
+        return session.fields(id).parent || id;
+    }
     readonly property string currentKind: session.currentId !== "" ? (session.fields(session.currentId).kind ?? "") : ""
 
     // The result of the last action on versions, for the status bar.
@@ -669,7 +677,7 @@ Item {
                 width: parent.width
                 z: 4
                 session: view.session
-                itemId: visible ? view.session.currentId : ""
+                itemId: visible ? view.boardId : ""
                 onOpened: id => view.openText(id)
             }
 
@@ -757,7 +765,7 @@ Item {
                 width: parent.width
                 z: 4
                 session: view.session
-                itemId: visible ? view.session.currentId : ""
+                itemId: visible ? view.boardId : ""
                 onOpened: id => view.openText(id)
             }
 

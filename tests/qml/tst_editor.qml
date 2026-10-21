@@ -56,6 +56,20 @@ TestCase {
         verify(!hint.visible);
     }
 
+    function test_boardAndOutlinerShowTheScenesOfTheChapter() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const first = view.session.currentId;
+        verify(view.session.add("scene") !== "");
+        view.session.currentId = first;
+        view.viewMode = "board";
+        tryCompare(findChild(view, "corkboard") as GridView, "count", 2);
+        view.viewMode = "outline";
+        tryCompare(findChild(view, "outlinerRows") as ListView, "count", 2);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
