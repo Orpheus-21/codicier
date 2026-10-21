@@ -12,6 +12,7 @@ T.Popup {
     property string error: ""
 
     readonly property var kinds: [
+        { kind: "blank", label: "Blank", hint: "One scene and nothing else" },
         { kind: "short-story", label: "Short story", hint: "One scene to start" },
         { kind: "novella", label: "Novella", hint: "Chapters and scenes" },
         { kind: "novel", label: "Novel", hint: "Parts, chapters, scenes, front and back matter" },

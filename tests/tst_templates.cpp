@@ -17,6 +17,7 @@ private slots:
     {
         QTest::addColumn<QString>("kind");
         QTest::addColumn<int>("textItems");
+        QTest::newRow("blank") << "blank" << 1;
         QTest::newRow("short story") << "short-story" << 1;
         QTest::newRow("novella") << "novella" << 1;
         QTest::newRow("novel") << "novel" << 4;

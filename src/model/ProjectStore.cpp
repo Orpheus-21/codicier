@@ -25,8 +25,8 @@ QString LoadError::text() const
 
 namespace {
 
-constexpr std::array<std::string_view, 7> projectKinds {
-    "short-story", "novella", "novel", "series", "essay", "essay-collection", "non-fiction"
+constexpr std::array<std::string_view, 8> projectKinds {
+    "blank", "short-story", "novella", "novel", "series", "essay", "essay-collection", "non-fiction"
 };
 constexpr std::array<std::string_view, 8> sections {
     "manuscript", "front", "back", "codex", "notes", "research", "searches", "trash"

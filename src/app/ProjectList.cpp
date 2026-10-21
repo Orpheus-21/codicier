@@ -240,6 +240,7 @@ QString ProjectList::remove(const QString &projectFolder, const QString &backupF
 QString ProjectList::kindLabel(const QString &kind)
 {
     static const QHash<QString, QString> labels {
+        { "blank", "Blank" },
         { "short-story", "Short story" },
         { "novella", "Novella" },
         { "novel", "Novel" },

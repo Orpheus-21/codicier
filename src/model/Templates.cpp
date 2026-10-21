@@ -71,6 +71,10 @@ int fill(Builder &b, const QString &kind)
     const QString manuscript = QStringLiteral("manuscript");
     const QString scene = QStringLiteral("scene");
     const QString chapter = QStringLiteral("chapter");
+    if (kind == QLatin1String("blank")) {
+        b.top(scene, manuscript, QStringLiteral("Untitled"));
+        return 0;
+    }
     if (kind == QLatin1String("short-story")) {
         b.top(scene, manuscript, QStringLiteral("Opening"));
         return 5000;
