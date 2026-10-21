@@ -66,6 +66,12 @@ private slots:
         QVERIFY(!hidden(8));
         // The text keeps every mark.
         QCOMPARE(document->toPlainText(), QStringLiteral("a *b* **c**"));
+        // A codex link hides its brackets and keeps its name.
+        document->setPlainText(QStringLiteral("see [[Elin]]"));
+        for (const int at : { 4, 5, 10, 11 })
+            QVERIFY2(hidden(at), qPrintable(QString::number(at)));
+        QVERIFY(!hidden(6));
+        document->setPlainText(QStringLiteral("a *b* **c**"));
 
         highlighter->setHideMarks(false);
         QVERIFY(!hidden(2));
