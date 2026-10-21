@@ -727,6 +727,44 @@ TestCase {
         compare(view.viewMode, "page");
     }
 
+    function test_timelineCardsDoNotOverlap() {
+        const view = makeView();
+        while (view.session.plotGrid().length < 4)
+            view.session.add("scene");
+        const scenes = view.session.plotGrid();
+        const dates = ["1912-11-02", "1912-11-02", "1912-11-03", "1930-01-01"];
+        for (let i = 0; i < 4; ++i) {
+            view.session.setField(scenes[i].id, "date", dates[i]);
+            view.session.setField(scenes[i].id, "pov", "Elin");
+        }
+        view.forceActiveFocus();
+        keyClick(Qt.Key_T, Qt.ControlModifier | Qt.AltModifier);
+        const timelineView = findChild(view, "timelineView") as Timeline;
+        compare(timelineView.tracks.length, 1);
+        waitForRendering(view);
+        const tracks = findChild(view, "timelineTracks") as Flickable;
+        const events = [];
+        const walk = item => {
+            for (let i = 0; i < item.children.length; ++i) {
+                const child = item.children[i];
+                if (child.objectName === "timelineEvent")
+                    events.push(child);
+                walk(child);
+            }
+        };
+        walk(tracks.contentItem);
+        compare(events.length, 4);
+        for (let i = 0; i < events.length; ++i) {
+            for (let j = i + 1; j < events.length; ++j) {
+                const a = events[i].mapToItem(tracks.contentItem, 0, 0);
+                const b = events[j].mapToItem(tracks.contentItem, 0, 0);
+                const apart = a.x + events[i].width <= b.x || b.x + events[j].width <= a.x
+                              || a.y + events[i].height <= b.y || b.y + events[j].height <= a.y;
+                verify(apart, events[i].Accessible.name + " covers " + events[j].Accessible.name);
+            }
+        }
+    }
+
     function test_calendarDialogSetsTheMonths() {
         const view = makeView();
         view.forceActiveFocus();

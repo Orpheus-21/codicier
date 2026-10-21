@@ -28,6 +28,30 @@ Item {
     readonly property real span: Math.max(1, last - first)
     readonly property real usable: Math.max(flick.width - nameWidth - cardWidth,
                                             (tracks.reduce((n, track) => n + track.events.length, 0)) * 60)
+    // A track has a row of cards above its line and one or more rows below.
+    readonly property real rowHeight: trackHeight / 2
+    // For each track, the row of each event: the first row that is free at
+    // the x of the event. Cards close in time go to the next row.
+    readonly property var rows: tracks.map(track => {
+        let ends = [];
+        return track.events.map(event => {
+            const x = xOf(event.day);
+            let row = ends.findIndex(end => end <= x);
+            if (row < 0) {
+                row = ends.length;
+                ends.push(0);
+            }
+            ends[row] = x + cardWidth;
+            return row;
+        });
+    })
+    // The height and the top of each track.
+    readonly property var heights: rows.map(list => Math.max(2, ...list.map(row => row + 1)) * rowHeight)
+    readonly property var tops: heights.map((height, i) => heights.slice(0, i).reduce((sum, h) => sum + h, 0))
+
+    function xOf(day: real): real {
+        return nameWidth + (day - first) / span * usable;
+    }
 
     function refresh() {
         tracks = session.timeline(groupBy);
@@ -106,7 +130,7 @@ Item {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         contentWidth: timeline.nameWidth + timeline.usable + timeline.cardWidth
-        contentHeight: timeline.tracks.length * timeline.trackHeight
+        contentHeight: timeline.heights.reduce((sum, height) => sum + height, 0)
 
         WheelHandler {
             onWheel: event => {
@@ -125,12 +149,12 @@ Item {
                 required property int index
 
                 objectName: "timelineTrack"
-                y: index * timeline.trackHeight
+                y: timeline.tops[index] ?? 0
                 width: flick.contentWidth
-                height: timeline.trackHeight
+                height: timeline.heights[index] ?? timeline.trackHeight
 
                 Rectangle {
-                    y: parent.height / 2
+                    y: timeline.rowHeight
                     x: timeline.nameWidth
                     width: parent.width - timeline.nameWidth
                     height: 1
@@ -158,12 +182,12 @@ Item {
                         required property int index
 
                         objectName: "timelineEvent"
-                        x: timeline.nameWidth + (modelData.day - timeline.first) / timeline.span * timeline.usable
-                        // Cards next to each other take turns above and below
-                        // the line, so a close pair stays readable.
-                        y: index % 2 === 0 ? 6 : timeline.trackHeight / 2 + 4
+                        readonly property int row: timeline.rows[track.index]?.[index] ?? 0
+
+                        x: timeline.xOf(modelData.day)
+                        y: row * timeline.rowHeight + (row === 0 ? 6 : 4)
                         width: timeline.cardWidth - Theme.space.s
-                        height: timeline.trackHeight / 2 - 10
+                        height: timeline.rowHeight - 10
                         radius: Theme.radius.small
                         color: Theme.color.surface
                         border.width: 1
