@@ -26,6 +26,8 @@ Item {
     readonly property real unit: (width - 2 * Theme.space.xl)
                                  / columns.reduce((sum, column) => sum + column.width, 0)
     property string sortKey: ""
+    // The numbers of the chapters and scenes, when the project shows them.
+    property var numbers: ({})
     property bool ascending: true
 
     function value(row: var, key: string): var {
@@ -33,6 +35,7 @@ Item {
     }
 
     function refresh() {
+        numbers = session.numbered ? session.numbers() : {};
         let list = itemId === "" ? [] : session.outlineOf(itemId);
         let names = [];
         for (const row of list) {
@@ -188,6 +191,8 @@ Item {
                         elide: Text.ElideRight
                         text: {
                             const value = outliner.value(row.modelData, modelData.key);
+                            if (modelData.key === "title" && outliner.numbers[row.modelData.id])
+                                return outliner.numbers[row.modelData.id] + "   " + value;
                             return modelData.key === "words"
                                 ? Number(value).toLocaleString(Qt.locale("en_GB"), "f", 0) : String(value);
                         }

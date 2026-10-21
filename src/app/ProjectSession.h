@@ -112,6 +112,15 @@ public:
     // "***", "#", or "" for a blank line. A project with no choice has "***".
     Q_PROPERTY(QString sceneBreak READ sceneBreak NOTIFY edited)
     QString sceneBreak() const;
+    // True shows the numbers of the chapters and the scenes in the binder
+    // and the outliner. The titles do not change.
+    Q_PROPERTY(bool numbered READ numbered NOTIFY edited)
+    bool numbered() const;
+    Q_INVOKABLE bool setNumbered(bool on);
+    // The number of each chapter and scene of the manuscript, by id: "3"
+    // for the third chapter, and "3.2" for its second scene. A scene with
+    // no chapter has its own count.
+    Q_INVOKABLE QVariantMap numbers() const;
     Q_INVOKABLE bool setSceneBreak(const QString &mark);
     // The framework of the project, by id, or "".
     Q_PROPERTY(QString framework READ framework NOTIFY edited)

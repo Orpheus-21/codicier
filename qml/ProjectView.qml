@@ -640,6 +640,12 @@ Item {
                 }
 
                 T.Action {
+                    text: "Number chapters and scenes"
+                    checked: view.session.numbered
+                    onTriggered: view.session.setNumbered(!view.session.numbered)
+                }
+
+                T.Action {
                     text: "Scene break: * * *"
                     checked: view.session.sceneBreak === "***"
                     onTriggered: view.session.setSceneBreak("***")

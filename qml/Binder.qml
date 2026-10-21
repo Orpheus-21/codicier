@@ -19,6 +19,23 @@ ListView {
     property string renamingId: ""
     // The id of the row that the menu is for.
     property string menuId: ""
+    // The numbers of the chapters and scenes, when the project shows them.
+    property var numbers: ({})
+
+    function readNumbers() {
+        numbers = session.numbered ? session.numbers() : {};
+    }
+
+    Component.onCompleted: readNumbers()
+
+    Connections {
+        target: binder.session
+
+        function onEdited() {
+            binder.readNumbers();
+        }
+    }
+
     // The items that Ctrl and Shift clicks selected, or none.
     property var selectedIds: []
 
@@ -440,6 +457,7 @@ ListView {
         focus: ListView.isCurrentItem
         current: itemId === binder.session.currentId
         selected: binder.selectedIds.includes(itemId)
+        number: binder.numbers[itemId] ?? ""
         labelColor: Theme.labelColor(binder.session.fields(itemId).label ?? "")
         renaming: itemId === binder.renamingId
         onRenameAccepted: newTitle => {

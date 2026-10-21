@@ -1158,6 +1158,21 @@ private slots:
         QVERIFY(session->fields("m1n2p3q4r5").value("label").toString().isEmpty());
     }
 
+    void numbersFollowTheBinder()
+    {
+        QVERIFY(!session->numbered());
+        QVERIFY(session->setNumbered(true));
+        QVERIFY(readFile("project.toml").contains("numbered = true"));
+        const QVariantMap numbers = session->numbers();
+        // The chapter "The Letter" is the first chapter, and its scenes are 1.1 and 1.2.
+        QCOMPARE(numbers.value("f6g7h8j9k0").toString(), QStringLiteral("1"));
+        QCOMPARE(numbers.value("m1n2p3q4r5").toString(), QStringLiteral("1.1"));
+        QCOMPARE(numbers.value("t6v4h9r2mz").toString(), QStringLiteral("1.2"));
+        QVERIFY(!numbers.contains("e5f6g7h8j9"));
+        QVERIFY(session->setNumbered(false));
+        QVERIFY(!readFile("project.toml").contains("numbered"));
+    }
+
     void sceneBreakIsAProjectChoice()
     {
         QCOMPARE(session->sceneBreak(), QStringLiteral("***"));

@@ -429,6 +429,14 @@ TestCase {
         compare(view.session.fields(first).label, "green");
         waitForRendering(binder);
         verify(Qt.colorEqual(rowItem(first).labelColor, Theme.labelColor("green")));
+        // Numbers show in the binder rows when the project turns them on.
+        verify(view.session.setNumbered(true));
+        waitForRendering(binder);
+        // The drag above put the first scene in third place.
+        compare(rowItem(first).number, "1.3");
+        compare(rowItem(second).number, "1.1");
+        verify(view.session.setNumbered(false));
+        compare(binder.numbers, {});
         binder.selectedIds = [first, second, third];
         binder.trash(first);
         for (const id of [first, second, third])

@@ -287,6 +287,7 @@ private:
         for (const std::string_view key :
              { "subtitle", "author", "language", "framework", "scene-break" })
             checkType(*table, key, toml::node_type::string, file);
+        checkType(*table, "numbered", toml::node_type::boolean, file);
         if (checkType(*table, "goals", toml::node_type::table, file)) {
             if (const toml::table *goals = table->get_as<toml::table>("goals")) {
                 checkType(*goals, "words", toml::node_type::integer, file);
@@ -592,9 +593,10 @@ private:
 };
 
 // The key order of docs/format.md. Other keys follow in alphabetical order.
-constexpr std::array<std::string_view, 9> projectOrder { "format",  "title",     "subtitle",
-                                                         "author",  "kind",      "language",
-                                                         "created", "framework", "scene-break" };
+constexpr std::array<std::string_view, 10> projectOrder { "format",  "title",     "subtitle",
+                                                          "author",  "kind",      "language",
+                                                          "created", "framework", "scene-break",
+                                                          "numbered" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
 constexpr std::array<std::string_view, 23> itemOrder {

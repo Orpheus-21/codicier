@@ -942,6 +942,40 @@ bool ProjectSession::setCalendar(const QVariantList &months)
     return commit({ });
 }
 
+bool ProjectSession::numbered() const
+{
+    return project.data["numbered"].value_or(false);
+}
+
+bool ProjectSession::setNumbered(bool on)
+{
+    if (project.readOnly)
+        return false;
+    // The default is off, so only true is written.
+    if (on)
+        project.data.insert_or_assign("numbered", true);
+    else
+        project.data.erase("numbered");
+    return commit({ });
+}
+
+QVariantMap ProjectSession::numbers() const
+{
+    QVariantMap map;
+    int chapter = 0;
+    for (const ChapterGroup &group : chapterGroups()) {
+        const bool loose = indexOf(group.id) < 0;
+        if (!loose)
+            map.insert(group.id, QString::number(++chapter));
+        for (qsizetype i = 0; i < group.scenes.size(); ++i) {
+            const QString scene = QString::number(i + 1);
+            map.insert(project.items.at(group.scenes.at(i)).id,
+                       loose ? scene : QString::number(chapter) + u'.' + scene);
+        }
+    }
+    return map;
+}
+
 QString ProjectSession::sceneBreak() const
 {
     return QString::fromStdString(project.data["scene-break"].value_or(std::string("***")));

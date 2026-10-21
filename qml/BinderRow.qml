@@ -25,6 +25,8 @@ T.ItemDelegate {
     property bool current: false
     // One of many items that the author selected with Ctrl or Shift.
     property bool selected: false
+    // The automatic number of a chapter or a scene, or "".
+    property string number: ""
     // The colour label of the item, or transparent for none.
     property color labelColor: "transparent"
     // The view sets this while the author renames this row.
@@ -164,7 +166,11 @@ T.ItemDelegate {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - 14 - parent.spacing
                        - (row.iconName !== "" ? 16 + parent.spacing : 0)
-                text: row.title
+                // A number shows muted before the title. The title is text, not markup.
+                textFormat: row.number !== "" ? Text.StyledText : Text.PlainText
+                text: row.number === "" ? row.title
+                    : "<font color=\"" + Theme.color.inkMuted + "\">" + row.number + "</font>&nbsp;&nbsp;"
+                      + row.title.replace(/&/g, "&amp;").replace(/</g, "&lt;")
                 elide: Text.ElideRight
                 font.family: Theme.type.ui
                 font.pixelSize: Theme.type.body
