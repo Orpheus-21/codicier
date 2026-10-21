@@ -131,3 +131,57 @@ jobs:
           timeout 10 flatpak run --user --env=QT_QPA_PLATFORM=offscreen \
             io.github.Orpheus_21.Codicier || status=$?
           test "$status" -eq 124
+
+  # The AppImage: built on an older glibc, then started on a clean Debian 13.
+  appimage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build pkg-config libhunspell-dev libtomlplusplus-dev \
+            libgl-dev libegl-dev libxkbcommon-dev libfuse2t64
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.12.*'
+          cache: true
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+          cmake --build build --target codicier
+          DESTDIR="$PWD/AppDir" cmake --install build --prefix /usr
+
+      - name: Make the AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+          QML_SOURCES_PATHS: qml
+          EXTRA_PLATFORM_PLUGINS: libqwayland.so;libqoffscreen.so
+        run: |
+          base=https://github.com/linuxdeploy
+          curl -sLfO "$base/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          curl -sLfO "$base/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+          chmod +x linuxdeploy*.AppImage
+          export QMAKE="$QT_ROOT_DIR/bin/qmake"
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage \
+            -d AppDir/usr/share/applications/codicier.desktop \
+            -i AppDir/usr/share/icons/hicolor/256x256/apps/codicier.png
+          ls -l Codicier*.AppImage
+
+      - name: Start on a clean Debian 13
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w debian:13 sh -c '
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libgl1 libegl1 libopengl0 libglx0 \
+              libfontconfig1 libfreetype6 libglib2.0-0t64 libxkbcommon0 > /dev/null
+            status=0
+            QT_QPA_PLATFORM=offscreen timeout 10 ./Codicier*.AppImage --appimage-extract-and-run || status=$?
+            test "$status" -eq 124'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Codicier-AppImage
+          path: Codicier*.AppImage
