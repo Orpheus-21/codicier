@@ -3,7 +3,7 @@
 #include <QDir>
 #include <QFileInfo>
 
-#include <hunspell/hunspell.hxx>
+#include <hunspell.hxx>
 
 QStringList &SpellChecker::searchPaths()
 {
