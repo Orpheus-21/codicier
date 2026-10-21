@@ -135,6 +135,29 @@ private slots:
         QCOMPARE(text.toPlainText(), QStringLiteral("One.\n\nTwo."));
     }
 
+    void indentSkipsTheFirstParagraphAndHeadings()
+    {
+        Document document;
+        QTextDocument text;
+        text.documentLayout();
+        document.attach(&text);
+        document.setParagraphGap(0);
+        document.setFirstLineIndent(24);
+        text.setPlainText(QStringLiteral("One.\n\nTwo.\n\n## Part\n\nThree.\n\nFour."));
+        document.setFirstLineIndent(28);
+        const auto indentOf = [&text](int block) {
+            return text.findBlockByNumber(block).blockFormat().textIndent();
+        };
+        QCOMPARE(indentOf(0), 0.0);
+        QCOMPARE(indentOf(2), 28.0);
+        QCOMPARE(indentOf(4), 0.0);
+        QCOMPARE(indentOf(6), 0.0);
+        QCOMPARE(indentOf(8), 28.0);
+        QCOMPARE(text.findBlockByNumber(1).blockFormat().lineHeight(), 0.0);
+        document.setFirstLineIndent(0);
+        QCOMPARE(indentOf(2), 0.0);
+    }
+
     void savesOneSecondAfterTheLastEdit()
     {
         Document document;

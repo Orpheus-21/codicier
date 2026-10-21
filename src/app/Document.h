@@ -42,6 +42,10 @@ class Document : public QObject
     // The height in pixels of an empty paragraph, the blank line between two
     // Markdown paragraphs. Below 0, the empty paragraph keeps the normal line.
     Q_PROPERTY(qreal paragraphGap READ paragraphGap WRITE setParagraphGap NOTIFY styleChanged)
+    // The indent in pixels of the first line of a paragraph, or 0. As in a
+    // book, the first paragraph and a paragraph after a heading have none.
+    Q_PROPERTY(
+        qreal firstLineIndent READ firstLineIndent WRITE setFirstLineIndent NOTIFY styleChanged)
     // What stays bright in focus mode: 0 all the text, 1 the paragraph with
     // the cursor, 2 its sentence. The rest takes the mark colour.
     Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY styleChanged)
@@ -80,6 +84,8 @@ public:
     qreal lineDistance() const { return distance; }
     int focusScope() const { return scopeOfFocus; }
     qreal paragraphGap() const { return gap; }
+    qreal firstLineIndent() const { return indent; }
+    void setFirstLineIndent(qreal value);
     void setParagraphGap(qreal value);
     void setFocusScope(int scope);
     int words() const { return wordCount; }
@@ -151,6 +157,7 @@ private:
     QColor accent { 0x94, 0x55, 0x2a };
     qreal distance = 0;
     qreal gap = -1;
+    qreal indent = 0;
     QString folder;
     QString path;
     // The text of the file, kept until an editor is attached.

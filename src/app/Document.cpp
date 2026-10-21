@@ -209,6 +209,13 @@ QTextBlockFormat Document::formatOf(const QTextBlock &block) const
         format.setLineHeight(gap, QTextBlockFormat::FixedHeight);
     else
         format.setLineHeight(distance, QTextBlockFormat::LineDistanceHeight);
+    // The paragraph before, past the blank lines.
+    QTextBlock before = block.previous();
+    while (before.isValid() && before.text().isEmpty())
+        before = before.previous();
+    const bool indented = indent > 0 && !block.text().isEmpty() && before.isValid()
+        && !before.text().startsWith(u'#') && !block.text().startsWith(u'#');
+    format.setTextIndent(indented ? indent : 0);
     return format;
 }
 
@@ -219,7 +226,7 @@ void Document::styleEdit(int position, int added)
     QTextCursor cursor(document);
     bool joined = false;
     for (QTextBlock block = document->findBlock(position);
-         block.isValid() && block.position() <= position + added; block = block.next()) {
+         block.isValid() && block.position() <= position + added + 1; block = block.next()) {
         const QTextBlockFormat format = formatOf(block);
         if (format == block.blockFormat())
             continue;
@@ -233,6 +240,15 @@ void Document::styleEdit(int position, int added)
     }
     if (joined)
         cursor.endEditBlock();
+}
+
+void Document::setFirstLineIndent(qreal value)
+{
+    if (qFuzzyCompare(value + 1, indent + 1))
+        return;
+    indent = value;
+    applyStyle();
+    emit styleChanged();
 }
 
 void Document::setParagraphGap(qreal value)

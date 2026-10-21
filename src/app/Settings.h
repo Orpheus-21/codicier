@@ -36,7 +36,8 @@ class Settings : public QObject
     // The line height of the page in percent of the text size: 130, 150, or
     // 180.
     Q_PROPERTY(int lineSpacing READ lineSpacing WRITE setLineSpacing NOTIFY changed)
-    // The blank line between two paragraphs, in percent of a line: 50 or 100.
+    // The blank line between two paragraphs, in percent of a line: 50 or
+    // 100. 0 hides the blank lines and indents the first line instead.
     Q_PROPERTY(int paragraphGap READ paragraphGap WRITE setParagraphGap NOTIFY changed)
     // What stays bright in focus mode: 0 all the text, 1 the paragraph with
     // the cursor, 2 its sentence.

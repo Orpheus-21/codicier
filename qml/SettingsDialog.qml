@@ -355,7 +355,7 @@ T.Popup {
                     label: "Space between paragraphs"
 
                     Repeater {
-                        model: [[50, "Half a line"], [100, "One line"]]
+                        model: [[50, "Half a line"], [100, "One line"], [0, "None, indent the first line"]]
 
                         Choice {
                             required property var modelData

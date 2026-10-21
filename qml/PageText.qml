@@ -55,6 +55,13 @@ TextEdit {
         value: Theme.color.series
     }
 
+    // The first-line indent, when the blank lines between paragraphs hide.
+    Binding {
+        target: pageText.document
+        property: "firstLineIndent"
+        value: Settings.paragraphGap === 0 ? Math.round(Theme.type.readingSize * 1.5) : 0
+    }
+
     // The blank line between two paragraphs.
     Binding {
         target: pageText.document
