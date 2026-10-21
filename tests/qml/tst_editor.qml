@@ -105,6 +105,21 @@ TestCase {
         compare(closeSpy.count, 1);
     }
 
+    function test_f1ListsEveryCommandWithItsKey() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_F1);
+        const sheet = findChild(view, "keySheet") as KeySheet;
+        tryVerify(() => sheet.opened);
+        let rows = 0;
+        for (const group of sheet.groups)
+            rows += group.rows.length;
+        compare(rows, view.commands.length);
+        verify(sheet.groups.some(group => group.rows.some(row => row.id === "help" && row.sequence === "F1")));
+        keyClick(Qt.Key_Escape);
+        tryVerify(() => !sheet.visible);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

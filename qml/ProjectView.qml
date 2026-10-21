@@ -322,7 +322,8 @@ Item {
         { id: "binder", name: "Show or hide the binder", sequence: "Ctrl+Shift+B", run: () => view.binderOpen = !view.binderOpen },
         { id: "inspector", name: "Show or hide the inspector", sequence: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
-        { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() }
+        { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() },
+        { id: "help", name: "Show the keys", sequence: "F1", run: () => keySheet.open() }
     ]
 
     KeyMap {
@@ -386,6 +387,15 @@ Item {
         anchors.centerIn: parent
         session: view.session
         onSaved: message => view.versionsMessage = message
+    }
+
+    KeySheet {
+        id: keySheet
+
+        objectName: "keySheet"
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        commands: view.commands
     }
 
     ProgressDialog {
