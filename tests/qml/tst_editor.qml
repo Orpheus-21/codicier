@@ -243,6 +243,15 @@ TestCase {
         compare(count.text, "Selection 4");
     }
 
+    function test_statusBarShowsTheSaveState() {
+        const view = makeView();
+        const state = findChild(view, "saveState") as Text;
+        compare(state.text, "Saved");
+        (findChild(view, "editor") as TextEdit).text = "The gull cried.";
+        compare(state.text, "Saving");
+        tryCompare(state, "text", "Saved", 5000);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

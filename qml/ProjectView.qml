@@ -1043,5 +1043,22 @@ Item {
                 text: "Read only: this project uses a newer format."
             }
         }
+
+        // The save state of the open text, at the right end. An error stays
+        // until a save works.
+        Text {
+            objectName: "saveState"
+            visible: view.session.document.file !== ""
+            anchors.right: parent.right
+            anchors.rightMargin: Theme.space.l
+            anchors.verticalCenter: parent.verticalCenter
+            text: view.session.document.error !== "" ? "Not saved"
+                : view.session.document.dirty ? "Saving" : "Saved"
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.small
+            color: view.session.document.error !== "" ? Theme.color.accent : Theme.color.inkMuted
+            Accessible.role: Accessible.StaticText
+            Accessible.name: view.session.document.error !== "" ? view.session.document.error : text
+        }
     }
 }
