@@ -43,6 +43,11 @@ Item {
             inspectorPane.T.SplitView.preferredWidth = state["inspector-width"];
         if (state.item && session.fields(state.item).title !== undefined)
             session.currentId = state.item;
+        else
+            session.currentId = session.items().find(item => item.kind === "scene")?.id ?? "";
+        // The writer starts on the page, not in the binder.
+        if (session.document.file !== "")
+            editor.focusText();
     }
 
     function saveState() {

@@ -40,6 +40,19 @@ TestCase {
         Settings.theme = "system";
     }
 
+    function test_newNovelOpensOnItsFirstScene() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        compare(view.session.fields(view.session.currentId).title, "Scene 1");
+        const text = findChild(view, "editor") as TextEdit;
+        tryVerify(() => text.activeFocus);
+        for (const c of "Dusk")
+            keyClick(c);
+        compare(text.text, "Dusk");
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
