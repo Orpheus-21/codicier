@@ -32,6 +32,7 @@ The project is in development. Not all features are complete.
 - toml++ 3 or later.
 - git, for the versions of a project.
 - Hunspell and pkg-config. For the spell check, also a Hunspell dictionary, such as `hunspell-en_us` or `hunspell-en_gb`.
+- Optional: a MyThes thesaurus, for synonyms, such as the `mythes-en` package. The app reads the `th_*.dat` files in `/usr/share/mythes`.
 
 On Arch Linux, install the requirements with this command:
 
@@ -153,6 +154,10 @@ As you type, the page changes straight quotes to curly quotes, `--` to an em das
 The status bar shows the words of the scene, the chapter, the book, and the session. With text selected, it also shows the words of the selection. At the right end, it shows "Saved", "Saving", or "Not saved". "Not saved" stays until a save works.
 
 The inspector shows the reading time of the open item, and the insights show the reading time of each chapter and of the manuscript. The time uses 238 words a minute, the average speed of silent reading for adults.
+
+Right-click a misspelled word on the page to see spelling suggestions. Right-click a correct word to see its synonyms from the thesaurus. Click a word in the list to put it in place of the word on the page.
+
+The project menu, under the title of the project, chooses the spelling language from the Hunspell dictionaries on the computer. The settings list the dictionaries.
 
 Right-click an item in the binder and choose "Open beside" to show it on a second page next to the main page. Each page saves its own text.
 
