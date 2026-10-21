@@ -1,9 +1,11 @@
 #include "Backup.h"
 #include "ProjectList.h"
+#include "ProjectStore.h"
 #include "Templates.h"
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -114,6 +116,29 @@ private slots:
         QCOMPARE(list.create("The Salt Ledger", "essay", QString()), QString());
         QVERIFY(QFile::exists(dir.filePath("the-salt-ledger-2/project.toml")));
         QCOMPARE(list.count(), 2);
+    }
+
+    void sampleLoadsAsAProject()
+    {
+        QTemporaryDir dir;
+        ProjectList list;
+        QCOMPARE(list.createSample(), QStringLiteral("Choose a workspace first."));
+        list.setFolder(dir.path());
+        QSignalSpy created(&list, &ProjectList::created);
+        QCOMPARE(list.createSample(), QString());
+        QCOMPARE(list.createSample(), QString());
+        QCOMPARE(created.size(), 2);
+        QCOMPARE(list.count(), 2);
+        const QVariantMap sample = list.get(0);
+        QCOMPARE(sample.value("error").toString(), QString());
+        QVERIFY(sample.value("words").toInt() > 300);
+        const LoadResult result = ProjectStore::load(dir.filePath("the-lighthouse-keeper"));
+        QVERIFY2(result.ok(), qPrintable(result.ok() ? QString() : result.errors.first().text()));
+        int entities = 0;
+        for (const ProjectItem &item : result.project.items)
+            entities += item.section == QLatin1String("codex") ? 1 : 0;
+        QCOMPARE(entities, 3);
+        QVERIFY(QFileInfo(dir.filePath("the-lighthouse-keeper-2/binder.toml")).isWritable());
     }
 
     void templateOutlineFollowsTheBinder()

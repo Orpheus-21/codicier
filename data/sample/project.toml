@@ -1,0 +1,17 @@
+format = 1
+title = "The Lighthouse Keeper"
+author = "A sample by Codicier"
+kind = "novel"
+language = "en-GB"
+created = 2026-10-21T09:00:00Z
+
+[goals]
+words = 80000
+
+[[plotline]]
+id = "lamp"
+name = "The lamp"
+
+[[plotline]]
+id = "return"
+name = "Tomas comes home"

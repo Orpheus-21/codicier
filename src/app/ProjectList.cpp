@@ -7,6 +7,7 @@
 #include "Templates.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -235,6 +236,33 @@ QString ProjectList::remove(const QString &projectFolder, const QString &backupF
         return QStringLiteral("Some files of the project could not be deleted.");
     }
     refresh();
+    return { };
+}
+
+QString ProjectList::createSample()
+{
+    if (workspace.isEmpty())
+        return QStringLiteral("Choose a workspace first.");
+    const QDir dir(workspace);
+    QSet<QString> taken;
+    for (const QString &entry : dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot))
+        taken.insert(entry + QStringLiteral(".md"));
+    QString folderName = Naming::fileNameFor(QStringLiteral("The Lighthouse Keeper"), taken);
+    folderName.chop(3);
+    const QString target = dir.filePath(folderName);
+    const QString source = QStringLiteral(":/data/sample/");
+    QDirIterator it(source, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString from = it.next();
+        const QString to = QDir(target).filePath(from.mid(source.size()));
+        // A file from the resources is read-only, so the copy gets normal rights.
+        if (!QDir().mkpath(QFileInfo(to).path()) || !QFile::copy(from, to)
+            || !QFile::setPermissions(
+                to, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther))
+            return QStringLiteral("Cannot copy the sample to %1.").arg(to);
+    }
+    refresh();
+    emit created(target);
     return { };
 }
 

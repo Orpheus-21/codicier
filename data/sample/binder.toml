@@ -1,0 +1,91 @@
+format = 1
+
+[[item]]
+id = "s1a2m3p4k5"
+kind = "chapter"
+section = "manuscript"
+title = "Chapter 1: Dusk"
+
+[[item]]
+id = "s1a2m3p4k6"
+kind = "scene"
+parent = "s1a2m3p4k5"
+title = "The stairs"
+file = "manuscript/the-stairs.md"
+status = "revised"
+pov = "Elin"
+place = "The lighthouse"
+date = "1912-11-02"
+synopsis = "Elin climbs to the lamp, as her father did, and counts every step."
+plotlines = ["lamp"]
+
+[[item]]
+id = "s1a2m3p4k7"
+kind = "scene"
+parent = "s1a2m3p4k5"
+title = "A storm"
+file = "manuscript/a-storm.md"
+pov = "Elin"
+place = "The lighthouse"
+date = "1912-11-02"
+synopsis = "The radio brings a ship's name that Elin knows."
+plotlines = ["lamp", "return"]
+
+[[item]]
+id = "s1a2m3p4k8"
+kind = "chapter"
+section = "manuscript"
+title = "Chapter 2: Morning"
+
+[[item]]
+id = "s1a2m3p4k9"
+kind = "scene"
+parent = "s1a2m3p4k8"
+title = "Arrival"
+file = "manuscript/arrival.md"
+pov = "Tomas"
+place = "The pier"
+date = "1912-11-03"
+synopsis = "Tomas comes in on the tide and does not look at the lamp."
+plotlines = ["return"]
+
+[[item]]
+id = "s1a2m3p4m1"
+kind = "scene"
+parent = "s1a2m3p4k8"
+title = "The log"
+file = "manuscript/the-log.md"
+pov = "Elin"
+place = "The lighthouse"
+date = "1912-11-03"
+synopsis = "Elin reads her father's last entry and finds Tomas's name in it."
+plotlines = ["lamp", "return"]
+
+[[item]]
+id = "s1a2m3p4m2"
+kind = "character"
+section = "codex"
+title = "Elin"
+file = "codex/elin.md"
+
+[[item]]
+id = "s1a2m3p4m3"
+kind = "character"
+section = "codex"
+title = "Tomas"
+file = "codex/tomas.md"
+aliases = ["the boy from the pier"]
+
+[[item]]
+id = "s1a2m3p4m4"
+kind = "place"
+section = "codex"
+title = "The lighthouse"
+file = "codex/the-lighthouse.md"
+
+[[item]]
+id = "s1a2m3p4m5"
+kind = "note"
+section = "notes"
+title = "About this sample"
+file = "notes/about-this-sample.md"

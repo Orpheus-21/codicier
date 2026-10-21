@@ -69,6 +69,8 @@ public:
     Q_INVOKABLE void refresh();
     // Makes a new project from a template. Returns an error text, or "".
     Q_INVOKABLE QString create(const QString &title, const QString &kind, const QString &author);
+    // Copies the sample project into this workspace. Returns an error text, or "".
+    Q_INVOKABLE QString createSample();
     // The binder of a new project of the kind: title, kind, section, and
     // depth for each item, in binder order.
     Q_INVOKABLE static QVariantList templateOutline(const QString &kind);

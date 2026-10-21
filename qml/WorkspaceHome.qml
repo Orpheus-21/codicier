@@ -338,14 +338,36 @@ Item {
                 Muted {
                     width: parent.width
                     wrapMode: Text.Wrap
-                    text: "A project is a folder in this workspace. Make the first one from a template."
+                    text: "A project is a folder in this workspace. Make the first one from a template, or open a sample to look around."
                 }
 
-                Button {
-                    kind: "primary"
-                    iconName: "plus"
-                    text: "New project"
-                    onClicked: newProject.open()
+                Row {
+                    spacing: Theme.space.s
+
+                    Button {
+                        kind: "primary"
+                        iconName: "plus"
+                        text: "New project"
+                        onClicked: newProject.open()
+                    }
+
+                    Button {
+                        objectName: "openSample"
+                        iconName: "book-open"
+                        text: "Open a sample"
+                        onClicked: sampleError.text = projectList.createSample()
+                    }
+                }
+
+                Text {
+                    id: sampleError
+
+                    visible: text !== ""
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.body
+                    color: Theme.color.accent
                 }
             }
 
