@@ -84,3 +84,12 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: ctest --test-dir build --output-on-failure -E "^check_|floor_guard|coverage_diff|tst_icons"
+
+      - name: Show a failed test
+        if: failure()
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_FORCE_STDERR_LOGGING: 1
+        run: |
+          ./build/tests/tst_smoke.exe -o -,txt 2>&1 | head -60 || true
+          ./build/tests/tst_roundtrip.exe -o -,txt 2>&1 | head -60 || true
