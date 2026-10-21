@@ -56,7 +56,7 @@ deadline = 2027-03-01
 | `title` | string | yes | The title of the work. |
 | `subtitle` | string | no | The subtitle. |
 | `author` | string | no | The name on the work. |
-| `kind` | string | yes | One of `short-story`, `novella`, `novel`, `series`, `essay`, `essay-collection`, or `non-fiction`. |
+| `kind` | string | yes | One of `blank`, `short-story`, `novella`, `novel`, `series`, `essay`, `essay-collection`, or `non-fiction`. |
 | `language` | string | no | A language tag, such as `en-GB`. The spell check uses it. |
 | `created` | date and time | yes | The time the app made the project, in UTC. |
 | `goals.words` | integer | no | The word goal for the whole work. |
