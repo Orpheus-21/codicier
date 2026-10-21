@@ -139,6 +139,8 @@ These are the default keys. The key map file can change each key. See "Configura
 
 Tab types a tab character on the page. Use F6 to move the keyboard focus to the page and away from the page.
 
+The page hides the Markdown marks, such as the `#` of a heading and the stars of bold and italic, outside the paragraph with the cursor. The file keeps every mark, and a copy of the text includes them. The setting "Markdown marks" shows them everywhere.
+
 As you type, the page changes straight quotes to curly quotes, `--` to an em dash, and `...` to an ellipsis. Press Ctrl+Z once to get back the characters that you typed. The settings turn each change off.
 
 The status bar shows the words of the scene, the chapter, the book, and the session. With text selected, it also shows the words of the selection. At the right end, it shows "Saved", "Saving", or "Not saved". "Not saved" stays until a save works.
@@ -246,6 +248,7 @@ Click the settings button on the workspace screen to change these settings. Each
 | Size of the text | 19 px | The size of the text on the page, from 14 px to 28 px. |
 | Width of the page | 66 characters | The width of the text column, from 45 to 90 characters. |
 | Animations | On | Off stops all motion in the app. |
+| Markdown marks | Hide outside the cursor | "Show" shows the marks in every paragraph. |
 | Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
 | First-run hints | On | The hints show once. "Show them again" shows them on the next project that opens. |
