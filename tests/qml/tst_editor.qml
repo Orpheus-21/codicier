@@ -88,6 +88,23 @@ TestCase {
         tryVerify(() => outliner.rows.length > 0 && outliner.rows[0].words === 3);
     }
 
+    SignalSpy {
+        id: closeSpy
+
+        signalName: "closeRequested"
+    }
+
+    function test_backButtonClosesTheProject() {
+        const view = makeView();
+        closeSpy.target = view;
+        closeSpy.clear();
+        const back = findChild(view, "backToWorkspace") as IconButton;
+        verify(back && back.visible);
+        compare(back.keys, "Ctrl+W");
+        mouseClick(back);
+        compare(closeSpy.count, 1);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

@@ -803,6 +803,18 @@ Item {
                 width: parent.width
                 height: visible ? 48 : 0
 
+                IconButton {
+                    objectName: "backToWorkspace"
+                    anchors.left: parent.left
+                    anchors.leftMargin: Theme.space.l
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconName: "arrow-left"
+                    label: "Back to the workspace"
+                    keys: view.keys.sequences["close"] ?? ""
+                    showLabel: Settings.buttonLabels
+                    onClicked: view.close()
+                }
+
                 Row {
                     anchors.right: parent.right
                     anchors.rightMargin: Theme.space.l
