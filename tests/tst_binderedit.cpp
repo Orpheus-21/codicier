@@ -982,6 +982,17 @@ private slots:
         QVERIFY(readFile("history.toml").contains(" = 5\n"));
     }
 
+    void languageChoosesTheDictionary()
+    {
+        QCOMPARE(ProjectSession::dictionaries(), (QStringList { "en_TEST", "fr_TEST" }));
+        QVERIFY(!session->setLanguage("xx_XX"));
+        QVERIFY(session->setLanguage("fr_TEST"));
+        QCOMPARE(session->dictionary(), QStringLiteral("fr_TEST"));
+        QVERIFY(readFile("project.toml").contains("language = \"fr-TEST\""));
+        QVERIFY(session->isWordCorrect("lettre"));
+        QVERIFY(!session->isWordCorrect("letter"));
+    }
+
     void projectDictionaryAndCodexNames()
     {
         QCOMPARE(session->dictionary(), QStringLiteral("en_TEST"));

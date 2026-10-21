@@ -358,6 +358,17 @@ TestCase {
         compare(Settings.readingSize, 19);
     }
 
+    function test_languageDialogSetsTheDictionary() {
+        const view = makeView();
+        const dialog = findChild(view, "languageDialog") as LanguageDialog;
+        dialog.open();
+        tryVerify(() => dialog.opened);
+        compare(dialog.names, ["en_TEST", "fr_TEST"]);
+        mouseClick(findChild(dialog.contentItem, "language-fr_TEST") as Item);
+        compare(view.session.dictionary, "fr_TEST");
+        tryVerify(() => !dialog.visible);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

@@ -22,6 +22,9 @@ public:
     // The folders with .dic and .aff files, in the order of search. Tests
     // set their own folder.
     static QStringList &searchPaths();
+    // The dictionaries in the search paths that have a .dic and an .aff
+    // file, such as "en_GB", sorted, with no repeats.
+    static QStringList installed();
 
     // The name of the loaded dictionary, such as "en_GB", or "" for none.
     QString dictionary() const { return name; }

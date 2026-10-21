@@ -101,6 +101,8 @@ public:
     int focusScope() const { return scope; }
     void setFocusScope(int value) { change(scope, std::clamp(value, 0, 2), "view/focusScope"); }
     bool hideMarks() const { return marksHidden; }
+    // The spelling dictionaries on this computer, such as "en_GB".
+    Q_INVOKABLE static QStringList dictionaries();
     void setHideMarks(bool value) { change(marksHidden, value, "view/hideMarks"); }
     bool hintsSeen() const { return seen; }
     void setHintsSeen(bool value) { change(seen, value, "view/hintsSeen"); }

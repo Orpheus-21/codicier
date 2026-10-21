@@ -451,6 +451,15 @@ Item {
         onSaved: message => view.versionsMessage = message
     }
 
+    LanguageDialog {
+        id: languageDialog
+
+        objectName: "languageDialog"
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
+    }
+
     KeySheet {
         id: keySheet
 
@@ -623,6 +632,11 @@ Item {
                 T.Action {
                     text: "Replace in the manuscript"
                     onTriggered: view.openSearch(true)
+                }
+
+                T.Action {
+                    text: "Spelling language: " + (view.session.dictionary !== "" ? view.session.dictionary : "none")
+                    onTriggered: languageDialog.open()
                 }
 
                 T.Action {

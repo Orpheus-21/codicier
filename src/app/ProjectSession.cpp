@@ -1466,6 +1466,27 @@ void ProjectSession::setSpellCheck(bool on)
     emit spellChanged();
 }
 
+QStringList ProjectSession::dictionaries()
+{
+    return SpellChecker::installed();
+}
+
+bool ProjectSession::setLanguage(const QString &name)
+{
+    if (project.readOnly || !SpellChecker::installed().contains(name))
+        return false;
+    QString tag = name;
+    tag.replace(u'_', u'-');
+    project.data.insert_or_assign("language", tag.toStdString());
+    if (!commit({ }))
+        return false;
+    spell = std::make_unique<SpellChecker>(name);
+    teachSpelling();
+    applySpelling();
+    emit spellChanged();
+    return true;
+}
+
 QString ProjectSession::dictionary() const
 {
     return spell ? spell->dictionary() : QString();

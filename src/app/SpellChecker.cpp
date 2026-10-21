@@ -15,6 +15,22 @@ QStringList &SpellChecker::searchPaths()
     return paths;
 }
 
+QStringList SpellChecker::installed()
+{
+    QStringList names;
+    for (const QString &path : std::as_const(searchPaths())) {
+        const QDir dir(path);
+        for (const QString &file : dir.entryList({ QStringLiteral("*.dic") }, QDir::Files)) {
+            const QString name = QFileInfo(file).completeBaseName();
+            if (QFileInfo::exists(dir.filePath(name + QStringLiteral(".aff"))))
+                names.append(name);
+        }
+    }
+    names.sort();
+    names.removeDuplicates();
+    return names;
+}
+
 SpellChecker::SpellChecker(const QString &language)
 {
     QString wanted = language;

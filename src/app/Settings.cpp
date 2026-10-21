@@ -1,6 +1,7 @@
 #include "Settings.h"
 
 #include "Document.h"
+#include "SpellChecker.h"
 #include "Workspaces.h"
 
 #include <QDir>
@@ -24,6 +25,11 @@ bool isTheme(const QString &name)
 }
 
 } // namespace
+
+QStringList Settings::dictionaries()
+{
+    return SpellChecker::installed();
+}
 
 Settings::Settings(QObject *parent) : QObject(parent)
 {

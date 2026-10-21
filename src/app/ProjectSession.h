@@ -340,6 +340,11 @@ public:
     bool spellCheck() const { return checkSpelling; }
     void setSpellCheck(bool on);
     QString dictionary() const;
+    // The dictionaries on this computer, such as "en_GB".
+    Q_INVOKABLE static QStringList dictionaries();
+    // Sets the language of the project to an installed dictionary, and
+    // checks the spelling with it. Returns false for an unknown name.
+    Q_INVOKABLE bool setLanguage(const QString &name);
     // The spelling suggestions for a word, or none with no dictionary.
     Q_INVOKABLE QStringList suggestions(const QString &word) const;
     // True for a word that the dictionary or the project knows.

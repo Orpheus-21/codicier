@@ -478,6 +478,24 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Spelling dictionaries"
+
+                    Text {
+                        objectName: "dictionaryList"
+                        readonly property var names: Settings.dictionaries()
+
+                        width: 520
+                        wrapMode: Text.Wrap
+                        text: names.length > 0
+                              ? names.join(", ") + ". Each project chooses one in its menu."
+                              : "None on this computer. Install a Hunspell dictionary, such as hunspell-en_gb."
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.body
+                        color: Theme.color.inkMuted
+                    }
+                }
+
+                Setting {
                     label: "Mark on the page"
 
                     Repeater {
