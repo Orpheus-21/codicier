@@ -1300,6 +1300,64 @@ QString ProjectSession::add(const QString &kind)
     return item.id;
 }
 
+QString ProjectSession::duplicate(const QString &id)
+{
+    const int source = indexOf(id);
+    if (source < 0 || project.readOnly || !loadError.isEmpty()
+        || project.items.at(source).section == QLatin1String("trash"))
+        return { };
+    // The copies read the files, so the open text saves first.
+    text.save();
+    QSet<QString> ids;
+    for (const ProjectItem &item : std::as_const(project.items))
+        ids.insert(item.id);
+    const QDir dir(project.folder);
+    QStringList newFiles;
+    bool failed = false;
+    const std::function<int(int, int, int, const QString &, const QString &)> copy =
+        [&](int from, int parent, int position, const QString &section, const QString &title) {
+            // A copy, not a reference: the append below can move the items.
+            ProjectItem item = project.items.at(from);
+            const QList<int> children = item.children;
+            item.id = Naming::newItemId(ids);
+            ids.insert(item.id);
+            item.title = title;
+            item.children.clear();
+            if (!item.file.isEmpty()) {
+                const QString folder = item.file.section(u'/', 0, -2);
+                const QString prefix = folder.isEmpty() ? QString() : folder + u'/';
+                const QStringList names = QDir(dir.filePath(folder)).entryList(QDir::Files);
+                const QString file = prefix
+                    + Naming::fileNameFor(title, QSet<QString>(names.begin(), names.end()));
+                if (!item.missingFile && !QFile::copy(dir.filePath(item.file), dir.filePath(file)))
+                    failed = true;
+                item.file = file;
+                newFiles.append(file);
+            }
+            project.items.append(item);
+            const int index = static_cast<int>(project.items.size() - 1);
+            place(index, parent, position, section);
+            for (qsizetype i = 0; i < children.size(); ++i)
+                copy(children.at(i), index, static_cast<int>(i), section,
+                     project.items.at(children.at(i)).title);
+            return index;
+        };
+    const ProjectItem &original = project.items.at(source);
+    const int parent = original.parent;
+    const int position = static_cast<int>(
+        (parent >= 0 ? project.items.at(parent).children : project.roots).indexOf(source) + 1);
+    const int top = copy(source, parent, position, original.section,
+                         original.title + QStringLiteral(" (copy)"));
+    if (failed) {
+        editError = QStringLiteral("Cannot copy all the texts.");
+        emit edited();
+    }
+    commit(newFiles);
+    const QString copyId = project.items.at(top).id;
+    setCurrentId(copyId);
+    return copyId;
+}
+
 QString ProjectSession::saveSearch(const QString &query, bool regex)
 {
     if (project.readOnly || !loadError.isEmpty() || query.trimmed().isEmpty())

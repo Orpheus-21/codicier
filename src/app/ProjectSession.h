@@ -198,6 +198,10 @@ public:
     Q_INVOKABLE QString saveSearch(const QString &query, bool regex);
     // Moves the item and its branch to the trash. No file leaves the disk.
     Q_INVOKABLE bool moveToTrash(const QString &id);
+    // Copies an item and all items below it, with their texts and fields,
+    // right after the item. The copy gets new ids and files, and the title
+    // of the top copy ends with "(copy)". Returns the id of the top copy.
+    Q_INVOKABLE QString duplicate(const QString &id);
     // The keyboard modifiers now, as Qt::KeyboardModifier flags. A click
     // handler in QML reads them to tell a Ctrl or Shift click.
     Q_INVOKABLE static int keyboardModifiers();

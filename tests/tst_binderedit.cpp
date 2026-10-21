@@ -1124,6 +1124,30 @@ private slots:
         QVERIFY(!catalyst.value("description").toString().isEmpty());
     }
 
+    void duplicateCopiesTextsAndFields()
+    {
+        // The chapter f6g7h8j9k0 holds two scenes with texts and fields.
+        const QString copy = session->duplicate("f6g7h8j9k0");
+        QVERIFY(!copy.isEmpty());
+        QCOMPARE(session->fields(copy).value("title").toString(),
+                 QStringLiteral("The Letter (copy)"));
+        const QVariantList scenes = session->childrenOf(copy);
+        QCOMPARE(scenes.size(), 2);
+        const QString scene = scenes.at(1).toMap().value("id").toString();
+        QVERIFY(scene != "t6v4h9r2mz");
+        QCOMPARE(session->fields(scene).value("synopsis").toString(),
+                 session->fields("t6v4h9r2mz").value("synopsis").toString());
+        QCOMPARE(session->fields(scene).value("title").toString(),
+                 QStringLiteral("A Date She Did Not Know"));
+        const QString file = session->fields(scene).value("file").toString();
+        QVERIFY(file != session->fields("t6v4h9r2mz").value("file").toString());
+        QVERIFY(
+            readFile(file).startsWith(readFile("manuscript/a-date-she-did-not-know.md").left(20)));
+        // The copy sits right after the original.
+        QCOMPARE(session->binder()->rowOf(copy) > session->binder()->rowOf("t6v4h9r2mz"), true);
+        QVERIFY(session->duplicate("no-such-item").isEmpty());
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

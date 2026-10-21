@@ -200,6 +200,10 @@ ListView {
             onTriggered: binder.session.mergeWithNext(binder.menuId)
         }
         T.Action {
+            text: "Duplicate"
+            onTriggered: binder.session.duplicate(binder.menuId)
+        }
+        T.Action {
             text: "Open beside"
             enabled: binder.menuId !== "" && (binder.session.fields(binder.menuId).file ?? "") !== ""
             onTriggered: binder.besideRequested(binder.menuId)
