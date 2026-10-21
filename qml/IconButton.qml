@@ -14,6 +14,8 @@ T.Button {
 
     implicitWidth: showLabel ? 2 * Theme.space.s + 18 + Theme.space.xs + labelText.implicitWidth : Theme.space.xxl
     implicitHeight: Theme.space.xxl
+    // The tooltip needs hover, also where the platform turns hover off.
+    hoverEnabled: true
     Accessible.name: label
 
     contentItem: Item {
