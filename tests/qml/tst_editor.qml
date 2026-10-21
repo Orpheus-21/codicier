@@ -385,6 +385,49 @@ TestCase {
         compare(text.text, "the lantern");
     }
 
+    function test_binderActsOnManySelectedItems() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const binder = findChild(view, "binder") as Binder;
+        const first = view.session.currentId;
+        const second = view.session.add("scene");
+        view.session.currentId = second;
+        const third = view.session.add("scene");
+        view.session.currentId = first;
+        waitForRendering(binder);
+        const rowItem = id => binder.itemAtIndex(view.session.binder.rowOf(id));
+        // Ctrl adds one item to the open one.
+        mouseClick(rowItem(third), 40, 10, Qt.LeftButton, Qt.ControlModifier);
+        compare(binder.selectedIds, [first, third]);
+        compare(view.session.currentId, first);
+        // Shift selects the range from the open item.
+        mouseClick(rowItem(third), 40, 10, Qt.LeftButton, Qt.ShiftModifier);
+        compare(binder.selectedIds.length, 3);
+        binder.setStatus(second, "final");
+        binder.addTag(second, "storm");
+        for (const id of [first, second, third]) {
+            compare(view.session.fields(id).status, "final");
+            compare(view.session.fields(id).tags, ["storm"]);
+        }
+        // A drag of one selected item moves all of them, in binder order.
+        const rows = () => [first, second, third].map(id => view.session.binder.rowOf(id));
+        const before = rows();
+        binder.selectedIds = [second, third];
+        binder.dragId = third;
+        binder.dropRow = before[0];
+        binder.dropPosition = "before";
+        binder.drop();
+        const after = rows();
+        verify(after[1] < after[2] && after[2] < after[0], JSON.stringify(after));
+        binder.selectedIds = [first, second, third];
+        binder.trash(first);
+        for (const id of [first, second, third])
+            verify(view.session.binder.isInTrash(id));
+        compare(binder.selectedIds, []);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

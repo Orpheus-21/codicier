@@ -17,6 +17,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QGuiApplication>
 #include <QLocale>
 #include <QRegularExpression>
 #include <QSaveFile>
@@ -1332,6 +1333,11 @@ bool ProjectSession::rename(const QString &id, const QString &title)
         return true;
     project.items[index].title = name;
     return commit({ });
+}
+
+int ProjectSession::keyboardModifiers()
+{
+    return static_cast<int>(QGuiApplication::keyboardModifiers().toInt());
 }
 
 bool ProjectSession::moveToTrash(const QString &id)

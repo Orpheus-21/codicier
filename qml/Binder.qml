@@ -19,6 +19,60 @@ ListView {
     property string renamingId: ""
     // The id of the row that the menu is for.
     property string menuId: ""
+    // The items that Ctrl and Shift clicks selected, or none.
+    property var selectedIds: []
+
+    // The items that a menu action, Delete, or a drag works on: the
+    // selection when it holds id, else id alone. In binder order.
+    function targets(id: string): var {
+        if (selectedIds.length < 2 || !selectedIds.includes(id))
+            return id === "" ? [] : [id];
+        return selectedIds.slice().sort((a, b) => session.binder.rowOf(a) - session.binder.rowOf(b));
+    }
+
+    // Ctrl adds or takes away one item. Shift selects the items from the
+    // open item to this one. Returns true when the click only selected.
+    function selectByClick(row: int): bool {
+        const modifiers = session.keyboardModifiers();
+        const id = idAt(row);
+        if (id.startsWith("section:"))
+            return false;
+        if (modifiers & Qt.ControlModifier) {
+            let list = selectedIds.length > 0 ? selectedIds.slice()
+                     : session.currentId !== "" ? [session.currentId] : [];
+            list = list.includes(id) ? list.filter(each => each !== id) : list.concat([id]);
+            selectedIds = list;
+            return true;
+        }
+        if ((modifiers & Qt.ShiftModifier) && session.currentId !== "") {
+            const from = session.binder.rowOf(session.currentId);
+            let list = [];
+            for (let at = Math.min(from, row); at <= Math.max(from, row); ++at) {
+                if (!idAt(at).startsWith("section:"))
+                    list.push(idAt(at));
+            }
+            selectedIds = list;
+            return true;
+        }
+        selectedIds = [];
+        return false;
+    }
+
+    function setStatus(id: string, status: string) {
+        for (const each of targets(id))
+            session.setField(each, "status", status);
+    }
+
+    function addTag(id: string, tag: string) {
+        for (const each of targets(id))
+            session.setField(each, "tags", (session.fields(each).tags ?? []).concat([tag]));
+    }
+
+    function trash(id: string) {
+        for (const each of targets(id))
+            session.moveToTrash(each);
+        selectedIds = [];
+    }
 
     // Adds an item of kind near the selection and starts its rename.
     function addItem(kind: string) {
@@ -58,7 +112,7 @@ ListView {
             startRename(id);
             event.accepted = true;
         } else if (event.key === Qt.Key_Delete && id !== "" && !id.startsWith("section:")) {
-            session.moveToTrash(id);
+            trash(id);
             event.accepted = true;
         }
     }
@@ -95,8 +149,14 @@ ListView {
     }
 
     function drop() {
-        if (dragId !== "" && dropRow >= 0)
-            session.move(dragId, idAt(dropRow), dropPosition);
+        if (dragId !== "" && dropRow >= 0) {
+            // The first item goes to the drop place, and the others follow it
+            // in binder order.
+            const moving = targets(dragId);
+            let placed = session.move(moving[0], idAt(dropRow), dropPosition);
+            for (let i = 1; placed && i < moving.length; ++i)
+                placed = session.move(moving[i], moving[i - 1], "after");
+        }
         dragId = "";
         dropRow = -1;
         dropPosition = "";
@@ -139,7 +199,56 @@ ListView {
             enabled: binder.menuId !== "" && (binder.session.fields(binder.menuId).file ?? "") !== ""
             onTriggered: binder.besideRequested(binder.menuId)
         }
-        T.Action { text: "Move to trash"; onTriggered: binder.session.moveToTrash(binder.menuId) }
+        T.Action { text: "Status: draft"; onTriggered: binder.setStatus(binder.menuId, "draft") }
+        T.Action { text: "Status: revised"; onTriggered: binder.setStatus(binder.menuId, "revised") }
+        T.Action { text: "Status: final"; onTriggered: binder.setStatus(binder.menuId, "final") }
+        T.Action { text: "Add a tag…"; onTriggered: tagPopup.open() }
+        T.Action {
+            text: binder.targets(binder.menuId).length > 1
+                  ? "Move " + binder.targets(binder.menuId).length + " items to trash" : "Move to trash"
+            onTriggered: binder.trash(binder.menuId)
+        }
+    }
+
+    // A tag for the item of the menu, or for all selected items.
+    T.Popup {
+        id: tagPopup
+
+        parent: T.Overlay.overlay
+        x: (parent.width - width) / 2
+        y: parent.height / 3
+        width: 320
+        padding: Theme.space.l
+        modal: true
+        focus: true
+        onAboutToShow: {
+            tagField.text = "";
+            tagField.forceActiveFocus();
+        }
+
+        T.Overlay.modal: Rectangle {
+            color: Qt.alpha(Theme.color.ink, 0.25)
+        }
+
+        background: Rectangle {
+            radius: Theme.radius.medium
+            color: Theme.color.paper
+            border.width: 1
+            border.color: Theme.color.rule
+        }
+
+        contentItem: TextField {
+            id: tagField
+
+            objectName: "tagField"
+            placeholderText: binder.targets(binder.menuId).length > 1
+                             ? "Tag for " + binder.targets(binder.menuId).length + " items" : "Tag"
+            onAccepted: {
+                if (text.trim() !== "")
+                    binder.addTag(binder.menuId, text.trim());
+                tagPopup.close();
+            }
+        }
     }
 
     // The menu of the trash heading.
@@ -275,6 +384,7 @@ ListView {
         // row does not use go on to the list.
         focus: ListView.isCurrentItem
         current: itemId === binder.session.currentId
+        selected: binder.selectedIds.includes(itemId)
         renaming: itemId === binder.renamingId
         onRenameAccepted: newTitle => {
             const id = itemId;
@@ -304,6 +414,8 @@ ListView {
             // A toggle resets the model and ends this delegate, so read the
             // values first and toggle last.
             const row = index;
+            if (binder.selectByClick(row))
+                return;
             const opens = !isSection;
             const toggles = isSection || hasChildren;
             binder.forceActiveFocus();

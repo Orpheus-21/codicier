@@ -23,6 +23,8 @@ T.ItemDelegate {
     required property bool included
     // The view sets this for the current row.
     property bool current: false
+    // One of many items that the author selected with Ctrl or Shift.
+    property bool selected: false
     // The view sets this while the author renames this row.
     property bool renaming: false
 
@@ -229,7 +231,7 @@ T.ItemDelegate {
 
     background: Rectangle {
         radius: Theme.radius.small
-        color: row.current && !row.isSection ? Theme.color.selection
+        color: (row.current || row.selected) && !row.isSection ? Theme.color.selection
              : row.hovered && !row.isSection ? Qt.alpha(Theme.color.selection, 0.5) : "transparent"
 
         FocusRing {

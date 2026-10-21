@@ -748,6 +748,8 @@ Item {
             Binder {
                 id: binder
 
+                objectName: "binder"
+
                 visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen && !view.inboxOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()

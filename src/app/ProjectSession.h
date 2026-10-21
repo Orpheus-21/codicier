@@ -198,6 +198,9 @@ public:
     Q_INVOKABLE QString saveSearch(const QString &query, bool regex);
     // Moves the item and its branch to the trash. No file leaves the disk.
     Q_INVOKABLE bool moveToTrash(const QString &id);
+    // The keyboard modifiers now, as Qt::KeyboardModifier flags. A click
+    // handler in QML reads them to tell a Ctrl or Shift click.
+    Q_INVOKABLE static int keyboardModifiers();
     // Moves an item from the trash back to its old parent, or to the top of
     // its section if the old parent is gone.
     Q_INVOKABLE bool restore(const QString &id);
