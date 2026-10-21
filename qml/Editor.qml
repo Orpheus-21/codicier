@@ -201,6 +201,17 @@ Item {
                 contentY = top + rect.height - height;
         }
 
+        // A quiet hint on an empty page.
+        Text {
+            objectName: "emptyHint"
+            visible: textEdit.visible && textEdit.length === 0 && textEdit.preeditText === ""
+            x: textEdit.x
+            y: textEdit.y
+            text: "Start writing"
+            font: textEdit.font
+            color: Theme.color.inkMuted
+        }
+
         PageText {
             id: textEdit
 

@@ -48,9 +48,12 @@ TestCase {
         compare(view.session.fields(view.session.currentId).title, "Scene 1");
         const text = findChild(view, "editor") as TextEdit;
         tryVerify(() => text.activeFocus);
+        const hint = findChild(view, "emptyHint") as Text;
+        verify(hint.visible);
         for (const c of "Dusk")
             keyClick(c);
         compare(text.text, "Dusk");
+        verify(!hint.visible);
     }
 
     function test_themeColoursReachTheDocument() {

@@ -28,6 +28,12 @@ TestCase {
         }
     }
 
+    SignalSpy {
+        id: activatedSpy
+
+        signalName: "activated"
+    }
+
     function makeBinder(): Binder {
         const binder = createTemporaryObject(binderComponent, testCase) as Binder;
         verify(binder);
@@ -42,16 +48,23 @@ TestCase {
         verify(row > 0);
         const item = binder.itemAtIndex(row);
         verify(item);
+        activatedSpy.target = binder;
+        activatedSpy.clear();
         mouseClick(item);
         compare(binder.session.currentId, "t6v4h9r2mz");
         compare(binder.currentIndex, row);
+        // The view moves the focus to the page.
+        compare(activatedSpy.count, 1);
     }
 
     function test_clickOnASectionOnlyToggles() {
         const binder = makeBinder();
         const trash = binder.session.binder.rowOf("section:trash");
+        activatedSpy.target = binder;
+        activatedSpy.clear();
         mouseClick(binder.itemAtIndex(trash));
         compare(binder.session.currentId, "");
+        compare(activatedSpy.count, 0);
         tryVerify(() => binder.session.binder.rowOf("e5f6g7h8j9") > trash);
     }
 

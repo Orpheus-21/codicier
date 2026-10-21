@@ -302,6 +302,9 @@ ListView {
             binder.forceActiveFocus();
             if (opens)
                 binder.open(row);
+            // A click on a text moves the focus to the page, as Enter does.
+            if (opens && !toggles && binder.session.document.file !== "")
+                binder.activated();
             if (toggles)
                 binder.session.binder.toggle(row);
         }
