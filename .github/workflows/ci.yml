@@ -121,13 +121,13 @@ jobs:
 
       - name: Build
         run: >-
-          flatpak-builder --user --force-clean
+          flatpak-builder --user --install --force-clean
           flatpak-build packaging/flatpak/io.github.Orpheus_21.Codicier.yml
 
       - name: Check
         run: |
           ! grep -n network flatpak-build/metadata
           status=0
-          QT_QPA_PLATFORM=offscreen timeout 10 flatpak-builder --run flatpak-build \
-            packaging/flatpak/io.github.Orpheus_21.Codicier.yml codicier || status=$?
+          timeout 10 flatpak run --user --env=QT_QPA_PLATFORM=offscreen \
+            io.github.Orpheus_21.Codicier || status=$?
           test "$status" -eq 124
