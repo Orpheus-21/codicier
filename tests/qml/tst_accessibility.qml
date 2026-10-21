@@ -900,6 +900,8 @@ TestCase {
         const view = makeView();
         view.session.currentId = view.session.plotGrid()[0].id;
         (findChild(view, "editor") as TextEdit).text = "The harbour slept under the snow.";
+        // The live count arrives a moment after the edit.
+        tryCompare(view.session, "sceneWords", 6);
         view.forceActiveFocus();
         keyClick(Qt.Key_I, Qt.ControlModifier | Qt.AltModifier);
         compare(view.viewMode, "insights");
@@ -908,6 +910,8 @@ TestCase {
         waitForRendering(view);
         compare(faults(insightsView), []);
         verify(findChild(insightsView, "lengthChapter"));
+        compare((findChild(insightsView, "bookReading") as Text).text,
+                "The manuscript: 6 words, under 1 min to read.");
         verify(findChild(insightsView, "povChapter"));
         verify(findChild(insightsView, "dialogueChapter"));
         verify(findChild(insightsView, "frequentWord"));

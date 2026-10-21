@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
+import "Reading.js" as Reading
+
 // Figures of the manuscript: the length of each chapter and scene. The view
 // reads the files when it opens.
 Item {
@@ -106,7 +108,8 @@ Item {
         Text {
             x: fill.x + fill.width + Theme.space.s
             anchors.verticalCenter: parent.verticalCenter
-            text: insights.number(bar.value)
+            // A chapter also shows its reading time.
+            text: insights.number(bar.value) + (bar.child || bar.value === 0 ? "" : "   " + Reading.label(bar.value))
             font.family: Theme.type.ui
             font.pixelSize: Theme.type.small
             color: Theme.color.inkMuted
@@ -146,6 +149,18 @@ Item {
             Heading {
                 topPadding: 0
                 text: "Length"
+            }
+
+            Text {
+                objectName: "bookReading"
+                readonly property int words: insights.figures.chapters.reduce((sum, chapter) => sum + chapter.words, 0)
+
+                visible: words > 0
+                bottomPadding: Theme.space.s
+                text: "The manuscript: " + insights.number(words) + " words, " + Reading.label(words) + " to read."
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.inkMuted
             }
 
             Text {

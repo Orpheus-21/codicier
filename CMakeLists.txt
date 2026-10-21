@@ -46,7 +46,7 @@ target_compile_options(codicier_ui PRIVATE -Wall -Wextra)
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
-    QML_FILES qml/Main.qml qml/Theme.qml qml/Icon.qml qml/IconPaths.js
+    QML_FILES qml/Main.qml qml/Theme.qml qml/Icon.qml qml/IconPaths.js qml/Reading.js
         qml/FocusRing.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
         qml/ListItem.qml qml/Pane.qml qml/Splitter.qml qml/Menu.qml
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml

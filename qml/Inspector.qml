@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQml
 import QtQuick
+
+import "Reading.js" as Reading
 import QtQuick.Templates as T
 
 // The inspector for the selected item, as in the T18 mock: the synopsis,
@@ -316,11 +318,14 @@ Pane {
                     }
 
                     Text {
+                        objectName: "wordsAndReading"
                         anchors.right: parent.right
                         text: Number(inspector.fields.words ?? 0).toLocaleString(Qt.locale("en_GB"), "f", 0)
                               + ((inspector.fields.target ?? 0) > 0
                                  ? " of " + Number(inspector.fields.target).toLocaleString(Qt.locale("en_GB"), "f", 0)
                                  : " words")
+                              + ((inspector.fields.words ?? 0) > 0
+                                 ? ", " + Reading.label(inspector.fields.words) + " to read" : "")
                         font.family: Theme.type.ui
                         font.pixelSize: Theme.type.small
                         color: Theme.color.inkMuted

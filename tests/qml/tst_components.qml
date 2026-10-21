@@ -3,6 +3,8 @@ import QtQuick.Templates as T
 import QtTest
 import Codicier
 
+import "../../qml/Reading.js" as Reading
+
 TestCase {
     id: testCase
 
@@ -144,6 +146,14 @@ TestCase {
         const narrow = button.width;
         button.showLabel = true;
         verify(button.width > narrow + 30);
+    }
+
+    function test_readingTimeLabels() {
+        compare(Reading.label(0), "");
+        compare(Reading.label(100), "under 1 min");
+        compare(Reading.label(2380), "10 min");
+        compare(Reading.label(238 * 60), "1 h");
+        compare(Reading.label(238 * 125), "2 h 5 min");
     }
 
     function test_primaryButtonFillsWithAccent() {
