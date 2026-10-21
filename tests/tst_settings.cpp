@@ -63,6 +63,32 @@ private slots:
         QCOMPARE(settings.backupFolder(), QString());
     }
 
+    void keyMapMovesAFormerDefault()
+    {
+        QFile::remove(KeyMap().file());
+        const KeyMap keys;
+        {
+            QSettings file(keys.file(), QSettings::IniFormat);
+            file.setValue("keys/inspector", "Ctrl+I");
+            file.setValue("keys/binder", "Ctrl+Alt+X");
+        }
+        const QVariantList commands {
+            QVariantMap { { "id", "italic" }, { "sequence", "Ctrl+I" } },
+            QVariantMap {
+                { "id", "inspector" }, { "sequence", "Ctrl+Shift+I" }, { "former", "Ctrl+I" } },
+            QVariantMap {
+                { "id", "binder" }, { "sequence", "Ctrl+Shift+B" }, { "former", "Ctrl+B" } },
+        };
+        const QVariantMap result = keys.resolve(commands);
+        const QVariantMap sequences = result.value("sequences").toMap();
+        QCOMPARE(sequences.value("italic").toString(), QStringLiteral("Ctrl+I"));
+        QCOMPARE(sequences.value("inspector").toString(), QStringLiteral("Ctrl+Shift+I"));
+        // The author chose this key, so it stays.
+        QCOMPARE(sequences.value("binder").toString(), QStringLiteral("Ctrl+Alt+X"));
+        QVERIFY(result.value("warnings").toStringList().isEmpty());
+        QFile::remove(keys.file());
+    }
+
     void keyMapWritesDefaultsAndReadsChanges()
     {
         const auto command = [](const char *id, const char *name, const char *sequence) {

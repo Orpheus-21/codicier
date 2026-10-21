@@ -25,6 +25,11 @@ QVariantMap KeyMap::resolve(const QVariantList &commands) const
         const QString name = command.value(QStringLiteral("name"), id).toString();
         if (!settings.contains(id))
             settings.setValue(id, command.value(QStringLiteral("sequence")).toString());
+        // A key that is still the former default of the command moves to the
+        // new default. A key that the author chose stays.
+        const QString former = command.value(QStringLiteral("former")).toString();
+        if (!former.isEmpty() && settings.value(id).toString().trimmed() == former)
+            settings.setValue(id, command.value(QStringLiteral("sequence")).toString());
         const QString text = settings.value(id).toString().trimmed();
         QString sequence;
         if (!text.isEmpty()) {

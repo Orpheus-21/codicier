@@ -19,8 +19,10 @@ public:
 
     QString file() const { return path; }
 
-    // Takes the commands as [{id, name, sequence}], with the default sequences.
-    // Writes each command that the file does not have, with its default.
+    // Takes the commands as [{id, name, sequence, former}], with the default
+    // sequences. Writes each command that the file does not have, with its
+    // default. A command with a former default that the file still has gets
+    // the new default.
     // Returns {sequences: {id: sequence}, warnings: [text]}. A sequence that
     // is not valid, or that an earlier command has, becomes "".
     Q_INVOKABLE QVariantMap resolve(const QVariantList &commands) const;
