@@ -68,6 +68,12 @@ Item {
         function onEdited() {
             outliner.refresh();
         }
+
+        // The live count of the open text arrives after the typing stops.
+        function onWordsChanged() {
+            if (outliner.visible)
+                outliner.refresh();
+        }
     }
 
     Rectangle {

@@ -70,6 +70,24 @@ TestCase {
         tryCompare(findChild(view, "outlinerRows") as ListView, "count", 2);
     }
 
+    function test_boardFollowsTheLiveWordCount() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const text = findChild(view, "editor") as TextEdit;
+        tryVerify(() => text.activeFocus);
+        for (const c of "one two three")
+            keyClick(c);
+        // The board opens before the live count arrives.
+        view.viewMode = "board";
+        const board = findChild(view, "corkboardView") as Corkboard;
+        tryVerify(() => board.cards.length > 0 && board.cards[0].words === 3);
+        view.viewMode = "outline";
+        const outliner = findChild(view, "outlinerView") as Outliner;
+        tryVerify(() => outliner.rows.length > 0 && outliner.rows[0].words === 3);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

@@ -42,6 +42,12 @@ Item {
         function onEdited() {
             board.refresh();
         }
+
+        // The live count of the open text arrives after the typing stops.
+        function onWordsChanged() {
+            if (board.visible)
+                board.refresh();
+        }
     }
 
     // The board has the colour of the page, so the splitter handle shows no
