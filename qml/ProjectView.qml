@@ -422,6 +422,13 @@ Item {
         commands: view.commands
     }
 
+    // Focus mode dims the text outside the paragraph or the sentence.
+    Binding {
+        target: view.session.document
+        property: "focusScope"
+        value: view.focusMode ? Settings.focusScope : 0
+    }
+
     Shortcut {
         sequence: "Escape"
         enabled: view.focusMode

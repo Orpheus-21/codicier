@@ -162,6 +162,20 @@ private slots:
         QCOMPARE(again.typography(), 7);
     }
 
+    void focusScopeSurvivesARestartAndClamps()
+    {
+        {
+            Settings settings;
+            QCOMPARE(settings.focusScope(), 1);
+            settings.setFocusScope(2);
+        }
+        Settings again;
+        QCOMPARE(again.focusScope(), 2);
+        again.setFocusScope(9);
+        QCOMPARE(again.focusScope(), 2);
+        again.setFocusScope(1);
+    }
+
     void hideMarksSurvivesARestart()
     {
         {

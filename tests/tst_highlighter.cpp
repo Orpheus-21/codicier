@@ -99,6 +99,34 @@ private slots:
         QVERIFY(hiddenIn(0, 2) && hiddenIn(1, 2));
     }
 
+    void focusDimsOutsideTheParagraphOrSentence()
+    {
+        const auto dimIn = [this](int block, int at) {
+            const QTextBlock found = document->findBlockByNumber(block);
+            for (const QTextLayout::FormatRange &range : found.layout()->formats()) {
+                if (at >= range.start && at < range.start + range.length)
+                    return range.format.foreground().color() == QColor(0x80, 0x70, 0x60);
+            }
+            return false;
+        };
+        highlighter->setColors(QColor(0x80, 0x70, 0x60), QColor(0x20, 0x40, 0x90));
+        document->setPlainText(QStringLiteral("One. Two here.\nThree."));
+        highlighter->setShownBlock(0, 6);
+        QVERIFY(!dimIn(1, 0));
+        highlighter->setFocusScope(1);
+        // The other paragraph is dim, and this one is bright.
+        QVERIFY(dimIn(1, 0));
+        QVERIFY(!dimIn(0, 6));
+        highlighter->setFocusScope(2);
+        // The first sentence is dim, the sentence with the cursor is not.
+        QVERIFY(dimIn(0, 0));
+        QVERIFY(!dimIn(0, 6));
+        highlighter->setShownBlock(0, 1);
+        QVERIFY(!dimIn(0, 0) && dimIn(0, 6));
+        highlighter->setFocusScope(0);
+        QVERIFY(!dimIn(1, 0));
+    }
+
     void headingIsLargerAndBold()
     {
         document->setPlainText(QStringLiteral("## Chapter 1"));

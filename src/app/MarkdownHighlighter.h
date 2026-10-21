@@ -51,8 +51,11 @@ public:
     // and italic) at 1 px with no colour. The text keeps them.
     void setHideMarks(bool hide);
     // The block that shows its marks while the others hide them: the block
-    // with the cursor, or -1 for none.
-    void setShownBlock(int block);
+    // with the cursor, or -1 for none. offset is the cursor in the block.
+    void setShownBlock(int block, int offset = 0);
+    // What stays bright while the rest is dim: 0 everything, 1 the
+    // paragraph with the cursor, 2 the sentence with the cursor.
+    void setFocusScope(int scope);
 
 protected:
     void highlightBlock(const QString &text) override;
@@ -62,11 +65,17 @@ private:
     void styleSpans(const QString &text, const QRegularExpression &pattern, int markLength,
                     const QTextCharFormat &body);
 
+    // The styles of a block, before the dimming.
+    void styleBlock(const QString &text);
+    // Dims the text outside the focus scope.
+    void dimOutsideFocus(const QString &text);
     // The format of a mark: pale, or hidden.
     QTextCharFormat markOver(QTextCharFormat base) const;
 
     bool hideMarks = false;
     int shownBlock = -1;
+    int shownOffset = 0;
+    int focusScope = 0;
     // True while highlightBlock styles a block that hides its marks.
     bool hideHere = false;
     QRegularExpression heading;

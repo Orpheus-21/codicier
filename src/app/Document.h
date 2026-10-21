@@ -37,6 +37,9 @@ class Document : public QObject
     Q_PROPERTY(QColor accentColor READ accentColor WRITE setAccentColor NOTIFY styleChanged)
     // The space in pixels that the editor adds between two lines.
     Q_PROPERTY(qreal lineDistance READ lineDistance WRITE setLineDistance NOTIFY styleChanged)
+    // What stays bright in focus mode: 0 all the text, 1 the paragraph with
+    // the cursor, 2 its sentence. The rest takes the mark colour.
+    Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY styleChanged)
     // The words of the open text. It updates 250 ms after the last edit.
     Q_PROPERTY(int words READ words NOTIFY wordsChanged)
 
@@ -70,6 +73,8 @@ public:
     QColor accentColor() const { return accent; }
     void setAccentColor(const QColor &color);
     qreal lineDistance() const { return distance; }
+    int focusScope() const { return scopeOfFocus; }
+    void setFocusScope(int scope);
     int words() const { return wordCount; }
     void setLineDistance(qreal value);
 
@@ -127,6 +132,8 @@ private:
     int styleChecks = 0;
     bool hideMarks = false;
     int cursorBlock = -1;
+    int cursorOffset = 0;
+    int scopeOfFocus = 0;
     QVariantList colorsOfPasses;
     QList<MarkdownHighlighter::PassRange> passes;
     QList<std::pair<int, int>> comments;

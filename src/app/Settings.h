@@ -33,6 +33,9 @@ class Settings : public QObject
     Q_PROPERTY(int autosaveDelay READ autosaveDelay WRITE setAutosaveDelay NOTIFY changed)
     // True turns every animation off.
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
+    // What stays bright in focus mode: 0 all the text, 1 the paragraph with
+    // the cursor, 2 its sentence.
+    Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY changed)
     // True hides the Markdown marks outside the paragraph with the cursor.
     Q_PROPERTY(bool hideMarks READ hideMarks WRITE setHideMarks NOTIFY changed)
     // True after the author saw the first-run hints of a project.
@@ -79,6 +82,8 @@ public:
     void setAutosaveDelay(int value);
     bool reducedMotion() const { return lessMotion; }
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
+    int focusScope() const { return scope; }
+    void setFocusScope(int value) { change(scope, std::clamp(value, 0, 2), "view/focusScope"); }
     bool hideMarks() const { return marksHidden; }
     void setHideMarks(bool value) { change(marksHidden, value, "view/hideMarks"); }
     bool hintsSeen() const { return seen; }
@@ -119,6 +124,7 @@ private:
     bool labels = false;
     bool seen = false;
     bool marksHidden = true;
+    int scope = 1;
     int target = 0;
     int sprint = 25;
     bool spelling = true;

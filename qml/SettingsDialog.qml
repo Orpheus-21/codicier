@@ -392,6 +392,23 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Focus mode dims"
+
+                    Repeater {
+                        model: [[0, "Nothing"], [1, "Other paragraphs"], [2, "Other sentences"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "focusScope-" + modelData[0]
+                            label: modelData[1]
+                            chosen: Settings.focusScope === modelData[0]
+                            onClicked: Settings.focusScope = modelData[0]
+                        }
+                    }
+                }
+
+                Setting {
                     label: "Markdown marks"
 
                     Choice {

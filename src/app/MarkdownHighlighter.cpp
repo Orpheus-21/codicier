@@ -44,6 +44,51 @@ void MarkdownHighlighter::setColors(const QColor &mark, const QColor &accent)
 void MarkdownHighlighter::highlightBlock(const QString &text)
 {
     hideHere = hideMarks && currentBlock().blockNumber() != shownBlock;
+    styleBlock(text);
+    dimOutsideFocus(text);
+}
+
+void MarkdownHighlighter::dimOutsideFocus(const QString &text)
+{
+    if (focusScope == 0 || shownBlock < 0)
+        return;
+    // The bright part: nothing, the whole block, or the sentence of the cursor.
+    qsizetype from = 0;
+    qsizetype to = 0;
+    if (currentBlock().blockNumber() == shownBlock) {
+        to = text.size();
+        if (focusScope == 2) {
+            const auto ends = [&text](qsizetype at) {
+                return QStringLiteral(".!?\u2026").contains(text.at(at));
+            };
+            const qsizetype cursor = std::clamp<qsizetype>(shownOffset, 0, text.size());
+            for (qsizetype at = cursor - 1; at > 0; --at) {
+                if (ends(at - 1) && text.at(at).isSpace()) {
+                    from = at + 1;
+                    break;
+                }
+            }
+            for (qsizetype at = cursor; at < text.size(); ++at) {
+                if (ends(at)) {
+                    to = at + 1;
+                    break;
+                }
+            }
+        }
+    }
+    for (qsizetype at = 0; at < text.size(); ++at) {
+        if (at >= from && at < to)
+            continue;
+        QTextCharFormat dim = format(static_cast<int>(at));
+        if (dim.foreground().color().alpha() == 0)
+            continue;
+        dim.setForeground(markFormat.foreground());
+        setFormat(static_cast<int>(at), 1, dim);
+    }
+}
+
+void MarkdownHighlighter::styleBlock(const QString &text)
+{
     const QRegularExpressionMatch match = heading.match(text);
     if (match.hasMatch()) {
         // Level 1 is the largest. Each level down is a little smaller.
@@ -234,14 +279,28 @@ void MarkdownHighlighter::setHideMarks(bool hide)
     rehighlight();
 }
 
-void MarkdownHighlighter::setShownBlock(int block)
+void MarkdownHighlighter::setFocusScope(int scope)
 {
-    if (block == shownBlock)
+    if (scope == focusScope)
+        return;
+    focusScope = scope;
+    rehighlight();
+}
+
+void MarkdownHighlighter::setShownBlock(int block, int offset)
+{
+    if (block == shownBlock && (offset == shownOffset || focusScope != 2))
         return;
     const int before = shownBlock;
     shownBlock = block;
-    if (!hideMarks)
+    shownOffset = offset;
+    if (!hideMarks && focusScope == 0)
         return;
+    // In focus mode with no paragraph, every block changes.
+    if (focusScope != 0 && (before < 0 || block < 0)) {
+        rehighlight();
+        return;
+    }
     for (const int number : { before, block }) {
         const QTextBlock changed = document()->findBlockByNumber(number);
         if (changed.isValid())

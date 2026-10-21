@@ -93,7 +93,8 @@ void Document::attach(QTextDocument *value)
     highlighter->setSpellChecker(spell);
     highlighter->setStyleChecks(styleChecks);
     highlighter->setHideMarks(hideMarks);
-    highlighter->setShownBlock(cursorBlock);
+    highlighter->setShownBlock(cursorBlock, cursorOffset);
+    highlighter->setFocusScope(scopeOfFocus);
     setPasses(passes);
     highlighter->setComments(comments);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
@@ -137,10 +138,22 @@ void Document::setPassColors(const QVariantList &colors)
 
 void Document::cursorAt(int position)
 {
-    cursorBlock
-        = position < 0 || document == nullptr ? -1 : document->findBlock(position).blockNumber();
+    const QTextBlock block
+        = position < 0 || document == nullptr ? QTextBlock() : document->findBlock(position);
+    cursorBlock = block.isValid() ? block.blockNumber() : -1;
+    cursorOffset = block.isValid() ? position - block.position() : 0;
     if (highlighter != nullptr)
-        highlighter->setShownBlock(cursorBlock);
+        highlighter->setShownBlock(cursorBlock, cursorOffset);
+}
+
+void Document::setFocusScope(int scope)
+{
+    if (scope == scopeOfFocus)
+        return;
+    scopeOfFocus = scope;
+    if (highlighter != nullptr)
+        highlighter->setFocusScope(scope);
+    emit styleChanged();
 }
 
 void Document::setHideMarks(bool hide)
