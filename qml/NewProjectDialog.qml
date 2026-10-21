@@ -29,7 +29,7 @@ T.Popup {
     }
 
     // The template has no size of its own: take the content plus padding.
-    implicitWidth: 520
+    implicitWidth: 720
     implicitHeight: implicitContentHeight + topPadding + bottomPadding
     padding: Theme.space.xl
     modal: true
@@ -72,22 +72,101 @@ T.Popup {
             onAccepted: dialog.create()
         }
 
-        Column {
+        Row {
             width: parent.width
-            spacing: 2
+            spacing: Theme.space.l
 
-            Repeater {
-                model: dialog.kinds
+            Column {
+                id: kindList
 
-                ListItem {
-                    required property var modelData
+                width: 240
+                spacing: 2
 
-                    width: parent.width
-                    height: 40
-                    text: modelData.label
-                    trailing: modelData.hint
-                    highlighted: dialog.kind === modelData.kind
-                    onClicked: dialog.kind = modelData.kind
+                Repeater {
+                    model: dialog.kinds
+
+                    ListItem {
+                        required property var modelData
+
+                        width: parent.width
+                        height: 40
+                        text: modelData.label
+                        highlighted: dialog.kind === modelData.kind
+                        onClicked: dialog.kind = modelData.kind
+                    }
+                }
+            }
+
+            // The binder that the chosen template makes.
+            Rectangle {
+                width: parent.width - kindList.width - parent.spacing
+                height: kindList.height
+                radius: Theme.radius.small
+                color: Theme.color.surface
+                clip: true
+
+                Column {
+                    id: preview
+
+                    objectName: "templatePreview"
+                    readonly property var outline: dialog.projects.templateOutline(dialog.kind)
+                    readonly property var sectionNames: ({ front: "Front matter", manuscript: "Manuscript",
+                                                           back: "Back matter" })
+
+                    x: Theme.space.m
+                    y: Theme.space.m
+                    width: parent.width - 2 * Theme.space.m
+                    spacing: 2
+                    Accessible.role: Accessible.List
+                    Accessible.name: "Binder of the template"
+
+                    Text {
+                        width: parent.width
+                        text: dialog.kinds.find(entry => entry.kind === dialog.kind)?.hint ?? ""
+                        wrapMode: Text.Wrap
+                        bottomPadding: Theme.space.s
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.body
+                        color: Theme.color.ink
+                    }
+
+                    Repeater {
+                        model: preview.outline
+
+                        Column {
+                            id: entry
+
+                            required property var modelData
+                            required property int index
+
+                            width: preview.width
+
+                            Text {
+                                visible: entry.index === 0
+                                         || preview.outline[entry.index - 1].section !== entry.modelData.section
+                                topPadding: entry.index === 0 ? 0 : Theme.space.s
+                                text: preview.sectionNames[entry.modelData.section] ?? ""
+                                font.family: Theme.type.ui
+                                font.pixelSize: Theme.type.small
+                                font.weight: Font.DemiBold
+                                font.letterSpacing: 1.2
+                                font.capitalization: Font.AllUppercase
+                                color: Theme.color.inkMuted
+                            }
+
+                            Text {
+                                width: parent.width
+                                leftPadding: entry.modelData.depth * Theme.space.l
+                                text: entry.modelData.title
+                                elide: Text.ElideRight
+                                font.family: Theme.type.ui
+                                font.pixelSize: Theme.type.body
+                                color: Theme.color.ink
+                                Accessible.role: Accessible.ListItem
+                                Accessible.name: text
+                            }
+                        }
+                    }
                 }
             }
         }

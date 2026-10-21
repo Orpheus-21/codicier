@@ -69,6 +69,9 @@ public:
     Q_INVOKABLE void refresh();
     // Makes a new project from a template. Returns an error text, or "".
     Q_INVOKABLE QString create(const QString &title, const QString &kind, const QString &author);
+    // The binder of a new project of the kind: title, kind, section, and
+    // depth for each item, in binder order.
+    Q_INVOKABLE static QVariantList templateOutline(const QString &kind);
     // Deletes a project for good: its folder and its backups in
     // backupFolder, with no copy in a trash. The folder must be a project
     // directly in the workspace. Returns an error text, or "".

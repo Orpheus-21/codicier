@@ -13,6 +13,7 @@
 #include <QSet>
 
 #include <algorithm>
+#include <functional>
 #include <utility>
 
 namespace {
@@ -235,6 +236,24 @@ QString ProjectList::remove(const QString &projectFolder, const QString &backupF
     }
     refresh();
     return { };
+}
+
+QVariantList ProjectList::templateOutline(const QString &kind)
+{
+    const Project project = Templates::preview(kind);
+    QVariantList list;
+    const std::function<void(int, int)> walk = [&](int at, int depth) {
+        const ProjectItem &item = project.items.at(at);
+        list.append(QVariantMap { { QStringLiteral("title"), item.title },
+                                  { QStringLiteral("kind"), item.kind },
+                                  { QStringLiteral("section"), item.section },
+                                  { QStringLiteral("depth"), depth } });
+        for (const int child : item.children)
+            walk(child, depth + 1);
+    };
+    for (const int root : project.roots)
+        walk(root, 0);
+    return list;
 }
 
 QString ProjectList::kindLabel(const QString &kind)

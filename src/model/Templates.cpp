@@ -169,4 +169,15 @@ QList<LoadError> create(const QString &folder, const QString &kind, const QStrin
     return ProjectStore::save(project);
 }
 
+Project preview(const QString &kind)
+{
+    Project project;
+    project.kind = kind;
+    if (ProjectStore::isProjectKind(kind)) {
+        Builder builder(project);
+        fill(builder, kind);
+    }
+    return project;
+}
+
 } // namespace Templates

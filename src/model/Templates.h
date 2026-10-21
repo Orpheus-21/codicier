@@ -13,4 +13,8 @@ namespace Templates {
 QList<LoadError> create(const QString &folder, const QString &kind, const QString &title,
                         const QString &author);
 
+// The binder that create() gives the kind, in memory only. An unknown kind
+// gives an empty project.
+Project preview(const QString &kind);
+
 } // namespace Templates

@@ -116,6 +116,17 @@ private slots:
         QCOMPARE(list.count(), 2);
     }
 
+    void templateOutlineFollowsTheBinder()
+    {
+        const QVariantList novel = ProjectList::templateOutline("novel");
+        QCOMPARE(novel.size(), 6);
+        QCOMPARE(novel.at(0).toMap().value("section").toString(), QString("front"));
+        const QVariantMap scene = novel.at(4).toMap();
+        QCOMPARE(scene.value("title").toString(), QString("Scene 1"));
+        QCOMPARE(scene.value("depth").toInt(), 2);
+        QVERIFY(ProjectList::templateOutline("no-such-kind").isEmpty());
+    }
+
     void createRefusesBadInput()
     {
         QTemporaryDir dir;
