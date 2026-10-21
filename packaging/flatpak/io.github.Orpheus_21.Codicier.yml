@@ -46,6 +46,19 @@ modules:
         url: https://raw.githubusercontent.com/LibreOffice/dictionaries/67032ee957631908098a72edf48dc81cac27e369/en/en_US.aff
         sha256: e746c882dd6f303c2c46e7452804b9201115a6942cfeb15f18f8edf774d2e24e
 
+  # An English thesaurus from WordNet, for synonyms with no host files.
+  - name: thesaurus-en
+    buildsystem: simple
+    build-commands:
+      - install -Dm644 -t /app/share/mythes th_en_US_v2.dat WordNet_license.txt
+    sources:
+      - type: file
+        url: https://raw.githubusercontent.com/LibreOffice/dictionaries/67032ee957631908098a72edf48dc81cac27e369/en/th_en_US_v2.dat
+        sha256: 8a3e4637450b7277428da248f0a604b5c92942bc30507220c051181462340f39
+      - type: file
+        url: https://raw.githubusercontent.com/LibreOffice/dictionaries/67032ee957631908098a72edf48dc81cac27e369/en/WordNet_license.txt
+        sha256: 23dbc4f3ea771304e5ab3e5709843813d2619f3c0cfc81229b53fcdb9985f29a
+
   - name: tomlplusplus
     buildsystem: cmake-ninja
     sources:
