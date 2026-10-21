@@ -166,6 +166,8 @@ jobs:
           curl -sLfO "$base/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
           chmod +x linuxdeploy*.AppImage
           export QMAKE="$QT_ROOT_DIR/bin/qmake"
+          # The index uses only SQLite. The other drivers need client libraries.
+          find "$QT_ROOT_DIR/plugins/sqldrivers" -type f ! -name libqsqlite.so -delete
           ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage \
             -d AppDir/usr/share/applications/codicier.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/codicier.png
