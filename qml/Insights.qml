@@ -73,7 +73,8 @@ Item {
         required property string itemId
         property bool child: false
 
-        width: parent.width
+        // A Repeater makes the bar before it sets the parent.
+        width: parent ? parent.width : 0
         height: child ? 24 : 30
         Accessible.role: Accessible.StaticText
         Accessible.name: label + ": " + insights.number(value) + " words"

@@ -840,6 +840,7 @@ TestCase {
     }
 
     function test_insightsShowTheLengths() {
+        failOnWarning(/TypeError/);
         const view = makeView();
         view.session.currentId = view.session.plotGrid()[0].id;
         (findChild(view, "editor") as TextEdit).text = "The harbour slept under the snow.";
