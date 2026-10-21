@@ -76,7 +76,15 @@ ctest --test-dir build
 
 ## Usage
 
-At the first start, choose a folder for your writing. This folder is a workspace. Each project in it is a folder. Click "New project" to make a project. Choose one of these kinds: short story, novella, novel, series, essay, essay collection, or non-fiction book. Each kind starts with its own structure of items.
+At the first start, choose a folder for your writing. This folder is a workspace. Each project in it is a folder. Click "New project" to make a project. Choose one of these kinds: blank, short story, novella, novel, series, essay, essay collection, or non-fiction book. Each kind starts with its own structure of items, and the dialog shows that structure before you create the project. A blank project has one scene and no word goal. "Create" opens the new project on its first scene.
+
+In an empty workspace, click "Open a sample" to copy a short sample novel into the workspace. The sample has chapters, scenes, codex entries, plotlines, and dates in the story. Delete it like any other project.
+
+The home screen shows each project with its author, its kind, its words, and the date of the last edit.
+
+The first time you open a project, three hints point at the binder, the page, and the command palette. Press Escape or click a hint to see the next one.
+
+In a project, the arrow at the top left goes back to the workspace. Hover over a button at the top right to see its name and its key.
 
 ### The command palette
 
@@ -123,6 +131,7 @@ These are the default keys. The key map file can change each key. See "Configura
 | F11 | Start or stop focus mode. |
 | Escape | Stop focus mode, or close the search panel. |
 | Ctrl+W | Close the project and go back to the workspace. |
+| F1 | Show every command and its key. |
 
 Tab types a tab character on the page. Use F6 to move the keyboard focus to the page and away from the page.
 
@@ -225,6 +234,8 @@ Click the settings button on the workspace screen to change these settings. Each
 | Size of the text | 19 px | The size of the text on the page, from 14 px to 28 px. |
 | Width of the page | 66 characters | The width of the text column, from 45 to 90 characters. |
 | Animations | On | Off stops all motion in the app. |
+| Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
+| First-run hints | On | The hints show once. "Show them again" shows them on the next project that opens. |
 | Save the text after a pause of | 1 s | The wait after the last edit before the app saves: 0.5 s, 1 s, 2 s, or 5 s. |
 | Backup folder | `~/.local/share/codicier/backups` | The folder for the zip backups. Each project has its own folder in it. |
 | Backups to keep for each project | 10 | The number of zip backups to keep. The app deletes older backups. The value is from 1 to 1000. |
