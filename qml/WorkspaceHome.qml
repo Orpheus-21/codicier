@@ -299,7 +299,8 @@ Item {
 
                     Muted {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: continueBlock.latest.edited
+                        // A project with no words has not been written yet.
+                        text: continueBlock.latest.edited && (continueBlock.latest.words ?? 0) > 0
                               ? "Last written " + (continueBlock.latest.editedLabel === "Today" ? "today"
                                                    : continueBlock.latest.editedLabel.toLowerCase())
                                 + " at " + Qt.formatTime(continueBlock.latest.edited, "HH:mm")
