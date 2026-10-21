@@ -162,6 +162,24 @@ private slots:
         QCOMPARE(again.typography(), 7);
     }
 
+    void spacingSurvivesARestartAndClamps()
+    {
+        {
+            Settings settings;
+            QCOMPARE(settings.lineSpacing(), 150);
+            QCOMPARE(settings.paragraphGap(), 100);
+            settings.setLineSpacing(180);
+            settings.setParagraphGap(50);
+        }
+        Settings again;
+        QCOMPARE(again.lineSpacing(), 180);
+        QCOMPARE(again.paragraphGap(), 50);
+        again.setLineSpacing(900);
+        QCOMPARE(again.lineSpacing(), 200);
+        again.setLineSpacing(150);
+        again.setParagraphGap(100);
+    }
+
     void focusScopeSurvivesARestartAndClamps()
     {
         {

@@ -764,7 +764,9 @@ TestCase {
         const width = findChild(dialog.contentItem, "measureStepper") as Item;
         mouseClick(width, 10, width.height / 2);
         compare(Theme.type.measure, measure - 2);
-        mouseClick(findChild(dialog.contentItem, "motionOff") as Item);
+        const motionOff = findChild(dialog.contentItem, "motionOff") as Item;
+        reveal(motionOff);
+        mouseClick(motionOff);
         verify(Theme.motion.reduced);
         compare(Theme.motion.fast, 0);
         const autosave = findChild(dialog.contentItem, "autosave-2000") as Item;

@@ -82,7 +82,7 @@ QtObject {
         readonly property string reading: Settings.readingFont || theme.readingFont.font.family
         readonly property string ui: Settings.uiFont || theme.uiFont.font.family
         readonly property int readingSize: Settings.readingSize
-        readonly property real readingLineHeight: 1.5
+        readonly property real readingLineHeight: Settings.lineSpacing / 100
         // The same line height in pixels. Text.lineHeight multiplies the line
         // spacing of the font, which is wider than the font size, so a Text
         // item must use Text.FixedHeight with this value.

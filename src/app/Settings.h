@@ -33,6 +33,11 @@ class Settings : public QObject
     Q_PROPERTY(int autosaveDelay READ autosaveDelay WRITE setAutosaveDelay NOTIFY changed)
     // True turns every animation off.
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
+    // The line height of the page in percent of the text size: 130, 150, or
+    // 180.
+    Q_PROPERTY(int lineSpacing READ lineSpacing WRITE setLineSpacing NOTIFY changed)
+    // The blank line between two paragraphs, in percent of a line: 50 or 100.
+    Q_PROPERTY(int paragraphGap READ paragraphGap WRITE setParagraphGap NOTIFY changed)
     // What stays bright in focus mode: 0 all the text, 1 the paragraph with
     // the cursor, 2 its sentence.
     Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY changed)
@@ -82,6 +87,16 @@ public:
     void setAutosaveDelay(int value);
     bool reducedMotion() const { return lessMotion; }
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
+    int lineSpacing() const { return spacing; }
+    void setLineSpacing(int value)
+    {
+        change(spacing, std::clamp(value, 120, 200), "view/lineSpacing");
+    }
+    int paragraphGap() const { return paragraphSpace; }
+    void setParagraphGap(int value)
+    {
+        change(paragraphSpace, std::clamp(value, 0, 100), "view/paragraphGap");
+    }
     int focusScope() const { return scope; }
     void setFocusScope(int value) { change(scope, std::clamp(value, 0, 2), "view/focusScope"); }
     bool hideMarks() const { return marksHidden; }
@@ -125,6 +140,8 @@ private:
     bool seen = false;
     bool marksHidden = true;
     int scope = 1;
+    int spacing = 150;
+    int paragraphSpace = 100;
     int target = 0;
     int sprint = 25;
     bool spelling = true;

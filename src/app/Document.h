@@ -8,6 +8,8 @@
 #include <QPointer>
 #include <QQuickTextDocument>
 #include <QString>
+#include <QTextBlock>
+#include <QTextBlockFormat>
 #include <QTextDocument>
 #include <QTimer>
 #include <QVariantList>
@@ -37,6 +39,9 @@ class Document : public QObject
     Q_PROPERTY(QColor accentColor READ accentColor WRITE setAccentColor NOTIFY styleChanged)
     // The space in pixels that the editor adds between two lines.
     Q_PROPERTY(qreal lineDistance READ lineDistance WRITE setLineDistance NOTIFY styleChanged)
+    // The height in pixels of an empty paragraph, the blank line between two
+    // Markdown paragraphs. Below 0, the empty paragraph keeps the normal line.
+    Q_PROPERTY(qreal paragraphGap READ paragraphGap WRITE setParagraphGap NOTIFY styleChanged)
     // What stays bright in focus mode: 0 all the text, 1 the paragraph with
     // the cursor, 2 its sentence. The rest takes the mark colour.
     Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY styleChanged)
@@ -74,6 +79,8 @@ public:
     void setAccentColor(const QColor &color);
     qreal lineDistance() const { return distance; }
     int focusScope() const { return scopeOfFocus; }
+    qreal paragraphGap() const { return gap; }
+    void setParagraphGap(qreal value);
     void setFocusScope(int scope);
     int words() const { return wordCount; }
     void setLineDistance(qreal value);
@@ -143,6 +150,7 @@ private:
     QColor mark { 0x70, 0x6b, 0x65 };
     QColor accent { 0x94, 0x55, 0x2a };
     qreal distance = 0;
+    qreal gap = -1;
     QString folder;
     QString path;
     // The text of the file, kept until an editor is attached.
@@ -162,6 +170,11 @@ private:
     void showText();
     void setDirty(bool value);
     void applyStyle();
+    // The block format of one paragraph: the line height, and for an empty
+    // paragraph the gap.
+    QTextBlockFormat formatOf(const QTextBlock &block) const;
+    // Styles the paragraphs that an edit touched, as part of that edit.
+    void styleEdit(int position, int added);
     void countWords();
     void setError(const QString &text);
 };

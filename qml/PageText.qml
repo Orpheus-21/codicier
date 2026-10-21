@@ -55,6 +55,13 @@ TextEdit {
         value: Theme.color.series
     }
 
+    // The blank line between two paragraphs.
+    Binding {
+        target: pageText.document
+        property: "paragraphGap"
+        value: Math.round(Theme.type.readingLine * Settings.paragraphGap / 100)
+    }
+
     // The reading line height, as space added to the natural line.
     Binding {
         target: pageText.document

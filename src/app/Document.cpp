@@ -98,6 +98,14 @@ void Document::attach(QTextDocument *value)
     setPasses(passes);
     highlighter->setComments(comments);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
+    // After the edit, so the format change does not run inside it.
+    connect(
+        document, &QTextDocument::contentsChange, this,
+        [this, from = QPointer<QTextDocument>(document)](int position, int, int added) {
+            if (from == document)
+                styleEdit(position, added);
+        },
+        Qt::QueuedConnection);
     showText();
 }
 
@@ -194,6 +202,48 @@ void Document::setAccentColor(const QColor &color)
     emit styleChanged();
 }
 
+QTextBlockFormat Document::formatOf(const QTextBlock &block) const
+{
+    QTextBlockFormat format = block.blockFormat();
+    if (gap >= 0 && block.text().isEmpty())
+        format.setLineHeight(gap, QTextBlockFormat::FixedHeight);
+    else
+        format.setLineHeight(distance, QTextBlockFormat::LineDistanceHeight);
+    return format;
+}
+
+void Document::styleEdit(int position, int added)
+{
+    if (document == nullptr || loading || gap < 0)
+        return;
+    QTextCursor cursor(document);
+    bool joined = false;
+    for (QTextBlock block = document->findBlock(position);
+         block.isValid() && block.position() <= position + added; block = block.next()) {
+        const QTextBlockFormat format = formatOf(block);
+        if (format == block.blockFormat())
+            continue;
+        // The change joins the edit, so one undo takes back both.
+        if (!joined) {
+            cursor.joinPreviousEditBlock();
+            joined = true;
+        }
+        cursor.setPosition(block.position());
+        cursor.setBlockFormat(format);
+    }
+    if (joined)
+        cursor.endEditBlock();
+}
+
+void Document::setParagraphGap(qreal value)
+{
+    if (qFuzzyCompare(value + 2, gap + 2))
+        return;
+    gap = value;
+    applyStyle();
+    emit styleChanged();
+}
+
 void Document::setLineDistance(qreal value)
 {
     if (qFuzzyCompare(value, distance))
@@ -213,11 +263,11 @@ void Document::applyStyle()
         highlighter->setColors(mark, accent);
     const bool modified = document->isModified();
     loading = true;
-    QTextCursor all(document);
-    all.select(QTextCursor::Document);
-    QTextBlockFormat format;
-    format.setLineHeight(distance, QTextBlockFormat::LineDistanceHeight);
-    all.mergeBlockFormat(format);
+    QTextCursor cursor(document);
+    for (QTextBlock block = document->begin(); block.isValid(); block = block.next()) {
+        cursor.setPosition(block.position());
+        cursor.setBlockFormat(formatOf(block));
+    }
     loading = false;
     document->setModified(modified);
 }

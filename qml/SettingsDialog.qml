@@ -335,6 +335,40 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Line spacing"
+
+                    Repeater {
+                        model: [[130, "Close"], [150, "Normal"], [180, "Wide"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "lineSpacing-" + modelData[0]
+                            label: modelData[1]
+                            chosen: Settings.lineSpacing === modelData[0]
+                            onClicked: Settings.lineSpacing = modelData[0]
+                        }
+                    }
+                }
+
+                Setting {
+                    label: "Space between paragraphs"
+
+                    Repeater {
+                        model: [[50, "Half a line"], [100, "One line"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "paragraphGap-" + modelData[0]
+                            label: modelData[1]
+                            chosen: Settings.paragraphGap === modelData[0]
+                            onClicked: Settings.paragraphGap = modelData[0]
+                        }
+                    }
+                }
+
+                Setting {
                     label: "Animations"
 
                     Choice {

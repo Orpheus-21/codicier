@@ -112,6 +112,29 @@ private slots:
         QVERIFY(pixelsAt(2) != 1);
     }
 
+    void emptyParagraphsTakeTheGap()
+    {
+        Document document;
+        QTextDocument text;
+        text.documentLayout();
+        document.attach(&text);
+        document.setLineDistance(4);
+        document.setParagraphGap(12);
+        text.setPlainText(QStringLiteral("One.\n\nTwo."));
+        document.setParagraphGap(12.5);
+        const QTextBlock blank = text.findBlockByNumber(1);
+        QCOMPARE(blank.blockFormat().lineHeightType(), int(QTextBlockFormat::FixedHeight));
+        QCOMPARE(blank.blockFormat().lineHeight(), 12.5);
+        QCOMPARE(text.firstBlock().blockFormat().lineHeight(), 4.0);
+        // A new blank paragraph gets the gap after the edit, in the same undo step.
+        QTextCursor cursor(&text);
+        cursor.movePosition(QTextCursor::End);
+        cursor.insertText(QStringLiteral("\n"));
+        QTRY_COMPARE(text.lastBlock().blockFormat().lineHeight(), 12.5);
+        text.undo();
+        QCOMPARE(text.toPlainText(), QStringLiteral("One.\n\nTwo."));
+    }
+
     void savesOneSecondAfterTheLastEdit()
     {
         Document document;

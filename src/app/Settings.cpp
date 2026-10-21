@@ -43,6 +43,9 @@ Settings::Settings(QObject *parent) : QObject(parent)
     seen = settings.value("view/hintsSeen", false).toBool();
     marksHidden = settings.value("view/hideMarks", true).toBool();
     scope = std::clamp(settings.value("view/focusScope", scope).toInt(), 0, 2);
+    spacing = std::clamp(settings.value("view/lineSpacing", spacing).toInt(), 120, 200);
+    paragraphSpace
+        = std::clamp(settings.value("view/paragraphGap", paragraphSpace).toInt(), 0, 100);
     target = std::clamp(settings.value("goals/sessionTarget", 0).toInt(), 0, 100000);
     sprint = std::clamp(settings.value("goals/sprintMinutes", sprint).toInt(), 1, 240);
     spelling = settings.value("edit/spellCheck", true).toBool();
