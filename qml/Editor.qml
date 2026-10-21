@@ -286,6 +286,54 @@ Item {
         color: Theme.color.accent
     }
 
+    // The number of "*" right before at (back) or right from at, up to 3.
+    function starsAt(at: int, back: bool): int {
+        const text = back ? textEdit.getText(Math.max(0, at - 3), at) : textEdit.getText(at, at + 3);
+        let count = 0;
+        while (count < text.length && text[back ? text.length - 1 - count : count] === "*")
+            ++count;
+        return count;
+    }
+
+    // Puts mark ("**" for bold, "*" for italic) around the selection, or
+    // takes it away when the selection already has it. With no selection,
+    // the word at the cursor gets the mark. Outside a word, the mark goes in
+    // as a pair with the cursor between.
+    function toggleMark(mark: string) {
+        if (!textEdit.activeFocus || editorArea.document.file === "")
+            return;
+        const isWordChar = c => c.toLowerCase() !== c.toUpperCase() || /[0-9'’]/.test(c);
+        let start = textEdit.selectionStart;
+        let end = textEdit.selectionEnd;
+        if (start === end) {
+            while (start > 0 && isWordChar(textEdit.getText(start - 1, start)))
+                --start;
+            while (end < textEdit.length && isWordChar(textEdit.getText(end, end + 1)))
+                ++end;
+            if (start === end) {
+                textEdit.insert(start, mark + mark);
+                textEdit.cursorPosition = start + mark.length;
+                return;
+            }
+        }
+        const n = mark.length;
+        // Italic needs an odd run of stars on each side, bold a run of two or more.
+        const has = count => n === 1 ? count % 2 === 1 : count >= 2;
+        if (has(starsAt(start, true)) && has(starsAt(end, false))) {
+            textEdit.remove(end, end + n);
+            textEdit.remove(start - n, start);
+            textEdit.select(start - n, end - n);
+        } else if (end - start > 2 * n && has(starsAt(start, false)) && has(starsAt(end, true))) {
+            textEdit.remove(end - n, end);
+            textEdit.remove(start, start + n);
+            textEdit.select(start, end - 2 * n);
+        } else {
+            textEdit.insert(end, mark);
+            textEdit.insert(start, mark);
+            textEdit.select(start + n, end + n);
+        }
+    }
+
     // Puts the keyboard focus on the page.
     function focusText() {
         textEdit.forceActiveFocus();

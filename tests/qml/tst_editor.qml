@@ -139,6 +139,40 @@ TestCase {
         verify(!(findChild(again, "firstRunHint") as FirstRunHint).visible);
     }
 
+    function test_boldAndItalicToggleTheMarks() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "dusk fell";
+        text.forceActiveFocus();
+        text.select(0, 4);
+        keyClick(Qt.Key_I, Qt.ControlModifier);
+        compare(text.text, "*dusk* fell");
+        compare(text.selectedText, "dusk");
+        keyClick(Qt.Key_I, Qt.ControlModifier);
+        compare(text.text, "dusk fell");
+        // With no selection, the word at the cursor gets the mark.
+        text.cursorPosition = 7;
+        keyClick(Qt.Key_B, Qt.ControlModifier);
+        compare(text.text, "dusk **fell**");
+        // A selection with its marks inside loses them too.
+        text.select(5, 13);
+        keyClick(Qt.Key_B, Qt.ControlModifier);
+        compare(text.text, "dusk fell");
+        // Italic inside bold: three stars, and italic comes off alone.
+        text.text = "***dusk***";
+        text.select(3, 7);
+        keyClick(Qt.Key_I, Qt.ControlModifier);
+        compare(text.text, "**dusk**");
+        // Outside a word, the pair goes in with the cursor between.
+        text.text = "dusk ";
+        text.cursorPosition = 5;
+        keyClick(Qt.Key_B, Qt.ControlModifier);
+        compare(text.text, "dusk ****");
+        compare(text.cursorPosition, 7);
+        // The inspector moved to Ctrl+Shift+I.
+        compare(view.keys.sequences["inspector"], "Ctrl+Shift+I");
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

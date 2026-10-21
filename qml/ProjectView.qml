@@ -287,6 +287,8 @@ Item {
     // except a hidden one, and each command with a key gets a shortcut.
     readonly property var defaultCommands: [
         { id: "palette", name: "Find a command or an item", sequence: "Ctrl+Shift+P", run: () => commandPalette.open(), hidden: true },
+        { id: "format.bold", name: "Bold", sequence: "Ctrl+B", run: () => editor.toggleMark("**") },
+        { id: "format.italic", name: "Italic", sequence: "Ctrl+I", run: () => editor.toggleMark("*") },
         { id: "scene.new", name: "New scene", sequence: "Ctrl+N", run: () => binder.addItem("scene") },
         { id: "chapter.new", name: "New chapter", sequence: "Ctrl+Shift+N", run: () => binder.addItem("chapter") },
         { id: "part.new", name: "New part", sequence: "Ctrl+Alt+N", run: () => binder.addItem("part") },
@@ -320,7 +322,7 @@ Item {
         { id: "replace", name: "Replace in the manuscript", sequence: "Ctrl+H", run: () => view.openSearch(true) },
         { id: "pane.next", name: "Move to the next pane", sequence: "F6", run: () => view.nextPane() },
         { id: "binder", name: "Show or hide the binder", sequence: "Ctrl+Shift+B", run: () => view.binderOpen = !view.binderOpen },
-        { id: "inspector", name: "Show or hide the inspector", sequence: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
+        { id: "inspector", name: "Show or hide the inspector", sequence: "Ctrl+Shift+I", former: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
         { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() },
         { id: "help", name: "Show the keys", sequence: "F1", run: () => keySheet.open() }
@@ -332,7 +334,8 @@ Item {
 
     // The keys from the key map, read when the view opens.
     readonly property var keys: keyMap.resolve(defaultCommands.map(
-        command => ({ id: command.id, name: command.name, sequence: command.sequence })))
+        command => ({ id: command.id, name: command.name, sequence: command.sequence,
+                      former: command.former ?? "" })))
     readonly property var commands: defaultCommands.map(
         command => Object.assign({}, command, { sequence: keys.sequences[command.id] }))
 

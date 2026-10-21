@@ -20,7 +20,7 @@ T.Popup {
     function groupOf(id: string): string {
         if (id.startsWith("versions."))
             return "Versions";
-        if (["scene.new", "chapter.new", "part.new", "note.new", "page.new", "item.rename", "scene.split",
+        if (["format.bold", "format.italic", "scene.new", "chapter.new", "part.new", "note.new", "page.new", "item.rename", "scene.split",
              "scene.merge", "item.trash", "snapshot.take", "comment"].includes(id))
             return "Write";
         if (["palette", "search", "replace"].includes(id))
