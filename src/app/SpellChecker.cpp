@@ -7,7 +7,9 @@
 
 QStringList &SpellChecker::searchPaths()
 {
+    // /app/share/hunspell holds the dictionary of the Flatpak.
     static QStringList paths { QStringLiteral("/usr/share/hunspell"),
+                               QStringLiteral("/app/share/hunspell"),
                                QStringLiteral("/usr/share/myspell/dicts"),
                                QStringLiteral("/usr/share/myspell") };
     return paths;
