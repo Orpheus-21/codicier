@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Index.h"
 #include "MarkdownHighlighter.h"
 
 #include <QColor>
@@ -76,6 +77,8 @@ public:
     Q_INVOKABLE void open(const QString &projectFolder, const QString &file);
     // Writes the text now. Returns false on an error or during a conflict.
     Q_INVOKABLE bool save();
+    // The words in text, counted as the scene count counts them.
+    Q_INVOKABLE static int wordsIn(const QString &text) { return Index::countWords(text); }
     // Replaces the characters from start to end with text, as one step of
     // undo.
     Q_INVOKABLE void replace(int start, int end, const QString &text);

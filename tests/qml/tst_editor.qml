@@ -231,6 +231,18 @@ TestCase {
         Settings.typography = 7;
     }
 
+    function test_statusBarCountsTheSelection() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "The gull cried. The tide turned.";
+        const count = findChild(view, "selectionCount") as Text;
+        verify(!count.visible);
+        // "gull cried. The tide " holds four words.
+        text.select(4, 25);
+        verify(count.visible);
+        compare(count.text, "Selection 4");
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

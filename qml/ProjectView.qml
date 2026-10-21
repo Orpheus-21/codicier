@@ -947,6 +947,12 @@ Item {
             }
 
             Count {
+                objectName: "selectionCount"
+                visible: editor.selectedText !== ""
+                text: "Selection " + statusBar.number(view.session.document.wordsIn(editor.selectedText))
+            }
+
+            Count {
                 visible: view.session.chapterWords >= 0
                 text: "Chapter " + statusBar.number(view.session.chapterWords)
             }
