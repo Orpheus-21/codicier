@@ -107,6 +107,7 @@ private slots:
         QCOMPARE(list.count(), 1);
         QVERIFY(refreshed.size() >= 1);
         QCOMPARE(created.size(), 1);
+        QCOMPARE(list.get(0).value("author").toString(), QString("A. Writer"));
         QCOMPARE(created.at(0).at(0).toString(), dir.filePath("the-salt-ledger"));
 
         // The same title again gets a new folder name.
@@ -172,7 +173,7 @@ private slots:
         ProjectList list;
         list.setFolder(dir.path());
         const QHash<int, QByteArray> roles = list.roleNames();
-        QCOMPARE(roles.size(), 11);
+        QCOMPARE(roles.size(), 12);
         QCOMPARE(list.data(list.index(0), ProjectList::FolderRole).toString(), dir.filePath("p"));
         QVERIFY(list.data(list.index(0), ProjectList::EditedRole).toDateTime().isValid());
         QVERIFY(!list.data(list.index(0), Qt::DisplayRole).isValid());

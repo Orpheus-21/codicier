@@ -93,6 +93,8 @@ QVariant ProjectList::data(const QModelIndex &index, int role) const
         return entry.kind;
     case KindLabelRole:
         return kindLabel(entry.kind);
+    case AuthorRole:
+        return entry.author;
     case FictionRole:
         return isFiction(entry.kind);
     case WordsRole:
@@ -122,7 +124,7 @@ QHash<int, QByteArray> ProjectList::roleNames() const
         { WordsRole, "words" },         { GoalRole, "goal" },
         { EditedRole, "edited" },       { EditedLabelRole, "editedLabel" },
         { LastLineRole, "lastLine" },   { FolderRole, "folder" },
-        { ErrorRole, "error" },
+        { ErrorRole, "error" },         { AuthorRole, "author" },
     };
 }
 
@@ -152,6 +154,7 @@ ProjectList::Entry ProjectList::read(const QString &projectFolder)
     const Project &project = result.project;
     entry.title = project.title;
     entry.kind = project.kind;
+    entry.author = QString::fromStdString(project.data["author"].value_or(std::string()));
     entry.goal = static_cast<int>(project.data["goals"]["words"].value_or(std::int64_t { 0 }));
     // ponytail: reads every text file of every project; read the word counts
     // from the search index when a workspace gets large.

@@ -35,6 +35,7 @@ public:
         LastLineRole,
         FolderRole,
         ErrorRole,
+        AuthorRole,
     };
     Q_ENUM(Role)
 
@@ -42,6 +43,7 @@ public:
     {
         QString title;
         QString kind;
+        QString author;
         int words = 0;
         int goal = 0;
         QDateTime edited;

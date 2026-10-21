@@ -77,10 +77,11 @@ Item {
         required property string editedLabel
         required property string folder
         required property string error
+        required property string author
 
         width: parent.width
         height: 64
-        Accessible.name: row.title + ", " + row.kindLabel
+        Accessible.name: row.title + (row.author !== "" ? ", by " + row.author : "") + ", " + row.kindLabel
         // Tab reaches each project, and Enter opens it, as a click does.
         focusPolicy: Qt.StrongFocus
         Keys.onReturnPressed: clicked()
@@ -102,16 +103,27 @@ Item {
         }
 
         contentItem: Item {
-            Text {
+            Column {
                 anchors.left: parent.left
                 anchors.right: details.left
                 anchors.rightMargin: Theme.space.l
                 anchors.verticalCenter: parent.verticalCenter
-                text: row.title
-                elide: Text.ElideRight
-                font.family: Theme.type.reading
-                font.pixelSize: Theme.type.large + 3
-                color: Theme.color.ink
+
+                Text {
+                    width: parent.width
+                    text: row.title
+                    elide: Text.ElideRight
+                    font.family: Theme.type.reading
+                    font.pixelSize: Theme.type.large + 3
+                    color: Theme.color.ink
+                }
+
+                Muted {
+                    visible: row.author !== ""
+                    width: parent.width
+                    text: row.author
+                    elide: Text.ElideRight
+                }
             }
 
             Row {
@@ -247,7 +259,8 @@ Item {
                 }
 
                 Muted {
-                    text: continueBlock.latest.kindLabel ?? ""
+                    text: (continueBlock.latest.kindLabel ?? "")
+                          + (continueBlock.latest.author ? " by " + continueBlock.latest.author : "")
                 }
 
                 Text {
