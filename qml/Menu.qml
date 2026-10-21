@@ -20,11 +20,26 @@ T.Menu {
         font.family: Theme.type.ui
         font.pixelSize: Theme.type.body
 
-        contentItem: Text {
-            text: item.text
-            font: item.font
-            verticalAlignment: Text.AlignVCenter
-            color: item.enabled ? Theme.color.ink : Theme.color.inkMuted
+        contentItem: Item {
+            Text {
+                anchors.fill: parent
+                anchors.rightMargin: item.checked ? 22 : 0
+                text: item.text
+                font: item.font
+                elide: Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
+                color: item.enabled ? Theme.color.ink : Theme.color.inkMuted
+            }
+
+            // The chosen item of a group of choices.
+            Icon {
+                visible: item.checked
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                name: "check"
+                size: 16
+                color: Theme.color.accent
+            }
         }
 
         background: Rectangle {

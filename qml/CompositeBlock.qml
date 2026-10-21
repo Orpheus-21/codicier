@@ -19,6 +19,20 @@ Column {
 
     spacing: Theme.space.m
 
+    // The scene break of the project, between this scene and the one before.
+    Text {
+        objectName: "sceneBreakMark"
+        visible: block.index > 0 && block.session.sceneBreak !== ""
+        x: pageText.x
+        width: pageText.width
+        horizontalAlignment: Text.AlignHCenter
+        bottomPadding: Theme.space.l
+        text: block.session.sceneBreak === "***" ? "*\u2003*\u2003*" : block.session.sceneBreak
+        font.family: Theme.type.reading
+        font.pixelSize: Theme.type.body + 2
+        color: Theme.color.inkMuted
+    }
+
     Text {
         x: pageText.x
         text: block.modelData.title

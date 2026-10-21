@@ -284,7 +284,8 @@ private:
         if (table->get("created") == nullptr)
             error(file, 0, QStringLiteral("`created` is missing"));
         checkType(*table, "created", toml::node_type::date_time, file);
-        for (const std::string_view key : { "subtitle", "author", "language", "framework" })
+        for (const std::string_view key :
+             { "subtitle", "author", "language", "framework", "scene-break" })
             checkType(*table, key, toml::node_type::string, file);
         if (checkType(*table, "goals", toml::node_type::table, file)) {
             if (const toml::table *goals = table->get_as<toml::table>("goals")) {
@@ -591,9 +592,9 @@ private:
 };
 
 // The key order of docs/format.md. Other keys follow in alphabetical order.
-constexpr std::array<std::string_view, 8> projectOrder { "format",  "title",    "subtitle",
-                                                         "author",  "kind",     "language",
-                                                         "created", "framework" };
+constexpr std::array<std::string_view, 9> projectOrder { "format",  "title",     "subtitle",
+                                                         "author",  "kind",      "language",
+                                                         "created", "framework", "scene-break" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
 constexpr std::array<std::string_view, 22> itemOrder {

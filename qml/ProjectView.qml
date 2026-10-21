@@ -562,6 +562,24 @@ Item {
                 }
 
                 T.Action {
+                    text: "Scene break: * * *"
+                    checked: view.session.sceneBreak === "***"
+                    onTriggered: view.session.setSceneBreak("***")
+                }
+
+                T.Action {
+                    text: "Scene break: #"
+                    checked: view.session.sceneBreak === "#"
+                    onTriggered: view.session.setSceneBreak("#")
+                }
+
+                T.Action {
+                    text: "Scene break: a blank line"
+                    checked: view.session.sceneBreak === ""
+                    onTriggered: view.session.setSceneBreak("")
+                }
+
+                T.Action {
                     text: "Back to " + view.workspaceName
                     onTriggered: view.close()
                 }

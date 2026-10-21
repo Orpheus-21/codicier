@@ -104,6 +104,11 @@ public:
     // The plot frameworks: the id, the name, and the beats of each, with the
     // id, name, description, and place of each beat.
     Q_INVOKABLE QVariantList frameworks() const;
+    // The mark between two scenes of a chapter that shows as one page:
+    // "***", "#", or "" for a blank line. A project with no choice has "***".
+    Q_PROPERTY(QString sceneBreak READ sceneBreak NOTIFY edited)
+    QString sceneBreak() const;
+    Q_INVOKABLE bool setSceneBreak(const QString &mark);
     // The framework of the project, by id, or "".
     Q_PROPERTY(QString framework READ framework NOTIFY edited)
     QString framework() const;

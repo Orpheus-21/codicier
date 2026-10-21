@@ -936,6 +936,20 @@ bool ProjectSession::setCalendar(const QVariantList &months)
     return commit({ });
 }
 
+QString ProjectSession::sceneBreak() const
+{
+    return QString::fromStdString(project.data["scene-break"].value_or(std::string("***")));
+}
+
+bool ProjectSession::setSceneBreak(const QString &mark)
+{
+    if (project.readOnly
+        || (mark != QLatin1String("***") && mark != QLatin1String("#") && !mark.isEmpty()))
+        return false;
+    project.data.insert_or_assign("scene-break", mark.toStdString());
+    return commit({ });
+}
+
 QString ProjectSession::framework() const
 {
     return QString::fromStdString(project.data["framework"].value_or(std::string()));

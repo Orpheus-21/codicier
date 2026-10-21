@@ -1093,6 +1093,17 @@ private slots:
         QVERIFY(!catalyst.value("description").toString().isEmpty());
     }
 
+    void sceneBreakIsAProjectChoice()
+    {
+        QCOMPARE(session->sceneBreak(), QStringLiteral("***"));
+        QVERIFY(!session->setSceneBreak("~~~"));
+        QVERIFY(session->setSceneBreak("#"));
+        QCOMPARE(session->sceneBreak(), QStringLiteral("#"));
+        QVERIFY(readFile("project.toml").contains("scene-break = \"#\""));
+        QVERIFY(session->setSceneBreak(""));
+        QCOMPARE(session->sceneBreak(), QString());
+    }
+
     void beatBoardPlacesScenesOnBeats()
     {
         QVERIFY(session->beatBoard().isEmpty());
