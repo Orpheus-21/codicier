@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Codicier
+Comment=Write books, stories, and essays
+Exec=codicier
+Terminal=false
+Type=Application
+Icon=codicier
+Categories=Office;WordProcessor;
+StartupWMClass=codicier
+StartupNotify=true

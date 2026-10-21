@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.Orpheus_21.Codicier</id>
+  <name>Codicier</name>
+  <summary>Write books, stories, and essays</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>Codicier is an offline app to write and organise long texts. It keeps a
+    project as plain Markdown and TOML files in one folder.</p>
+  </description>
+  <launchable type="desktop-id">io.github.Orpheus_21.Codicier.desktop</launchable>
+  <url type="homepage">https://github.com/Orpheus-21/codicier</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-10-21"/>
+  </releases>
+</component>

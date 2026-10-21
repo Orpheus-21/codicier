@@ -66,6 +66,12 @@ qt_add_executable(codicier src/main.cpp src/OfflineGuard.cpp)
 target_compile_options(codicier PRIVATE -Wall -Wextra)
 target_link_libraries(codicier PRIVATE Qt6::Gui Qt6::Qml Qt6::Quick codicier_uiplugin)
 
+include(GNUInstallDirs)
+install(TARGETS codicier RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES packaging/linux/codicier.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES packaging/linux/codicier.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps)
+install(FILES packaging/linux/codicier.metainfo.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+
 enable_testing()
 add_subdirectory(tests)
 add_subdirectory(spike)
