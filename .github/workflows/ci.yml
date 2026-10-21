@@ -117,13 +117,11 @@ jobs:
           sudo apt-get install -y flatpak flatpak-builder
           flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           flatpak remote-add --user --if-not-exists flathub-beta https://dl.flathub.org/beta-repo/flathub-beta.flatpakrepo
-          for remote in flathub flathub-beta; do
-            echo "$remote:"; flatpak remote-ls --user --runtime --all "$remote" | grep -E "org.kde.Sdk\s" || true
-          done
+          flatpak install --user -y --noninteractive flathub-beta org.kde.Sdk//6.12-beta org.kde.Platform//6.12-beta
 
       - name: Build
         run: >-
-          flatpak-builder --user --install-deps-from=flathub --force-clean
+          flatpak-builder --user --force-clean
           flatpak-build packaging/flatpak/io.github.Orpheus_21.Codicier.yml
 
       - name: Check

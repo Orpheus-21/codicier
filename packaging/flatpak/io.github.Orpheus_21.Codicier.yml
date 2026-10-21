@@ -1,7 +1,9 @@
 # The Flatpak of Codicier. The app gets no network permission.
 app-id: io.github.Orpheus_21.Codicier
 runtime: org.kde.Platform
-runtime-version: '6.12'
+# Flathub has the KDE 6.12 runtime only in flathub-beta. Use '6.12' when it
+# is in flathub.
+runtime-version: '6.12-beta'
 sdk: org.kde.Sdk
 command: codicier
 rename-desktop-file: codicier.desktop
