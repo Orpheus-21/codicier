@@ -812,30 +812,40 @@ Item {
                     IconButton {
                         iconName: "list-tree"
                         label: "Outliner"
+                        keys: view.keys.sequences["outline"] ?? ""
+                        showLabel: Settings.buttonLabels
                         onClicked: view.toggleViewMode("outline")
                     }
 
                     IconButton {
                         iconName: "layout-grid"
                         label: "Corkboard"
+                        keys: view.keys.sequences["board"] ?? ""
+                        showLabel: Settings.buttonLabels
                         onClicked: view.toggleViewMode("board")
                     }
 
                     IconButton {
                         iconName: "panel-left"
                         label: "Binder"
+                        keys: view.keys.sequences["binder"] ?? ""
+                        showLabel: Settings.buttonLabels
                         onClicked: view.binderOpen = !view.binderOpen
                     }
 
                     IconButton {
                         iconName: "maximize-2"
                         label: "Focus mode"
+                        keys: view.keys.sequences["focus"] ?? ""
+                        showLabel: Settings.buttonLabels
                         onClicked: view.setFocusMode(true)
                     }
 
                     IconButton {
                         iconName: "panel-right"
                         label: "Inspector"
+                        keys: view.keys.sequences["inspector"] ?? ""
+                        showLabel: Settings.buttonLabels
                         onClicked: view.inspectorOpen = !view.inspectorOpen
                     }
                 }

@@ -306,6 +306,24 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Labels on the top buttons"
+
+                    Choice {
+                        objectName: "labelsOn"
+                        label: "Show"
+                        chosen: Settings.buttonLabels
+                        onClicked: Settings.buttonLabels = true
+                    }
+
+                    Choice {
+                        objectName: "labelsOff"
+                        label: "Icons only"
+                        chosen: !Settings.buttonLabels
+                        onClicked: Settings.buttonLabels = false
+                    }
+                }
+
+                Setting {
                     label: "Animations"
 
                     Choice {

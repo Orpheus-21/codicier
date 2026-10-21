@@ -134,6 +134,18 @@ TestCase {
         verify(item.width > 0 && item.height > 0, `${item.width} x ${item.height}`);
     }
 
+    function test_iconButtonShowsItsNameAndKey() {
+        const button = createTemporaryObject(iconButtonComponent, testCase, { keys: "Ctrl+Shift+F" }) as IconButton;
+        const tip = findChild(button, "tooltip") as T.ToolTip;
+        compare(tip.text, "Search   Ctrl+Shift+F");
+        verify(!tip.visible);
+        mouseMove(button);
+        tryVerify(() => tip.visible);
+        const narrow = button.width;
+        button.showLabel = true;
+        verify(button.width > narrow + 30);
+    }
+
     function test_primaryButtonFillsWithAccent() {
         Settings.theme = "light";
         const button = make(buttonComponent, { kind: "primary" }) as Button;

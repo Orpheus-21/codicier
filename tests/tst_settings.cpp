@@ -111,6 +111,18 @@ private slots:
                      "Ctrl+N is the key of New scene and Focus mode. Only New scene uses it." });
     }
 
+    void buttonLabelsSurviveARestart()
+    {
+        {
+            Settings settings;
+            QVERIFY(!settings.buttonLabels());
+            settings.setButtonLabels(true);
+        }
+        Settings again;
+        QVERIFY(again.buttonLabels());
+        again.setButtonLabels(false);
+    }
+
     void viewSettingsSurviveARestartAndClamp()
     {
         {
