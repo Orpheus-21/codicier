@@ -60,6 +60,7 @@ No rule is planned now.
 | ID | Rule | Path | Reason | Owner | Expires |
 |---|---|---|---|---|---|
 | E4 | assertion-removed | tests/tst_backup.cpp | The pruning now keeps only zips of the same project, so the test uses real zips in place of empty fake files. | Orpheus-21 | 2026-10-27 |
+| E5 | assertion-removed | tests/tst_projectlist.cpp | The project list gets an author role, so the role count goes from 11 to 12. | Orpheus-21 | 2026-10-28 |
 
 An exception lasts 90 days at most.
 
