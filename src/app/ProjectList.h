@@ -83,6 +83,8 @@ public:
 signals:
     void folderChanged();
     void refreshed();
+    // create() made a project in this folder.
+    void created(const QString &folder);
 
 private:
     QString workspace;

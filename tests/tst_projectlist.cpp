@@ -100,11 +100,14 @@ private slots:
         ProjectList list;
         list.setFolder(dir.path());
         QSignalSpy refreshed(&list, &ProjectList::refreshed);
+        QSignalSpy created(&list, &ProjectList::created);
 
         QCOMPARE(list.create("  The Salt Ledger ", "novel", "A. Writer"), QString());
         QVERIFY(QFile::exists(dir.filePath("the-salt-ledger/project.toml")));
         QCOMPARE(list.count(), 1);
         QVERIFY(refreshed.size() >= 1);
+        QCOMPARE(created.size(), 1);
+        QCOMPARE(created.at(0).at(0).toString(), dir.filePath("the-salt-ledger"));
 
         // The same title again gets a new folder name.
         QCOMPARE(list.create("The Salt Ledger", "essay", QString()), QString());

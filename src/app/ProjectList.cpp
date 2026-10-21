@@ -209,6 +209,7 @@ QString ProjectList::create(const QString &title, const QString &kind, const QSt
     if (!errors.isEmpty())
         return errors.first().text();
     refresh();
+    emit created(dir.filePath(folderName));
     return { };
 }
 

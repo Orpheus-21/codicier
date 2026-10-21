@@ -18,6 +18,9 @@ Item {
 
     ProjectList {
         id: projectList
+
+        // A new project opens at once.
+        onCreated: folder => home.projectActivated(folder)
     }
 
     function formatNumber(n: int): string {
