@@ -4,6 +4,7 @@
 
 #include <QFile>
 #include <QQmlExtensionPlugin>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QtQuickTest>
 
@@ -21,6 +22,9 @@ public slots:
         QStandardPaths::setTestModeEnabled(true);
         QFile::remove(Workspaces::settingsPath());
         QFile::remove(KeyMap().file());
+        // The first-run hints take Escape, so most tests start without them.
+        QSettings(Workspaces::settingsPath(), QSettings::IniFormat)
+            .setValue("view/hintsSeen", true);
         // The tests use the small dictionary of the fixtures, not the system.
         SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") };
     }

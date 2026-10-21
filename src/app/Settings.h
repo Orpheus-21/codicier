@@ -33,6 +33,8 @@ class Settings : public QObject
     Q_PROPERTY(int autosaveDelay READ autosaveDelay WRITE setAutosaveDelay NOTIFY changed)
     // True turns every animation off.
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
+    // True after the author saw the first-run hints of a project.
+    Q_PROPERTY(bool hintsSeen READ hintsSeen WRITE setHintsSeen NOTIFY changed)
     // True shows a text label next to the icons of the top bar.
     Q_PROPERTY(bool buttonLabels READ buttonLabels WRITE setButtonLabels NOTIFY changed)
     // The word target of one writing session, 0 for none, up to 100000.
@@ -72,6 +74,8 @@ public:
     void setAutosaveDelay(int value);
     bool reducedMotion() const { return lessMotion; }
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
+    bool hintsSeen() const { return seen; }
+    void setHintsSeen(bool value) { change(seen, value, "view/hintsSeen"); }
     bool buttonLabels() const { return labels; }
     void setButtonLabels(bool value) { change(labels, value, "view/buttonLabels"); }
     int sessionTarget() const { return target; }
@@ -104,6 +108,7 @@ private:
     int delay = 1000;
     bool lessMotion = false;
     bool labels = false;
+    bool seen = false;
     int target = 0;
     int sprint = 25;
     bool spelling = true;

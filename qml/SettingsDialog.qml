@@ -306,6 +306,17 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "First-run hints"
+
+                    Choice {
+                        objectName: "hintsAgain"
+                        label: Settings.hintsSeen ? "Show them again" : "On for the next project"
+                        chosen: !Settings.hintsSeen
+                        onClicked: Settings.hintsSeen = false
+                    }
+                }
+
+                Setting {
                     label: "Labels on the top buttons"
 
                     Choice {

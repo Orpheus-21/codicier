@@ -123,6 +123,18 @@ private slots:
         again.setButtonLabels(false);
     }
 
+    void hintsSeenSurvivesARestart()
+    {
+        {
+            Settings settings;
+            QVERIFY(!settings.hintsSeen());
+            settings.setHintsSeen(true);
+        }
+        Settings again;
+        QVERIFY(again.hintsSeen());
+        again.setHintsSeen(false);
+    }
+
     void viewSettingsSurviveARestartAndClamp()
     {
         {

@@ -422,6 +422,22 @@ Item {
         onActivated: view.setFocusMode(false)
     }
 
+    // Three hints on the first open of a project: the binder, the page, and
+    // the command palette. Escape or a click moves to the next one.
+    FirstRunHint {
+        id: firstRunHint
+
+        objectName: "firstRunHint"
+        view: view
+        binderWidth: view.binderOpen ? binderPane.width : 0
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        enabled: firstRunHint.visible
+        onActivated: firstRunHint.next()
+    }
+
     // Saves the open text, then asks to go back to the workspace.
     function close() {
         view.saveState();

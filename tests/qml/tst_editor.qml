@@ -120,6 +120,25 @@ TestCase {
         tryVerify(() => !sheet.visible);
     }
 
+    function test_firstRunHintsStepWithEscape() {
+        Settings.hintsSeen = false;
+        const view = makeView();
+        const hint = findChild(view, "firstRunHint") as FirstRunHint;
+        verify(hint.visible);
+        compare(hint.step, 0);
+        keyClick(Qt.Key_Escape);
+        compare(hint.step, 1);
+        mouseClick(hint);
+        compare(hint.step, 2);
+        verify(hint.steps[2].text.includes("Ctrl+Shift+P"));
+        keyClick(Qt.Key_Escape);
+        verify(!hint.visible);
+        verify(Settings.hintsSeen);
+        // The next project starts with no hints.
+        const again = makeView();
+        verify(!(findChild(again, "firstRunHint") as FirstRunHint).visible);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
@@ -500,6 +519,17 @@ TestCase {
         SettingsDialog {}
     }
 
+    // Scrolls the flickable around item so that a click reaches it.
+    function reveal(item: Item) {
+        let flick = item.parent;
+        while (flick && (flick as Flickable) === null)
+            flick = flick.parent;
+        const flickable = flick as Flickable;
+        const top = item.mapToItem(flickable.contentItem, 0, 0).y;
+        flickable.contentY = Math.max(0, Math.min(flickable.contentHeight - flickable.height, top - Theme.space.l));
+        waitForRendering(flickable);
+    }
+
     function test_settingsApplyLive() {
         const dialog = createTemporaryObject(settingsComponent, testCase) as SettingsDialog;
         dialog.open();
@@ -519,11 +549,15 @@ TestCase {
         mouseClick(findChild(dialog.contentItem, "motionOff") as Item);
         verify(Theme.motion.reduced);
         compare(Theme.motion.fast, 0);
-        mouseClick(findChild(dialog.contentItem, "autosave-2000") as Item);
+        const autosave = findChild(dialog.contentItem, "autosave-2000") as Item;
+        reveal(autosave);
+        mouseClick(autosave);
         compare(Settings.autosaveDelay, 2000);
 
         // The font picker lists the font of the app first and sets a font.
-        mouseClick(findChild(dialog.contentItem, "readingFontButton") as Item);
+        const fontButton = findChild(dialog.contentItem, "readingFontButton") as Item;
+        reveal(fontButton);
+        mouseClick(fontButton);
         const list = findChild(dialog.T.Overlay.overlay, "fontList") as ListView;
         tryVerify(() => list && list.visible && list.count > 0);
         compare(list.model[0], "");

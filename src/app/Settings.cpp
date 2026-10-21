@@ -40,6 +40,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     delay = std::clamp(settings.value("edit/autosaveDelay", delay).toInt(), 250, 10000);
     lessMotion = settings.value("view/reducedMotion", false).toBool();
     labels = settings.value("view/buttonLabels", false).toBool();
+    seen = settings.value("view/hintsSeen", false).toBool();
     target = std::clamp(settings.value("goals/sessionTarget", 0).toInt(), 0, 100000);
     sprint = std::clamp(settings.value("goals/sprintMinutes", sprint).toInt(), 1, 240);
     spelling = settings.value("edit/spellCheck", true).toBool();
