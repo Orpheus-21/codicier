@@ -136,6 +136,7 @@ Do not say so yet."""
 | `title` | string | all | The title in the binder. |
 | `file` | string | text and file items | The path of the file, relative to the project folder, with `/` between the parts. |
 | `status` | string | scenes | `draft`, `revised`, or `final`. The default is `draft`. |
+| `label` | string | any item | A colour label: `blue`, `orange`, `green`, `yellow`, or `pink`. No key means no label. |
 | `pov` | string | scenes | The point of view character. |
 | `place` | string | scenes | Where the scene happens. |
 | `time` | string | scenes | When the scene happens, in free text. |
