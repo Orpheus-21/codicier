@@ -149,6 +149,19 @@ private slots:
         again.setButtonLabels(false);
     }
 
+    void typographySurvivesARestartAndClamps()
+    {
+        {
+            Settings settings;
+            QCOMPARE(settings.typography(), 7);
+            settings.setTypography(2);
+        }
+        Settings again;
+        QCOMPARE(again.typography(), 2);
+        again.setTypography(99);
+        QCOMPARE(again.typography(), 7);
+    }
+
     void hintsSeenSurvivesARestart()
     {
         {

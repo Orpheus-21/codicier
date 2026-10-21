@@ -227,6 +227,14 @@ Item {
             onTextChanged: editorArea.updateLink()
             onCursorPositionChanged: editorArea.updateLink()
             Keys.onPressed: event => {
+                // The key types its character first. The change comes after,
+                // as its own step, so one undo gives back the typed text.
+                if (Settings.typography !== 0 && event.text.length === 1 && "\"'-.".includes(event.text)
+                        && !(event.modifiers & Qt.ControlModifier)) {
+                    const at = textEdit.selectionStart;
+                    const typed = event.text;
+                    Qt.callLater(() => editorArea.smarten(at, typed));
+                }
                 if (editorArea.linkStart < 0)
                     return;
                 const count = editorArea.linkMatches.length;
@@ -284,6 +292,25 @@ Item {
         font.family: Theme.type.ui
         font.pixelSize: Theme.type.body
         color: Theme.color.accent
+    }
+
+    // Changes the character typed at "at" to its typographic form: curly
+    // quotes, an em dash for "--", and an ellipsis for "...".
+    function smarten(at: int, typed: string) {
+        if (textEdit.getText(at, at + 1) !== typed)
+            return;
+        const before = textEdit.getText(Math.max(0, at - 2), at);
+        // A quote opens at the start, after a space, or after an opening mark.
+        const opens = before === "" || /[\s\u2029(\[{\u2014\u2013\u201C\u2018]/.test(before.slice(-1));
+        const smart = Settings.typography;
+        if (typed === "\"" && (smart & 1))
+            editorArea.document.replace(at, at + 1, opens ? "\u201C" : "\u201D");
+        else if (typed === "'" && (smart & 1))
+            editorArea.document.replace(at, at + 1, opens ? "\u2018" : "\u2019");
+        else if (typed === "-" && (smart & 2) && before.endsWith("-"))
+            editorArea.document.replace(at - 1, at + 1, "\u2014");
+        else if (typed === "." && (smart & 4) && before === "..")
+            editorArea.document.replace(at - 2, at + 1, "\u2026");
     }
 
     // The number of "*" right before at (back) or right from at, up to 3.

@@ -45,6 +45,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     sprint = std::clamp(settings.value("goals/sprintMinutes", sprint).toInt(), 1, 240);
     spelling = settings.value("edit/spellCheck", true).toBool();
     style = std::clamp(settings.value("edit/styleChecks", 0).toInt(), 0, 255) % 16;
+    smart = std::clamp(settings.value("edit/typography", smart).toInt(), 0, 7);
     closeVersion = settings.value("versions/onClose", true).toBool();
     Document::saveDelayMs = delay;
 }

@@ -46,6 +46,9 @@ class Settings : public QObject
     // The style checks that are on: 1 repeated words, 2 filter words,
     // 4 adverbs, and 8 passive voice. 0 turns all off.
     Q_PROPERTY(int styleChecks READ styleChecks WRITE setStyleChecks NOTIFY changed)
+    // The changes as the author types: 1 curly quotes, 2 an em dash for
+    // "--", and 4 an ellipsis for "...". All are on by default.
+    Q_PROPERTY(int typography READ typography WRITE setTypography NOTIFY changed)
     // True saves a version when a project with versions closes.
     Q_PROPERTY(bool versionOnClose READ versionOnClose WRITE setVersionOnClose NOTIFY changed)
 
@@ -83,6 +86,8 @@ public:
     int sprintMinutes() const { return sprint; }
     bool spellCheck() const { return spelling; }
     int styleChecks() const { return style; }
+    int typography() const { return smart; }
+    void setTypography(int value) { change(smart, std::clamp(value, 0, 7), "edit/typography"); }
     bool versionOnClose() const { return closeVersion; }
     void setVersionOnClose(bool value) { change(closeVersion, value, "versions/onClose"); }
     void setStyleChecks(int value)
@@ -113,6 +118,7 @@ private:
     int sprint = 25;
     bool spelling = true;
     int style = 0;
+    int smart = 7;
     bool closeVersion = true;
 
     // Sets a value, writes it to the settings file, and tells the views.

@@ -392,6 +392,23 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Change as you type"
+
+                    Repeater {
+                        model: [[1, "Curly quotes"], [2, "-- to an em dash"], [4, "... to an ellipsis"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "typography-" + modelData[0]
+                            label: modelData[1]
+                            chosen: (Settings.typography & modelData[0]) !== 0
+                            onClicked: Settings.typography = Settings.typography ^ modelData[0]
+                        }
+                    }
+                }
+
+                Setting {
                     label: "Mark on the page"
 
                     Repeater {

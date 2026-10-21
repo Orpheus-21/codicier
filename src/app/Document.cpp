@@ -70,6 +70,16 @@ void Document::setTextDocument(QQuickTextDocument *value)
     emit textDocumentChanged();
 }
 
+void Document::replace(int start, int end, const QString &text)
+{
+    if (document == nullptr)
+        return;
+    QTextCursor cursor(document);
+    cursor.setPosition(start);
+    cursor.setPosition(end, QTextCursor::KeepAnchor);
+    cursor.insertText(text);
+}
+
 void Document::attach(QTextDocument *value)
 {
     if (document != nullptr)

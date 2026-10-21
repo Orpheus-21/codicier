@@ -76,6 +76,9 @@ public:
     Q_INVOKABLE void open(const QString &projectFolder, const QString &file);
     // Writes the text now. Returns false on an error or during a conflict.
     Q_INVOKABLE bool save();
+    // Replaces the characters from start to end with text, as one step of
+    // undo.
+    Q_INVOKABLE void replace(int start, int end, const QString &text);
     // The checker for the underlines of unknown words, or null for none.
     void setSpellChecker(const SpellChecker *checker);
     // Checks the whole text again, after the checker learned new words.

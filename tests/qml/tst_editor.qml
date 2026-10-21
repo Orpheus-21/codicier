@@ -207,6 +207,30 @@ TestCase {
         compare(bar.hits.length, 0);
     }
 
+    function test_typographyChangesAsYouType() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "";
+        text.forceActiveFocus();
+        const typeOut = keys => {
+            for (const c of keys)
+                keyClick(c);
+            wait(0);
+        };
+        typeOut("\"Wait,\" she said. It's here -- now...");
+        tryCompare(text, "text", "\u201CWait,\u201D she said. It\u2019s here \u2014 now\u2026");
+        // One undo gives back the typed dots.
+        keyClick(Qt.Key_Z, Qt.ControlModifier);
+        compare(text.text, "\u201CWait,\u201D she said. It\u2019s here \u2014 now...");
+
+        // A switch that is off leaves the quotes straight.
+        Settings.typography = 6;
+        text.text = "";
+        typeOut("'a'");
+        compare(text.text, "'a'");
+        Settings.typography = 7;
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
