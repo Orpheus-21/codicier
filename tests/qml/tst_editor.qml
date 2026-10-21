@@ -369,6 +369,22 @@ TestCase {
         tryVerify(() => !dialog.visible);
     }
 
+    function test_rightClickOffersSynonyms() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "the lamp";
+        const editorArea = findChild(view, "editorArea") as Editor;
+        // The test dictionary does not know "lamp", so the check is off here.
+        Settings.spellCheck = false;
+        editorArea.suggestAt(6, 10, 10);
+        Settings.spellCheck = true;
+        const menu = findChild(editorArea, "synonymMenu") as Menu;
+        tryVerify(() => menu.opened);
+        compare(editorArea.wordSynonyms, ["light", "lantern", "beacon"]);
+        menu.actionAt(1).trigger();
+        compare(text.text, "the lantern");
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

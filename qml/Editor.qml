@@ -43,10 +43,12 @@ Item {
     property int wordStart: -1
     property int wordEnd: -1
     property var wordSuggestions: []
+    property var wordSynonyms: []
 
-    // Opens the menu of spelling suggestions for the word at position.
+    // Opens the menu of spelling suggestions for a misspelled word at
+    // position, or the menu of synonyms for a correct word.
     function suggestAt(position: int, x: real, y: real) {
-        if (!session || !session.spellCheck)
+        if (!session)
             return;
         const text = textEdit.text;
         // The QML engine has no \p{L}, so a letter is a character with two
@@ -63,10 +65,14 @@ Item {
         wordStart = start;
         wordEnd = end;
         const word = text.slice(start, end);
-        if (session.isWordCorrect(word))
+        if (session.spellCheck && !session.isWordCorrect(word)) {
+            wordSuggestions = session.suggestions(word).slice(0, 7);
+            spellMenu.popup(textEdit, x, y);
             return;
-        wordSuggestions = session.suggestions(word).slice(0, 7);
-        spellMenu.popup(textEdit, x, y);
+        }
+        wordSynonyms = session.synonyms(word);
+        if (wordSynonyms.length > 0)
+            synonymMenu.popup(textEdit, x, y);
     }
 
     function replaceWord(word: string) {
@@ -97,6 +103,26 @@ Item {
         T.Action {
             text: "Add to the project dictionary"
             onTriggered: editorArea.session.addToDictionary(textEdit.text.slice(editorArea.wordStart, editorArea.wordEnd))
+        }
+    }
+
+    Menu {
+        id: synonymMenu
+
+        objectName: "synonymMenu"
+
+        Instantiator {
+            model: editorArea.wordSynonyms
+
+            delegate: T.Action {
+                required property string modelData
+
+                text: modelData
+                onTriggered: editorArea.replaceWord(modelData)
+            }
+
+            onObjectAdded: (index, action) => synonymMenu.insertAction(index, action as T.Action)
+            onObjectRemoved: (index, action) => synonymMenu.removeAction(action as T.Action)
         }
     }
 

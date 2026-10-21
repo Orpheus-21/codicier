@@ -19,6 +19,7 @@
 class Calendar;
 class History;
 class SpellChecker;
+class Thesaurus;
 class Index;
 
 // The open project. Set folder, and the session loads the project and fills
@@ -347,6 +348,9 @@ public:
     Q_INVOKABLE bool setLanguage(const QString &name);
     // The spelling suggestions for a word, or none with no dictionary.
     Q_INVOKABLE QStringList suggestions(const QString &word) const;
+    // Up to 12 synonyms of a word from the thesaurus of the project
+    // language, or none without a thesaurus.
+    Q_INVOKABLE QStringList synonyms(const QString &word) const;
     // True for a word that the dictionary or the project knows.
     Q_INVOKABLE bool isWordCorrect(const QString &word) const;
     // Adds a word to dictionary.txt of the project and checks the texts
@@ -395,6 +399,7 @@ private:
     // The writing history, and the manuscript words of its last count.
     std::unique_ptr<History> history;
     std::unique_ptr<SpellChecker> spell;
+    std::unique_ptr<Thesaurus> thesaurus;
     bool checkSpelling = true;
     bool passTints = false;
     // Gives the pass ranges of the open text to its document.

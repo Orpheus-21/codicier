@@ -1,6 +1,7 @@
 #include "ProjectSession.h"
 #include "ProjectStore.h"
 #include "SpellChecker.h"
+#include "Thesaurus.h"
 
 #include <QDate>
 #include <QDir>
@@ -69,7 +70,11 @@ class TestBinderEdit : public QObject
 
 private slots:
     // The small dictionary of the fixtures, not the dictionaries of the system.
-    void initTestCase() { SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") }; }
+    void initTestCase()
+    {
+        SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") };
+        Thesaurus::searchPaths() = { QStringLiteral(FIXTURE_DIR "/thes") };
+    }
 
     void init()
     {
@@ -982,6 +987,19 @@ private slots:
         QVERIFY(readFile("history.toml").contains(" = 5\n"));
     }
 
+    void thesaurusGivesSynonyms()
+    {
+        QCOMPARE(session->synonyms("Lamp"), (QStringList { "light", "lantern", "beacon" }));
+        QCOMPARE(session->synonyms("sea"), (QStringList { "ocean", "deep" }));
+        QVERIFY(session->synonyms("ledger").isEmpty());
+        // A thesaurus with no .idx file gives the same.
+        Thesaurus::searchPaths() = { QStringLiteral(FIXTURE_DIR "/thes-noidx") };
+        const Thesaurus plain(QStringLiteral("en_TEST"));
+        QVERIFY(plain.isLoaded());
+        QCOMPARE(plain.synonyms("sea"), (QStringList { "ocean", "deep" }));
+        Thesaurus::searchPaths() = { QStringLiteral(FIXTURE_DIR "/thes") };
+    }
+
     void languageChoosesTheDictionary()
     {
         QCOMPARE(ProjectSession::dictionaries(), (QStringList { "en_TEST", "fr_TEST" }));
@@ -991,6 +1009,8 @@ private slots:
         QVERIFY(readFile("project.toml").contains("language = \"fr-TEST\""));
         QVERIFY(session->isWordCorrect("lettre"));
         QVERIFY(!session->isWordCorrect("letter"));
+        // No French thesaurus is in the test folder.
+        QVERIFY(session->synonyms("lamp").isEmpty());
     }
 
     void projectDictionaryAndCodexNames()

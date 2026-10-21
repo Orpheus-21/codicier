@@ -1,5 +1,6 @@
 #include "KeyMap.h"
 #include "SpellChecker.h"
+#include "Thesaurus.h"
 #include "Workspaces.h"
 
 #include <QFile>
@@ -27,6 +28,7 @@ public slots:
             .setValue("view/hintsSeen", true);
         // The tests use the small dictionary of the fixtures, not the system.
         SpellChecker::searchPaths() = { QStringLiteral(FIXTURE_DIR "/dict") };
+        Thesaurus::searchPaths() = { QStringLiteral(FIXTURE_DIR "/thes") };
     }
 };
 

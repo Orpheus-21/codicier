@@ -10,6 +10,7 @@
 #include "ProjectStore.h"
 #include "Snapshots.h"
 #include "SpellChecker.h"
+#include "Thesaurus.h"
 #include "Versions.h"
 
 #include <QDate>
@@ -123,9 +124,13 @@ void ProjectSession::setFolder(const QString &folder)
         history = std::make_unique<History>(folder);
     // The dictionary of the project language.
     spell.reset();
-    if (!folder.isEmpty() && loadError.isEmpty())
-        spell = std::make_unique<SpellChecker>(
-            QString::fromStdString(project.data["language"].value_or(std::string("en_US"))));
+    thesaurus.reset();
+    if (!folder.isEmpty() && loadError.isEmpty()) {
+        const QString language
+            = QString::fromStdString(project.data["language"].value_or(std::string("en_US")));
+        spell = std::make_unique<SpellChecker>(language);
+        thesaurus = std::make_unique<Thesaurus>(language);
+    }
     teachSpelling();
     applySpelling();
     emit spellChanged();
@@ -1481,10 +1486,16 @@ bool ProjectSession::setLanguage(const QString &name)
     if (!commit({ }))
         return false;
     spell = std::make_unique<SpellChecker>(name);
+    thesaurus = std::make_unique<Thesaurus>(name);
     teachSpelling();
     applySpelling();
     emit spellChanged();
     return true;
+}
+
+QStringList ProjectSession::synonyms(const QString &word) const
+{
+    return thesaurus ? thesaurus->synonyms(word).mid(0, 12) : QStringList();
 }
 
 QString ProjectSession::dictionary() const

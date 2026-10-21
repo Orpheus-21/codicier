@@ -913,6 +913,8 @@ Item {
             Editor {
                 id: editor
 
+                objectName: "editorArea"
+
                 visible: !compositeLoader.show
 
                 anchors.top: editorBar.bottom
