@@ -28,7 +28,7 @@ The project is in development. Not all features are complete.
 - Linux. The app is built and tested on Arch Linux. Other systems are not tested.
 - A C++20 compiler, such as GCC or Clang.
 - CMake 3.21 or later.
-- Qt 6.8 or later, with the Qt Base and Qt Declarative modules.
+- Qt 6.12 or later, with the Qt Base and Qt Declarative modules.
 - toml++ 3 or later.
 - git, for the versions of a project.
 - Hunspell and pkg-config. For the spell check, also a Hunspell dictionary, such as `hunspell-en_us` or `hunspell-en_gb`.
