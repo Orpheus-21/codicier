@@ -84,6 +84,7 @@ Item {
         function onCurrentIdChanged() {
             view.comparePath = "";
             stateTimer.restart();
+            view.noteVisit();
             // A saved search opens its results.
             const fields = view.session.fields(view.session.currentId);
             if (fields.kind === "search") {
@@ -130,6 +131,34 @@ Item {
     function turnOnVersions() {
         const error = session.turnOnVersions();
         versionsMessage = error !== "" ? error : "Versions are on. The first version is saved.";
+    }
+
+    // The items that the author opened, for Alt+Left and Alt+Right, and the
+    // cursor of each text. A new item drops the items after the current one.
+    property var trail: []
+    property int trailAt: -1
+    property var cursors: ({})
+    property bool walking: false
+
+    function noteVisit() {
+        const id = session.currentId;
+        if (walking || id === "" || trail[trailAt] === id)
+            return;
+        trail = trail.slice(Math.max(0, trailAt - 98), trailAt + 1).concat([id]);
+        trailAt = trail.length - 1;
+    }
+
+    function walk(step: int) {
+        const at = trailAt + step;
+        if (at < 0 || at >= trail.length)
+            return;
+        const cursor = cursors[trail[at]] ?? 0;
+        walking = true;
+        trailAt = at;
+        viewMode = "page";
+        session.currentId = trail[at];
+        walking = false;
+        Qt.callLater(() => editor.selectRange(cursor, 0));
     }
 
     // Opens a text from the board or the outliner on the page.
@@ -328,7 +357,9 @@ Item {
         { id: "inspector", name: "Show or hide the inspector", sequence: "Ctrl+Shift+I", former: "Ctrl+I", run: () => view.inspectorOpen = !view.inspectorOpen },
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
         { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() },
-        { id: "help", name: "Show the keys", sequence: "F1", run: () => keySheet.open() }
+        { id: "help", name: "Show the keys", sequence: "F1", run: () => keySheet.open() },
+        { id: "back", name: "Go back to the text before", sequence: "Alt+Left", run: () => view.walk(-1) },
+        { id: "forward", name: "Go forward again", sequence: "Alt+Right", run: () => view.walk(1) }
     ]
 
     KeyMap {
@@ -851,6 +882,11 @@ Item {
                 session: view.session
                 typewriter: view.focusMode
                 onLinkOpened: id => view.session.currentId = id
+                onCursorPositionChanged: {
+                    // A load moves the cursor too. Keep only the moves of the author.
+                    if (!view.session.document.isLoading() && view.session.currentId !== "")
+                        view.cursors[view.session.currentId] = cursorPosition;
+                }
             }
 
             Item {

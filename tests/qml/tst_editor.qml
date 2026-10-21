@@ -275,6 +275,34 @@ TestCase {
         Settings.hideMarks = true;
     }
 
+    function test_altArrowsWalkThroughTheOpenedTexts() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const text = findChild(view, "editor") as TextEdit;
+        const first = view.session.currentId;
+        // The page finishes its load before the author moves the cursor.
+        wait(0);
+        text.text = "The lamp burned all night.";
+        text.cursorPosition = 9;
+        const second = view.session.add("scene");
+        view.session.currentId = second;
+        wait(0);
+        compare(view.trail.length, 2);
+        keyClick(Qt.Key_Left, Qt.AltModifier);
+        compare(view.session.currentId, first);
+        tryCompare(text, "cursorPosition", 9);
+        keyClick(Qt.Key_Right, Qt.AltModifier);
+        compare(view.session.currentId, second);
+        // At the end of the trail, Alt+Right does nothing.
+        keyClick(Qt.Key_Right, Qt.AltModifier);
+        compare(view.session.currentId, second);
+        // A second walk back still finds the place.
+        keyClick(Qt.Key_Left, Qt.AltModifier);
+        tryCompare(text, "cursorPosition", 9);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
