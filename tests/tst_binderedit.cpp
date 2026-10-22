@@ -1290,6 +1290,31 @@ private slots:
         QCOMPARE(readFile(path), QByteArray("The river office, as it was before the crash.\n"));
     }
 
+    void secondWindowOnlyReads()
+    {
+        QVERIFY(!session->readOnly());
+        ProjectSession second;
+        second.setFolder(dir.path());
+        QVERIFY(second.readOnly());
+        QVERIFY(second.property("openElsewhere").toBool());
+        QVERIFY(second.document()->readOnly());
+        QVERIFY(!second.setField("m1n2p3q4r5", "label", "green"));
+        // The text of the second window never reaches the file.
+        second.setCurrentId("m1n2p3q4r5");
+        const QByteArray before = readFile(second.document()->file());
+        QTextDocument editor;
+        second.document()->attach(&editor);
+        QTextCursor(&editor).insertText("Lost words. ");
+        QVERIFY(!second.document()->dirty());
+        QCOMPARE(readFile(second.document()->file()), before);
+        // The lock goes with the first window.
+        session->setFolder(QString());
+        ProjectSession third;
+        third.setFolder(dir.path());
+        QVERIFY(!third.readOnly());
+        QVERIFY(!third.property("openElsewhere").toBool());
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

@@ -455,7 +455,7 @@ void Document::edited()
 {
     // Only a change to the text counts. The highlighter and the block format
     // change the document too, but they do not set it as modified.
-    if (loading || path.isEmpty() || (document != nullptr && !document->isModified()))
+    if (loading || locked || path.isEmpty() || (document != nullptr && !document->isModified()))
         return;
     setDirty(true);
     timer.start(saveDelayMs);

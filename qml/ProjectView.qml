@@ -1275,7 +1275,9 @@ Item {
 
             Count {
                 visible: view.session.readOnly
-                text: "Read only: this project uses a newer format."
+                text: view.session.openElsewhere
+                    ? "Read only: this project is open in another window."
+                    : "Read only: this project uses a newer format."
             }
         }
 

@@ -20,6 +20,7 @@ TextEdit {
     color: Theme.color.ink
     selectionColor: Theme.color.selection
     selectedTextColor: Theme.color.ink
+    readOnly: pageText.document.readOnly
     selectByMouse: true
     persistentSelection: true
     Component.onCompleted: pageText.document.textDocument = pageText.textDocument

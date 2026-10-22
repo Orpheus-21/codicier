@@ -31,6 +31,8 @@ class Document : public QObject
     Q_PROPERTY(bool dirty READ dirty NOTIFY dirtyChanged)
     // Another program changed the file while the app had unsaved text.
     Q_PROPERTY(bool conflict READ conflict NOTIFY conflictChanged)
+    // A read-only text is shown but never saved, and the editor locks it.
+    Q_PROPERTY(bool readOnly READ readOnly WRITE setReadOnly NOTIFY readOnlyChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     // The theme colours for the Markdown marks and the footnote marks.
     Q_PROPERTY(QColor markColor READ markColor WRITE setMarkColor NOTIFY styleChanged)
@@ -73,6 +75,14 @@ public:
     QString file() const { return path; }
     bool dirty() const { return unsaved; }
     bool conflict() const { return inConflict; }
+    bool readOnly() const { return locked; }
+    void setReadOnly(bool value)
+    {
+        if (locked == value)
+            return;
+        locked = value;
+        emit readOnlyChanged();
+    }
     QString error() const { return lastError; }
     // The text as the app holds it now.
     QString text() const;
@@ -138,6 +148,7 @@ signals:
     void fileChanged();
     void dirtyChanged();
     void conflictChanged();
+    void readOnlyChanged();
     void errorChanged();
     void styleChanged();
     void wordsChanged();
@@ -174,6 +185,7 @@ private:
     // An editor was attached once. If its text is gone, a save writes nothing.
     bool attachedOnce = false;
     bool inConflict = false;
+    bool locked = false;
     bool loading = false;
     QString lastError;
     QTimer timer;

@@ -147,6 +147,7 @@ void ProjectSession::setFolder(const QString &folder)
     project.folder = folder;
     changedSinceBackup = false;
     history.reset();
+    takeLock(folder);
     reload();
     // The session and the history count the words added from now on.
     sessionStart = manuscriptWords();
@@ -172,6 +173,23 @@ void ProjectSession::setFolder(const QString &folder)
     emit wordsChanged();
 }
 
+void ProjectSession::takeLock(const QString &folder)
+{
+    lock.reset();
+    lockedOut = false;
+    if (!QFileInfo::exists(QDir(folder).filePath(QStringLiteral("project.toml"))))
+        return;
+    const QString dir = QDir(folder).filePath(QStringLiteral(".codicier"));
+    QDir().mkpath(dir);
+    lock = std::make_unique<QLockFile>(QDir(dir).filePath(QStringLiteral("lock")));
+    // A long session is no reason to take the lock of a live window.
+    lock->setStaleLockTime(0);
+    if (!lock->tryLock(0)) {
+        lock.reset();
+        lockedOut = true;
+    }
+}
+
 void ProjectSession::reload()
 {
     const QString folder = project.folder;
@@ -191,6 +209,9 @@ void ProjectSession::reload()
     loadError = result.ok() ? QString() : result.errors.first().text();
     project = std::move(result.project);
     project.folder = folder;
+    if (lockedOut)
+        project.readOnly = true;
+    text.setReadOnly(project.readOnly);
     binderModel.setProject(project);
     watch();
     index.reset();
@@ -3017,6 +3038,7 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
     document->setStyleChecks(checksOfStyle);
     document->setHideMarks(marksHidden);
     document->setEntityNames(knownNames);
+    document->setReadOnly(project.readOnly);
     connect(document, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);

@@ -76,7 +76,7 @@ Column {
 
         availableWidth: block.width - 2 * Theme.space.xl
         x: Math.max(Theme.space.xl, (block.width - width) / 2)
-        readOnly: block.readOnly
+        readOnly: block.readOnly || document.readOnly
         document: Document {}
         Component.onCompleted: {
             document.open(block.session.folder, block.modelData.file);

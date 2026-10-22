@@ -5,6 +5,7 @@
 #include "Project.h"
 #include "Watcher.h"
 
+#include <QLockFile>
 #include <QObject>
 #include <QPointer>
 #include <QSet>
@@ -32,6 +33,8 @@ class ProjectSession : public QObject
     Q_PROPERTY(QString title READ title NOTIFY loaded)
     Q_PROPERTY(QString kind READ kind NOTIFY loaded)
     Q_PROPERTY(bool readOnly READ readOnly NOTIFY loaded)
+    // Another window holds the project, so this one only reads it.
+    Q_PROPERTY(bool openElsewhere MEMBER lockedOut NOTIFY loaded)
     // The first load error, or "" when the project loaded.
     Q_PROPERTY(QString error READ error NOTIFY loaded)
     Q_PROPERTY(BinderModel *binder READ binder CONSTANT)
@@ -447,6 +450,9 @@ signals:
     void textsChanged();
 
 private:
+    // Takes the lock of folder, or opens it read-only when another window
+    // holds it.
+    void takeLock(const QString &folder);
     Project project;
     QString loadError;
     BinderModel binderModel;
@@ -505,6 +511,10 @@ private:
     QDateTime sessionBegan;
     bool sessionKept = false;
     QString recoveredPath;
+    // The lock of the open project: one window writes to a project at a
+    // time. A lock of a process that ended counts as free.
+    std::unique_ptr<QLockFile> lock;
+    bool lockedOut = false;
     // The baseline file of the open text, and the marks of its changes.
     QString trackFile() const;
     QString baseline() const;
