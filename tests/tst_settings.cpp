@@ -312,6 +312,9 @@ private slots:
         QCOMPARE(Settings().accent(), QStringLiteral("plum"));
         QSettings(Workspaces::settingsPath(), QSettings::IniFormat).setValue("view/accent", "neon");
         QCOMPARE(Settings().accent(), QStringLiteral("theme"));
+        QVERIFY(settings.calmFocus());
+        settings.setCalmFocus(false);
+        QVERIFY(!Settings().calmFocus());
         settings.setUiScale(200);
         QCOMPARE(Settings().uiScale(), 130);
         settings.setUiScale(50);

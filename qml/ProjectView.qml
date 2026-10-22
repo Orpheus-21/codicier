@@ -303,6 +303,8 @@ Item {
 
     // Focus mode: full screen with only the page, and typewriter scroll.
     property bool focusMode: false
+    // Calm: focus mode hides the top bar and the status bar too.
+    readonly property bool calm: focusMode && Settings.calmFocus
     // The window state before focus mode, to restore it after.
     property int windowVisibility: Window.Windowed
 
@@ -1073,7 +1075,7 @@ Item {
             Item {
                 id: editorBar
 
-                visible: !view.focusMode
+                visible: !view.calm
                 width: parent.width
                 height: visible ? 48 : 0
 
@@ -1161,7 +1163,7 @@ Item {
             return Number(n).toLocaleString(Qt.locale("en_GB"), "f", 0);
         }
 
-        visible: !view.focusMode
+        visible: !view.calm
         anchors.bottom: parent.bottom
         width: parent.width
         height: visible ? 36 : 0

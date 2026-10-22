@@ -38,6 +38,8 @@ class Settings : public QObject
     Q_PROPERTY(int autosaveDelay READ autosaveDelay WRITE setAutosaveDelay NOTIFY changed)
     // True turns every animation off.
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
+    // Focus mode hides the top bar and the status bar. Off keeps them.
+    Q_PROPERTY(bool calmFocus READ calmFocus WRITE setCalmFocus NOTIFY changed)
     // The line height of the page in percent of the text size: 130, 150, or
     // 180.
     Q_PROPERTY(int lineSpacing READ lineSpacing WRITE setLineSpacing NOTIFY changed)
@@ -106,6 +108,8 @@ public:
     void setAutosaveDelay(int value);
     bool reducedMotion() const { return lessMotion; }
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
+    bool calmFocus() const { return calm; }
+    void setCalmFocus(bool value) { change(calm, value, "view/calmFocus"); }
     int lineSpacing() const { return spacing; }
     void setLineSpacing(int value)
     {
@@ -171,6 +175,7 @@ private:
     int columns = 66;
     int delay = 1000;
     bool lessMotion = false;
+    bool calm = true;
     bool labels = false;
     bool seen = false;
     bool marksHidden = true;

@@ -437,6 +437,24 @@ T.Popup {
                     }
                 }
 
+                Setting {
+                    label: "Focus mode shows"
+
+                    Choice {
+                        objectName: "calmOn"
+                        label: "Only the page"
+                        chosen: Settings.calmFocus
+                        onClicked: Settings.calmFocus = true
+                    }
+
+                    Choice {
+                        objectName: "calmOff"
+                        label: "The page and the bars"
+                        chosen: !Settings.calmFocus
+                        onClicked: Settings.calmFocus = false
+                    }
+                }
+
                 Heading {
                     text: "Writing"
                 }

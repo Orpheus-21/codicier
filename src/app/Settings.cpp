@@ -60,6 +60,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     columns = std::clamp(settings.value("view/measure", columns).toInt(), 45, 90);
     delay = std::clamp(settings.value("edit/autosaveDelay", delay).toInt(), 250, 10000);
     lessMotion = settings.value("view/reducedMotion", false).toBool();
+    calm = settings.value("view/calmFocus", true).toBool();
     labels = settings.value("view/buttonLabels", false).toBool();
     seen = settings.value("view/hintsSeen", false).toBool();
     marksHidden = settings.value("view/hideMarks", true).toBool();

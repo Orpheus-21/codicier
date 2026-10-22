@@ -660,6 +660,11 @@ TestCase {
         view.forceActiveFocus();
         keyClick(Qt.Key_F11);
         verify(view.focusMode);
+        // Calm by default: only the page shows.
+        verify(view.calm);
+        Settings.calmFocus = false;
+        verify(!view.calm);
+        Settings.calmFocus = true;
         keyClick(Qt.Key_Escape);
         verify(!view.focusMode);
         keyClick(Qt.Key_F11);
