@@ -307,4 +307,4 @@ A file in `canvases/` holds one idea canvas. It has `format = 1`, then a `[[node
 
 ## history.toml
 
-The history has a `[days]` table with the net words that the author added to the manuscript on each day, and a `[minutes]` table with the minutes of writing on each day. A minute with an edit counts. The keys are dates, such as `2026-10-22`.
+The history has a `[days]` table with the net words that the author added to the manuscript on each day, a `[minutes]` table with the minutes of writing on each day, and a `[sessions]` table with the words of each session. A minute with an edit counts. The keys of days and minutes are dates, such as `2026-10-22`. The keys of sessions are the start times, such as `"2026-10-22T14:05:00"`, and the history keeps the last 100.
