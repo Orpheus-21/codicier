@@ -42,6 +42,23 @@ private slots:
         QCOMPARE(again.streak(today.addDays(2)), 0);
     }
 
+    void minutesAreKept()
+    {
+        QTemporaryDir dir;
+        const QDate day(2026, 10, 22);
+        {
+            History history(dir.path());
+            history.addMinute(day);
+            history.addMinute(day);
+            history.add(day, 120);
+            QVERIFY(history.save());
+        }
+        const History again(dir.path());
+        QCOMPARE(again.minutes(day), 2);
+        QCOMPARE(again.words(day), 120);
+        QCOMPARE(again.minutes(day.addDays(1)), 0);
+    }
+
     void badFileIsAnEmptyHistory()
     {
         QTemporaryDir dir;

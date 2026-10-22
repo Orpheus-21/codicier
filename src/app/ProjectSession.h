@@ -73,6 +73,8 @@ class ProjectSession : public QObject
     Q_PROPERTY(int dailyGoal READ dailyGoal NOTIFY wordsChanged)
     // The words added to the manuscript today, from the history.
     Q_PROPERTY(int todayWords READ todayWords NOTIFY wordsChanged)
+    // The minutes of writing today: each minute with an edit counts.
+    Q_PROPERTY(int todayMinutes READ todayMinutes NOTIFY wordsChanged)
     // Where a zip backup goes when the project closes, and how many to keep.
     // An empty folder means no backup.
     Q_PROPERTY(QString backupFolder MEMBER backupFolder NOTIFY backupChanged)
@@ -420,6 +422,7 @@ public:
     Q_INVOKABLE bool setDailyGoal(int words);
     int dailyGoal() const;
     int todayWords() const;
+    int todayMinutes() const;
 
 signals:
     void loaded();
@@ -490,6 +493,8 @@ private:
     // The pattern that finds those names as whole words, longest first.
     static QRegularExpression namePattern(const QStringList &names);
     QStringList knownNames;
+    // The last minute that counted as writing time, in minutes since 1970.
+    qint64 lastMinute = -1;
     // The baseline file of the open text, and the marks of its changes.
     QString trackFile() const;
     QString baseline() const;

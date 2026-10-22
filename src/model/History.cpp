@@ -25,18 +25,24 @@ History::History(QString projectFolder) : folder(std::move(projectFolder))
     const QByteArray bytes = file.readAll();
     try {
         const toml::table table = toml::parse(std::string_view(bytes.constData(), bytes.size()));
-        if (const toml::table *list = table.get_as<toml::table>("days")) {
-            for (const auto &[key, value] : *list) {
-                const QDate day = QDate::fromString(
-                    QString::fromUtf8(key.str().data(), static_cast<qsizetype>(key.str().size())),
-                    Qt::ISODate);
-                if (day.isValid() && value.is_integer())
-                    days.insert(day, static_cast<int>(value.value_or(std::int64_t { 0 })));
+        const auto read = [&table](const char *name, QMap<QDate, int> &into) {
+            if (const toml::table *list = table.get_as<toml::table>(name)) {
+                for (const auto &[key, value] : *list) {
+                    const QDate day = QDate::fromString(
+                        QString::fromUtf8(key.str().data(),
+                                          static_cast<qsizetype>(key.str().size())),
+                        Qt::ISODate);
+                    if (day.isValid() && value.is_integer())
+                        into.insert(day, static_cast<int>(value.value_or(std::int64_t { 0 })));
+                }
             }
-        }
+        };
+        read("days", days);
+        read("minutes", minutesOf);
     } catch (const toml::parse_error &) {
         // A file that does not parse is an empty history.
         days.clear();
+        minutesOf.clear();
     }
 }
 
@@ -45,6 +51,14 @@ void History::add(const QDate &day, int words)
     if (words == 0 || !day.isValid())
         return;
     days[day] += words;
+    changed = true;
+}
+
+void History::addMinute(const QDate &day)
+{
+    if (!day.isValid())
+        return;
+    ++minutesOf[day];
     changed = true;
 }
 
@@ -68,6 +82,12 @@ bool History::save()
     for (auto it = days.cbegin(); it != days.cend(); ++it)
         out += it.key().toString(Qt::ISODate).toUtf8() + " = " + QByteArray::number(it.value())
             + '\n';
+    if (!minutesOf.isEmpty()) {
+        out += "\n[minutes]\n";
+        for (auto it = minutesOf.cbegin(); it != minutesOf.cend(); ++it)
+            out += it.key().toString(Qt::ISODate).toUtf8() + " = " + QByteArray::number(it.value())
+                + '\n';
+    }
     QSaveFile file(pathOf(folder));
     if (!file.open(QIODevice::WriteOnly) || file.write(out) != out.size() || !file.commit())
         return false;

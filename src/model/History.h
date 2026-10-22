@@ -5,8 +5,8 @@
 #include <QString>
 
 // The writing history of a project in history.toml: the net words that the
-// author added to the manuscript on each day. The file is in the project
-// folder, because the app cannot build it again.
+// author added to the manuscript on each day, and the minutes of writing. The file is in the
+// project folder, because the app cannot build it again.
 class History
 {
 public:
@@ -17,6 +17,9 @@ public:
     // Adds words to a day. A negative count is a day of cuts.
     void add(const QDate &day, int words);
     int words(const QDate &day) const { return days.value(day); }
+    // Counts one minute of writing on a day.
+    void addMinute(const QDate &day);
+    int minutes(const QDate &day) const { return minutesOf.value(day); }
     // The days in a row with words, up to today. A day with no words yet
     // today does not end the streak.
     int streak(const QDate &today) const;
@@ -26,5 +29,6 @@ public:
 private:
     QString folder;
     QMap<QDate, int> days;
+    QMap<QDate, int> minutesOf;
     bool changed = false;
 };

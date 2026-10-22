@@ -508,6 +508,12 @@ TestCase {
         verify(today.text.includes(" of 500"), today.text);
         verify(view.session.setDailyGoal(0));
         verify(!today.visible);
+        // A minute with an edit counts as writing time.
+        const text = findChild(view, "editor") as TextEdit;
+        text.forceActiveFocus();
+        for (const c of "dusk")
+            keyClick(c);
+        tryVerify(() => view.session.todayMinutes >= 1, 2000);
     }
 
     function test_heatMapColoursStayValid() {

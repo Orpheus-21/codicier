@@ -126,7 +126,11 @@ T.Popup {
                 text: "You wrote " + dialog.session.todayWords.toLocaleString(Qt.locale("en_GB"), "f", 0)
                       + (dialog.session.dailyGoal > 0
                          ? " of " + dialog.session.dailyGoal.toLocaleString(Qt.locale("en_GB"), "f", 0) : "")
-                      + " words today. "
+                      + " words today"
+                      + (dialog.session.todayMinutes > 0
+                         ? " in " + dialog.session.todayMinutes + (dialog.session.todayMinutes === 1 ? " minute" : " minutes")
+                         : "")
+                      + ". "
                       + (dialog.session.streak === 1 ? "1 day in a row." : dialog.session.streak + " days in a row.")
             }
 

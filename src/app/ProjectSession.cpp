@@ -57,6 +57,12 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
     connect(&text, &Document::wordsChanged, this, [this] {
         if (!text.file().isEmpty())
             binderModel.setItemWords(current, text.words());
+        // A minute with an edit counts as writing time. A load is no edit.
+        const qint64 minute = QDateTime::currentSecsSinceEpoch() / 60;
+        if (history && text.dirty() && minute != lastMinute) {
+            history->addMinute(QDate::currentDate());
+            lastMinute = minute;
+        }
         emit wordsChanged();
         markChanges();
     });
@@ -2417,8 +2423,10 @@ QVariantList ProjectSession::historyDays(int count) const
     const QDate today = QDate::currentDate();
     for (int i = count - 1; i >= 0; --i) {
         const QDate day = today.addDays(-i);
-        list.append(QVariantMap { { QStringLiteral("date"), day.toString(Qt::ISODate) },
-                                  { QStringLiteral("words"), history ? history->words(day) : 0 } });
+        list.append(
+            QVariantMap { { QStringLiteral("date"), day.toString(Qt::ISODate) },
+                          { QStringLiteral("words"), history ? history->words(day) : 0 },
+                          { QStringLiteral("minutes"), history ? history->minutes(day) : 0 } });
     }
     return list;
 }
@@ -2489,6 +2497,11 @@ int ProjectSession::dailyGoal() const
 int ProjectSession::todayWords() const
 {
     return history ? history->words(QDate::currentDate()) : 0;
+}
+
+int ProjectSession::todayMinutes() const
+{
+    return history ? history->minutes(QDate::currentDate()) : 0;
 }
 
 int ProjectSession::goalWords() const
