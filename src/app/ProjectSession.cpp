@@ -2465,6 +2465,32 @@ bool ProjectSession::setGoal(int words, const QString &deadline)
     return commit({ });
 }
 
+bool ProjectSession::setDailyGoal(int words)
+{
+    if (project.readOnly || words < 0)
+        return false;
+    if (project.data.get_as<toml::table>("goals") == nullptr)
+        project.data.insert_or_assign("goals", toml::table { });
+    toml::table &goals = *project.data.get_as<toml::table>("goals");
+    if (words > 0)
+        goals.insert_or_assign("daily", words);
+    else
+        goals.erase("daily");
+    if (goals.empty())
+        project.data.erase("goals");
+    return commit({ });
+}
+
+int ProjectSession::dailyGoal() const
+{
+    return static_cast<int>(project.data["goals"]["daily"].value_or(std::int64_t { 0 }));
+}
+
+int ProjectSession::todayWords() const
+{
+    return history ? history->words(QDate::currentDate()) : 0;
+}
+
 int ProjectSession::goalWords() const
 {
     return static_cast<int>(project.data["goals"]["words"].value_or(std::int64_t { 0 }));

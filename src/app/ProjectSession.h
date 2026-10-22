@@ -69,6 +69,10 @@ class ProjectSession : public QObject
     // The words to write each day, from today to the deadline, to reach the
     // goal. -1 with no goal or no deadline, or after the deadline.
     Q_PROPERTY(int dailyNeeded READ dailyNeeded NOTIFY wordsChanged)
+    // The word goal for each day, goals.daily of project.toml, or 0.
+    Q_PROPERTY(int dailyGoal READ dailyGoal NOTIFY wordsChanged)
+    // The words added to the manuscript today, from the history.
+    Q_PROPERTY(int todayWords READ todayWords NOTIFY wordsChanged)
     // Where a zip backup goes when the project closes, and how many to keep.
     // An empty folder means no backup.
     Q_PROPERTY(QString backupFolder MEMBER backupFolder NOTIFY backupChanged)
@@ -412,6 +416,10 @@ public:
     // Sets the word goal (0 for none) and the deadline (yyyy-MM-dd, or "" for
     // none) in project.toml. Returns false for a date that is not valid.
     Q_INVOKABLE bool setGoal(int words, const QString &deadline);
+    // Sets the word goal for each day. 0 takes it away.
+    Q_INVOKABLE bool setDailyGoal(int words);
+    int dailyGoal() const;
+    int todayWords() const;
 
 signals:
     void loaded();

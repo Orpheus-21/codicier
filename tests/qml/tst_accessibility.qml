@@ -498,6 +498,18 @@ TestCase {
         compare(streak.text, "0 days in a row with words.");
     }
 
+    function test_dailyGoalShowsInTheStatusBar() {
+        const view = makeView();
+        const today = findChild(view, "todayCount") as Text;
+        verify(!today.visible);
+        verify(view.session.setDailyGoal(500));
+        verify(today.visible);
+        verify(today.text.startsWith("Today "), today.text);
+        verify(today.text.includes(" of 500"), today.text);
+        verify(view.session.setDailyGoal(0));
+        verify(!today.visible);
+    }
+
     function test_heatMapColoursStayValid() {
         failOnWarning(/setAlphaF/);
         const view = makeView();

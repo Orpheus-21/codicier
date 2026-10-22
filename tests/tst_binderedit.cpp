@@ -1247,6 +1247,17 @@ private slots:
         QVERIFY(!session->saveCanvas("m1n2p3q4r5", canvas));
     }
 
+    void dailyGoalIsKept()
+    {
+        QVERIFY(session->setDailyGoal(750));
+        QCOMPARE(session->dailyGoal(), 750);
+        QVERIFY(readFile("project.toml").contains("daily = 750"));
+        QVERIFY(!session->setDailyGoal(-3));
+        QVERIFY(session->setDailyGoal(0));
+        QCOMPARE(session->dailyGoal(), 0);
+        QVERIFY(session->todayWords() >= 0);
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

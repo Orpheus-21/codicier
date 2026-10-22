@@ -1175,6 +1175,16 @@ Item {
                 }
             }
 
+            // Today against the goal for each day, and the days in a row.
+            Count {
+                objectName: "todayCount"
+                visible: view.session.dailyGoal > 0
+                text: "Today " + statusBar.number(view.session.todayWords) + " of "
+                      + statusBar.number(view.session.dailyGoal)
+                      + (view.session.streak > 1 ? ", " + view.session.streak + " days in a row" : "")
+                color: view.session.todayWords >= view.session.dailyGoal ? Theme.color.accent : Theme.color.inkMuted
+            }
+
             Count {
                 objectName: "sprintStatus"
                 visible: view.sprintEnd > 0 || view.sprintResult !== ""

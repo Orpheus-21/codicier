@@ -118,6 +118,41 @@ T.Popup {
             }
 
             Heading {
+                text: "Today"
+            }
+
+            Note {
+                objectName: "today"
+                text: "You wrote " + dialog.session.todayWords.toLocaleString(Qt.locale("en_GB"), "f", 0)
+                      + (dialog.session.dailyGoal > 0
+                         ? " of " + dialog.session.dailyGoal.toLocaleString(Qt.locale("en_GB"), "f", 0) : "")
+                      + " words today. "
+                      + (dialog.session.streak === 1 ? "1 day in a row." : dialog.session.streak + " days in a row.")
+            }
+
+            Column {
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Words each day"
+                }
+
+                TextField {
+                    objectName: "dailyGoal"
+                    width: 160
+                    Accessible.name: "Word goal for each day"
+                    placeholderText: "No goal"
+                    text: dialog.session.dailyGoal > 0 ? String(dialog.session.dailyGoal) : ""
+                    validator: IntValidator {
+                        bottom: 0
+                        top: 100000
+                    }
+                    onEditingFinished: dialog.session.setDailyGoal(text === "" ? 0 : parseInt(text))
+                }
+            }
+
+            Heading {
                 text: "The project"
             }
 
