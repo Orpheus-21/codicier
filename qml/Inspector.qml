@@ -94,6 +94,7 @@ Pane {
 
         required property string label
         required property string key
+        property string hint: ""
 
         spacing: Theme.space.xs
 
@@ -104,6 +105,7 @@ Pane {
         TextField {
             width: parent.width
             Accessible.name: field.label
+            placeholderText: field.hint
             text: inspector.fields[field.key] ?? ""
             onEditingFinished: inspector.save(field.key, text)
         }
@@ -299,6 +301,31 @@ Pane {
                 width: parent.width
                 label: "Time"
                 key: "time"
+            }
+
+            // Optional questions of the scene, for the outline.
+            Field {
+                visible: inspector.fields.kind === "scene"
+                width: parent.width
+                label: "Goal"
+                key: "goal"
+                hint: "What the POV character wants here"
+            }
+
+            Field {
+                visible: inspector.fields.kind === "scene"
+                width: parent.width
+                label: "Conflict"
+                key: "conflict"
+                hint: "What stands in the way"
+            }
+
+            Field {
+                visible: inspector.fields.kind === "scene"
+                width: parent.width
+                label: "Outcome"
+                key: "outcome"
+                hint: "Yes, no, yes but, or no and"
             }
 
             Column {

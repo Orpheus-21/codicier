@@ -1170,6 +1170,19 @@ private slots:
         QVERIFY(session->duplicate("no-such-item").isEmpty());
     }
 
+    void sceneQuestionsReachTheOutline()
+    {
+        QVERIFY(session->setField("m1n2p3q4r5", "goal", " Find the date "));
+        QVERIFY(session->setField("m1n2p3q4r5", "outcome", "No, and"));
+        QCOMPARE(session->fields("m1n2p3q4r5").value("goal").toString(),
+                 QStringLiteral("Find the date"));
+        const QVariantMap row = session->outlineOf("f6g7h8j9k0").first().toMap();
+        QCOMPARE(row.value("goal").toString(), QStringLiteral("Find the date"));
+        QCOMPARE(row.value("outcome").toString(), QStringLiteral("No, and"));
+        QVERIFY(row.value("conflict").toString().isEmpty());
+        QVERIFY(readFile("binder.toml").contains("goal = \"Find the date\""));
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

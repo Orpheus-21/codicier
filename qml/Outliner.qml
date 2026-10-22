@@ -22,7 +22,9 @@ Item {
         { key: "title", name: "Title", width: 3 }, { key: "status", name: "Status", width: 1 },
         { key: "pov", name: "POV", width: 1.4 }, { key: "place", name: "Place", width: 1.4 },
         { key: "time", name: "Time", width: 1.2 }, { key: "words", name: "Words", width: 0.9 }
-    ].concat(fieldNames.map(name => ({ key: "field:" + name, name: name, width: 1.4 })))
+    ].concat([{ key: "goal", name: "Goal", width: 1.6 }, { key: "conflict", name: "Conflict", width: 1.6 },
+              { key: "outcome", name: "Outcome", width: 1.2 }].filter(question => rows.some(row => (row[question.key] ?? "") !== "")))
+     .concat(fieldNames.map(name => ({ key: "field:" + name, name: name, width: 1.4 })))
     readonly property real unit: (width - 2 * Theme.space.xl)
                                  / columns.reduce((sum, column) => sum + column.width, 0)
     property string sortKey: ""

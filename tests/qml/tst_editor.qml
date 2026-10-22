@@ -68,6 +68,11 @@ TestCase {
         tryCompare(findChild(view, "corkboard") as GridView, "count", 2);
         view.viewMode = "outline";
         tryCompare(findChild(view, "outlinerRows") as ListView, "count", 2);
+        // A scene question shows as a column once a row has it.
+        const outliner = findChild(view, "outlinerView") as Outliner;
+        verify(!outliner.columns.some(column => column.key === "goal"));
+        verify(view.session.setField(first, "goal", "Light the lamp"));
+        tryVerify(() => outliner.columns.some(column => column.key === "goal"));
     }
 
     function test_boardFollowsTheLiveWordCount() {

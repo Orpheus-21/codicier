@@ -2402,7 +2402,8 @@ QVariantMap ProjectSession::fields(const QString &id) const
     map.insert(QStringLiteral("status"),
                status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
                                                                        : status);
-    for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat", "date", "label" })
+    for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat", "date", "label",
+                             "goal", "conflict", "outcome" })
         map.insert(QString::fromLatin1(key), string(key));
     map.insert(QStringLiteral("dateLabel"), calendar().label(string("date")));
     QStringList tags;
@@ -2503,7 +2504,9 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
             return false;
     } else if (key == QLatin1String("beat") || key == QLatin1String("pov")
                || key == QLatin1String("place") || key == QLatin1String("time")
-               || key == QLatin1String("synopsis") || key == QLatin1String("notes")) {
+               || key == QLatin1String("synopsis") || key == QLatin1String("notes")
+               || key == QLatin1String("goal") || key == QLatin1String("conflict")
+               || key == QLatin1String("outcome")) {
         const QString text = value.toString().trimmed();
         if (text.isEmpty())
             data.erase(name);
@@ -2568,6 +2571,9 @@ QVariantList ProjectSession::outlineOf(const QString &id) const
                 { QStringLiteral("pov"), text(item, "pov") },
                 { QStringLiteral("place"), text(item, "place") },
                 { QStringLiteral("time"), text(item, "time") },
+                { QStringLiteral("goal"), text(item, "goal") },
+                { QStringLiteral("conflict"), text(item, "conflict") },
+                { QStringLiteral("outcome"), text(item, "outcome") },
                 { QStringLiteral("words"), binderModel.wordsOf(item.id) },
                 { QStringLiteral("fields"), values },
             });
