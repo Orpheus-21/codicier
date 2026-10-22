@@ -498,6 +498,42 @@ TestCase {
         tryCompare(view.session, "currentId", id);
     }
 
+    function test_citationsCompleteAndShowTheSource() {
+        const view = makeView();
+        compare(view.session.saveSource({ title: "Salt", authors: "Kurlansky, Mark", year: "2002", publisher: "Walker" }),
+                "kurlansky2002");
+        view.session.saveSource({ title: "Cod", authors: "Kurlansky, Mark", year: "1997" });
+        const scene = view.session.items().find(item => item.kind === "scene").id;
+        view.session.currentId = scene;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "";
+        text.forceActiveFocus();
+        for (const c of "Salt [@salt")
+            keyClick(c);
+        const list = findChild(view, "linkList") as Item;
+        verify(list.visible);
+        keyClick(Qt.Key_Return);
+        compare(text.text, "Salt [@kurlansky2002]");
+        compare(text.cursorPosition, text.text.length);
+        verify(!list.visible);
+
+        // A second key after "; @" goes before the closing bracket.
+        text.cursorPosition = text.text.length - 1;
+        for (const c of "; @1997")
+            keyClick(c);
+        verify(list.visible);
+        keyClick(Qt.Key_Return);
+        compare(text.text, "Salt [@kurlansky2002; @kurlansky1997]");
+
+        // A pause on the key shows the source.
+        waitForRendering(text);
+        const card = findChild(view, "entityCard") as Rectangle;
+        const rect = text.positionToRectangle(10);
+        mouseMove(text, rect.x + 2, rect.y + rect.height / 2);
+        tryVerify(() => card.visible);
+        compare((findChild(card, "entitySummary") as Text).text, "Kurlansky, Mark. Walker");
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

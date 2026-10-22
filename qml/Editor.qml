@@ -16,15 +16,32 @@ Item {
     // Ctrl+click on a [[link]] asks to open its entity.
     signal linkOpened(id: string)
 
-    // The open [[ before the cursor: its start, the typed name, the matches,
-    // and the chosen match. linkStart is -1 when no list shows.
+    // The open [[ or [@ before the cursor: its start, the typed name, the
+    // matches, and the chosen match. linkStart is -1 when no list shows. A
+    // citation lists the sources by their key, as pandoc writes them.
     property int linkStart: -1
     property var linkMatches: []
     property int linkIndex: 0
+    property bool citing: false
+    // The characters of a citation key.
+    readonly property string keyChars: "A-Za-z0-9_:.#$%&+?<>~/-"
 
     function updateLink() {
         const at = textEdit.cursorPosition;
         const before = textEdit.getText(Math.max(0, at - 80), at);
+        const cite = before.match(new RegExp("(?:\\[|;\\s?)@([" + keyChars + "]*)$"));
+        if (cite && session) {
+            const query = cite[1].toLowerCase();
+            linkMatches = session.sources()
+                .filter(source => source.id.toLowerCase().includes(query) || source.label.toLowerCase().includes(query))
+                .slice(0, 8)
+                .map(source => ({ title: source.label || source.id, key: source.id }));
+            citing = true;
+            linkIndex = 0;
+            linkStart = linkMatches.length > 0 ? at - cite[1].length : -1;
+            return;
+        }
+        citing = false;
         const open = before.match(/\[\[([^\[\]\n]*)$/);
         if (!open || !session) {
             linkStart = -1;
@@ -46,6 +63,25 @@ Item {
     // The entity of the codex under the pointer, and the place of the pointer
     // on the page.
     property string hoverId: ""
+    // The source of the citation key under the pointer, or null.
+    property var hoverSource: null
+
+    // The citation key at position, as in [@key] or [see @key, p. 3], or "".
+    function citationAt(position: int): string {
+        const text = textEdit.text;
+        const isKey = c => c !== undefined && new RegExp("[" + keyChars + "]").test(c);
+        let start = text[position] === "@" ? position + 1 : position;
+        let end = start;
+        while (start > 0 && isKey(text[start - 1]))
+            --start;
+        while (end < text.length && isKey(text[end]))
+            ++end;
+        // The "@" starts the key, after a bracket, a space, or a semicolon,
+        // so an e-mail address is no citation.
+        if (start < 2 || start === end || text[start - 1] !== "@" || !"[ ;-".includes(text[start - 2]))
+            return "";
+        return text.slice(start, end);
+    }
     property point hoverPoint: Qt.point(0, 0)
 
     Timer {
@@ -57,6 +93,9 @@ Item {
                 return;
             const at = textEdit.positionAt(editorArea.hoverPoint.x, editorArea.hoverPoint.y);
             editorArea.hoverId = editorArea.session.entityAt(textEdit.text, at);
+            const key = editorArea.hoverId === "" ? editorArea.citationAt(at) : "";
+            editorArea.hoverSource = key === "" ? null
+                : editorArea.session.sources().find(source => source.id === key) ?? null;
         }
     }
     property var wordSynonyms: []
@@ -148,6 +187,18 @@ Item {
         const title = linkMatches[linkIndex].title;
         const start = linkStart;
         const at = textEdit.cursorPosition;
+        if (citing) {
+            // A citation ends at "]", or goes on with "; @" or a page.
+            const key = linkMatches[linkIndex].key;
+            const after = textEdit.getText(at, at + 1);
+            const goesOn = after === ";" || after === ",";
+            textEdit.remove(start, at);
+            textEdit.insert(start, key + (after === "]" || goesOn ? "" : "]"));
+            // The cursor goes past the "]", or stays before the "; @".
+            textEdit.cursorPosition = start + key.length + (goesOn ? 0 : 1);
+            linkStart = -1;
+            return;
+        }
         const closed = textEdit.getText(at, at + 2) === "]]";
         textEdit.remove(start, at);
         textEdit.insert(start, title + (closed ? "" : "]]"));
@@ -314,6 +365,7 @@ Item {
                     if (!hovered) {
                         hoverTimer.stop();
                         editorArea.hoverId = "";
+                        editorArea.hoverSource = null;
                     }
                 }
             }
@@ -532,7 +584,7 @@ Item {
         readonly property point place: textEdit.mapToItem(editorArea, editorArea.hoverPoint.x,
                                                           editorArea.hoverPoint.y)
 
-        visible: editorArea.hoverId !== ""
+        visible: editorArea.hoverId !== "" || editorArea.hoverSource !== null
         z: 6
         x: Math.min(place.x + Theme.space.m, editorArea.width - width - Theme.space.s)
         y: place.y + Theme.space.l
@@ -553,7 +605,8 @@ Item {
 
             Text {
                 width: parent.width
-                text: entityCard.visible ? (editorArea.session.fields(editorArea.hoverId).title ?? "") : ""
+                text: editorArea.hoverSource !== null ? editorArea.hoverSource.label
+                    : entityCard.visible ? (editorArea.session.fields(editorArea.hoverId).title ?? "") : ""
                 elide: Text.ElideRight
                 font.family: Theme.type.reading
                 font.pixelSize: Theme.type.large
@@ -565,14 +618,19 @@ Item {
                 visible: text !== ""
                 width: parent.width
                 wrapMode: Text.Wrap
-                text: entityCard.visible ? editorArea.session.summaryOf(editorArea.hoverId) : ""
+                // A source shows where it was published and the place in it.
+                text: editorArea.hoverSource !== null
+                    ? [editorArea.hoverSource.authors, editorArea.hoverSource.container, editorArea.hoverSource.publisher,
+                       editorArea.hoverSource.page ? "pp. " + editorArea.hoverSource.page : "", editorArea.hoverSource.url]
+                        .filter(part => part).join(". ")
+                    : entityCard.visible ? editorArea.session.summaryOf(editorArea.hoverId) : ""
                 font.family: Theme.type.ui
                 font.pixelSize: Theme.type.body
                 color: Theme.color.ink
             }
 
             Text {
-                text: "Ctrl+click to open"
+                text: editorArea.hoverSource !== null ? "@" + editorArea.hoverSource.id : "Ctrl+click to open"
                 font.family: Theme.type.ui
                 font.pixelSize: Theme.type.small
                 color: Theme.color.inkMuted
