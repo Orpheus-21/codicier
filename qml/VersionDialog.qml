@@ -4,8 +4,10 @@ import QtQuick
 import QtQuick.Templates as T
 
 // Saves a version of the project with a short message.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Save a version"
 
     required property ProjectSession session
     property string error: ""

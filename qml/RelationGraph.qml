@@ -9,6 +9,9 @@ import QtQuick.Shapes
 Item {
     id: graph
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Relationship graph"
+
     required property ProjectSession session
 
     // A click on an entity asks to open it.

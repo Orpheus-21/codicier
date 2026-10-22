@@ -8,6 +8,9 @@ import QtQuick.Templates as T
 Item {
     id: checklist
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Revision checklist"
+
     required property ProjectSession session
 
     property int pass: 0

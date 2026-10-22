@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // Sets the fields of an entity type, or makes a new type with its fields.
 // The types and their fields are saved in project.toml.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Type of the codex"
 
     required property ProjectSession session
     property var types: []

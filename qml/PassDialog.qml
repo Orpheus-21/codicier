@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // The draft passes: the list with the color of each, a new pass, and the
 // switch for the tints on the page.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Draft passes"
 
     required property ProjectSession session
     property var passes: []

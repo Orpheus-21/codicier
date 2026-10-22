@@ -8,6 +8,9 @@ import QtQuick
 Item {
     id: board
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Corkboard"
+
     required property ProjectSession session
     required property string itemId
 

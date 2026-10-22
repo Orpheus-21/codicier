@@ -115,6 +115,8 @@ TestCase {
             const dialog = createTemporaryObject(component, testCase) as T.Popup;
             dialog.open();
             tryVerify(() => dialog.opened);
+            compare(screenReader.role(dialog.contentItem.parent), Accessible.Dialog);
+            verify(screenReader.name(dialog.contentItem.parent) !== "");
             compare(faults(dialog.contentItem), []);
             dialog.close();
         }
@@ -174,6 +176,11 @@ TestCase {
         const ids = ["board", "outline", "beats", "grid", "timeline", "insights", "family", "relations",
                      "calendar", "progress", "codex", "inbox", "checklist", "changes", "passes",
                      "versions.list", "help", "names", "palette", "search"];
+        const panes = { "board": "corkboardView", "outline": "outlinerView", "beats": "beatBoard",
+                        "grid": "plotGridView", "timeline": "timelineView", "insights": "insightsView",
+                        "family": "familyTree", "relations": "relationGraph", "checklist": "checklistView",
+                        "codex": "codexPanel", "inbox": "inboxPanel", "changes": "changesPanel",
+                        "versions.list": "versionsPanel", "search": "searchPanel" };
         let all = [];
         for (const id of ids) {
             const command = view.commands.find(each => each.id === id);
@@ -187,6 +194,11 @@ TestCase {
             const overlay = view.T.Overlay.overlay;
             const popup = overlay.children.some(child => child.visible);
             const root = popup ? overlay : view;
+            // The screen reader gets a name and a role for the dialog or the view.
+            const shown = popup ? overlay.children.find(child => child.visible && String(child).startsWith("QQuickPopupItem"))
+                                : findChild(view, panes[id]) as Item;
+            if (!shown || screenReader.name(shown) === "" || ![Accessible.Dialog, Accessible.Pane, Accessible.List].includes(screenReader.role(shown)))
+                all.push(id + ": no name or role for the screen reader");
             all = all.concat(faults(root).map(f => id + ": " + f));
             all = all.concat(tabFaults(80).map(f => id + ": " + f));
             if (popup)

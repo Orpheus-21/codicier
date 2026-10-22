@@ -8,6 +8,9 @@ import QtQuick
 Item {
     id: panel
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Changes"
+
     required property ProjectSession session
 
     // Escape in the panel.

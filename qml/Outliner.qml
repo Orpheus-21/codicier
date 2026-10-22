@@ -9,6 +9,9 @@ import QtQuick.Templates as T
 Item {
     id: outliner
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Outliner"
+
     required property ProjectSession session
     required property string itemId
 

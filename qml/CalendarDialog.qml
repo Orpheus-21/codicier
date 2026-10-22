@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // Sets the calendar of story time: one month on each line, with its name
 // and its number of days. No months is the Gregorian calendar.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Calendar of the story"
 
     required property ProjectSession session
     property string error: ""

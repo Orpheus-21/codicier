@@ -13,6 +13,9 @@ import QtQuick.Templates as T
 Pane {
     id: inspector
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Inspector"
+
     required property ProjectSession session
 
     // The author wants to compare the text with a snapshot.

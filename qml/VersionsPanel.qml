@@ -8,6 +8,9 @@ import QtQuick.Templates as T
 Item {
     id: panel
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Versions"
+
     required property ProjectSession session
 
     // Escape in the panel.

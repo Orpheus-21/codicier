@@ -4,8 +4,10 @@ import QtQuick
 import QtQuick.Templates as T
 
 // Makes a new project from a template: a title, a kind, and an author.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "New project"
 
     required property ProjectList projects
     property string kind: "novel"

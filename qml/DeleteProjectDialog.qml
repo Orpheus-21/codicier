@@ -6,22 +6,24 @@ import QtQuick.Templates as T
 // Deletes a project for good, after the author types its title by hand.
 // Paste and every other insert of more than one character do not work, so a
 // delete cannot happen by accident.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Delete the project"
 
     required property ProjectList projects
     property string folder: ""
-    property string title: ""
+    property string projectTitle: ""
     property string error: ""
 
-    function ask(projectFolder: string, projectTitle: string) {
+    function ask(projectFolder: string, name: string) {
         folder = projectFolder;
-        title = projectTitle;
+        projectTitle = name;
         open();
     }
 
     function remove() {
-        if (field.text !== title)
+        if (field.text !== projectTitle)
             return;
         error = projects.remove(folder, Settings.backupFolder);
         if (error === "")
@@ -59,7 +61,7 @@ T.Popup {
         Text {
             width: parent.width
             wrapMode: Text.Wrap
-            text: "Delete " + dialog.title + "?"
+            text: "Delete " + dialog.projectTitle + "?"
             font.family: Theme.type.reading
             font.pixelSize: Theme.type.title
             color: Theme.color.ink
@@ -77,7 +79,7 @@ T.Popup {
         Text {
             width: parent.width
             wrapMode: Text.Wrap
-            text: "Type the title of the project to confirm: <b>" + dialog.title.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</b>"
+            text: "Type the title of the project to confirm: <b>" + dialog.projectTitle.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</b>"
             textFormat: Text.StyledText
             font.family: Theme.type.ui
             font.pixelSize: Theme.type.body
@@ -137,7 +139,7 @@ T.Popup {
                 objectName: "confirmDelete"
                 kind: "primary"
                 text: "Delete for good"
-                enabled: field.text === dialog.title
+                enabled: field.text === dialog.projectTitle
                 onClicked: dialog.remove()
             }
         }

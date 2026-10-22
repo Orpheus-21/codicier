@@ -8,6 +8,9 @@ import QtQuick
 Item {
     id: board
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Beat board"
+
     required property ProjectSession session
 
     // A click on a scene asks to open it.

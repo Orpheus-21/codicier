@@ -727,6 +727,7 @@ Item {
             SearchPanel {
                 id: search
 
+                objectName: "searchPanel"
                 visible: view.searchOpen
                 anchors.top: projectButton.bottom
                 anchors.topMargin: Theme.space.s

@@ -8,6 +8,8 @@ import QtQuick.Templates as T
 ListView {
     id: binder
 
+    Accessible.name: "Binder"
+
     required property ProjectSession session
 
     // Enter opened an item. The view moves the focus to the page.

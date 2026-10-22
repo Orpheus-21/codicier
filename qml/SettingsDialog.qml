@@ -5,8 +5,10 @@ import QtQuick.Dialogs
 import QtQuick.Templates as T
 
 // The settings of the app. Each change applies at once and is saved.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Settings"
 
     // The template has no size of its own: take the content plus padding,
     // but never more than the window.

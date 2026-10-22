@@ -12,6 +12,9 @@ import QtQuick.Templates as T
 Item {
     id: canvas
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Idea canvas"
+
     required property ProjectSession session
     // The canvas item, or "" when the view is hidden.
     required property string itemId

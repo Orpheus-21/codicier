@@ -10,6 +10,9 @@ import QtQuick.Templates as T
 Item {
     id: map
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Map"
+
     required property ProjectSession session
     required property string itemId
 

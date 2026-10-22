@@ -4,8 +4,10 @@ import QtQuick
 import QtQuick.Templates as T
 
 // Adds a comment on the selected words of a text.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Comment"
 
     required property ProjectSession session
     property string itemId: ""

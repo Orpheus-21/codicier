@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // Makes names for characters from the name lists of Wikidata. A click on a
 // name adds it to the codex as a new character.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Names for characters"
 
     required property ProjectSession session
     property string culture: "English"

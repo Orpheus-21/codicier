@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // Every command of the project view and its key, in groups. The keys come
 // from the key map, so a key that the author changed shows here.
-T.Popup {
+T.Dialog {
     id: sheet
+
+    title: "Keys"
 
     // The commands of the view: id, name, and sequence.
     required property var commands

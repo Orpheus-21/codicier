@@ -8,6 +8,9 @@ import QtQuick
 Item {
     id: timeline
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Timeline"
+
     required property ProjectSession session
 
     // A click on a card asks to open the item.

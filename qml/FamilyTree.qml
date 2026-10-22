@@ -9,6 +9,9 @@ import QtQuick.Shapes
 Item {
     id: tree
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Family tree"
+
     required property ProjectSession session
 
     // A click on a person asks to open the entity.

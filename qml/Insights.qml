@@ -9,6 +9,9 @@ import "Reading.js" as Reading
 Item {
     id: insights
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Insights"
+
     required property ProjectSession session
 
     // A click on a chapter or a scene asks to open it.

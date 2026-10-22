@@ -9,6 +9,9 @@ import QtQuick.Templates as T
 Item {
     id: panel
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Codex"
+
     required property ProjectSession session
 
     // A click or Enter on an entity.

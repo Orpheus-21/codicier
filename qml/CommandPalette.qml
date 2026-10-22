@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // Finds a command or a binder item by name. Up and Down choose, and Enter
 // runs the command or opens the item.
-T.Popup {
+T.Dialog {
     id: finder
+
+    title: "Find a command or an item"
 
     required property ProjectSession session
     // The commands of the view: each has a name, a key, and a run function.

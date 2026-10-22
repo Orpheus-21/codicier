@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // Chooses the spelling language of the project from the dictionaries on
 // this computer.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Language of the project"
 
     required property ProjectSession session
     property var names: []

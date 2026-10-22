@@ -11,6 +11,9 @@ import QtQuick.Templates as T
 Item {
     id: panel
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Search"
+
     required property ProjectSession session
 
     // A click or Enter on a result.

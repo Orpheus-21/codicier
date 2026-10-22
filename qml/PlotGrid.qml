@@ -8,6 +8,9 @@ import QtQuick
 Item {
     id: grid
 
+    Accessible.role: Accessible.Pane
+    Accessible.name: "Plot grid"
+
     required property ProjectSession session
 
     property var scenes: []

@@ -5,8 +5,10 @@ import QtQuick.Templates as T
 
 // The goals and the progress of the writing: the session target, the goal
 // and deadline of the project, the history, and the sprint timer.
-T.Popup {
+T.Dialog {
     id: dialog
+
+    title: "Goals and progress"
 
     required property ProjectSession session
     // True while a sprint runs. The view owns the timer.
