@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDateTime>
 #include <QString>
 
 // Zip backups of a project folder.
@@ -17,5 +18,9 @@ QString write(const QString &projectFolder, const QString &backupFolder, int kee
 // the same folder name stay. Returns the number of deleted zips, or -1 with
 // the reason in error.
 int removeAll(const QString &projectFolder, const QString &backupFolder, QString *error = nullptr);
+
+// The time of the newest zip of the project in the backup folder, or an
+// invalid time when it has none.
+QDateTime latest(const QString &projectFolder, const QString &backupFolder);
 
 } // namespace Backup

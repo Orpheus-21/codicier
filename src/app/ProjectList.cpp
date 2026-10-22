@@ -266,6 +266,18 @@ QString ProjectList::createSample()
     return { };
 }
 
+QString ProjectList::lastBackup(const QString &projectFolder, const QString &backupFolder)
+{
+    const QDateTime time = Backup::latest(projectFolder, backupFolder);
+    if (!time.isValid())
+        return { };
+    const QLocale english(QLocale::English, QLocale::UnitedKingdom);
+    const QString day = time.date() == QDate::currentDate()
+        ? QStringLiteral("today")
+        : english.toString(time.date(), QStringLiteral("d MMMM"));
+    return day + QStringLiteral(" at ") + time.toString(QStringLiteral("HH:mm"));
+}
+
 QVariantList ProjectList::templateOutline(const QString &kind)
 {
     const Project project = Templates::preview(kind);

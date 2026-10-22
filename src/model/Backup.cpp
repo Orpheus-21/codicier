@@ -134,6 +134,29 @@ QString write(const QString &projectFolder, const QString &backupFolder, int kee
     return target.filePath(zipName);
 }
 
+QDateTime latest(const QString &projectFolder, const QString &backupFolder)
+{
+    const QDir project(projectFolder);
+    const QString name = QFileInfo(project.absolutePath()).fileName();
+    const QDir target(QDir(backupFolder).filePath(name));
+    if (backupFolder.isEmpty() || !target.exists())
+        return { };
+    const QString created = createdIn(read(project.filePath(QStringLiteral("project.toml"))));
+    // The names sort by time, so the newest of this project is the first match
+    // from the end.
+    const QStringList zips = target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files,
+                                              QDir::Name | QDir::Reversed);
+    for (const QString &zip : zips) {
+        const QByteArray toml
+            = QZipReader(target.filePath(zip)).fileData(name + QStringLiteral("/project.toml"));
+        if (createdIn(toml) != created)
+            continue;
+        const QString stamp = zip.mid(name.size() + 1).chopped(4);
+        return QDateTime::fromString(stamp, QStringLiteral("yyyy-MM-ddTHH-mm-ss-zzz"));
+    }
+    return { };
+}
+
 int removeAll(const QString &projectFolder, const QString &backupFolder, QString *error)
 {
     const QDir project(projectFolder);

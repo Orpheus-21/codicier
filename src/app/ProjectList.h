@@ -74,6 +74,10 @@ public:
     // The binder of a new project of the kind: title, kind, section, and
     // depth for each item, in binder order.
     Q_INVOKABLE static QVariantList templateOutline(const QString &kind);
+    // When the newest backup of a project in the backup folder was made, as
+    // "today at 14:05" or "3 March at 14:05", or "" with no backup.
+    Q_INVOKABLE static QString lastBackup(const QString &projectFolder,
+                                          const QString &backupFolder);
     // Deletes a project for good: its folder and its backups in
     // backupFolder, with no copy in a trash. The folder must be a project
     // directly in the workspace. Returns an error text, or "".

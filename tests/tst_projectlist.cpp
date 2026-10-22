@@ -141,6 +141,18 @@ private slots:
         QVERIFY(QFileInfo(dir.filePath("the-lighthouse-keeper-2/binder.toml")).isWritable());
     }
 
+    void lastBackupNamesTheNewestZip()
+    {
+        QTemporaryDir work;
+        QTemporaryDir backups;
+        const QString project = work.filePath("lamp");
+        QVERIFY(Templates::create(project, "novel", "Lamp", "").isEmpty());
+        QCOMPARE(ProjectList::lastBackup(project, backups.path()), QString());
+        QVERIFY(!Backup::write(project, backups.path(), 5).isEmpty());
+        QVERIFY(ProjectList::lastBackup(project, backups.path()).startsWith("today at "));
+        QCOMPARE(ProjectList::lastBackup(project, QString()), QString());
+    }
+
     void templateOutlineFollowsTheBinder()
     {
         const QVariantList novel = ProjectList::templateOutline("novel");

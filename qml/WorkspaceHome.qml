@@ -320,6 +320,17 @@ Item {
                               : ""
                     }
                 }
+
+                // The safety of the work: when the last zip backup was made.
+                Muted {
+                    objectName: "lastBackup"
+                    readonly property string when: continueBlock.latest.folder
+                        ? projectList.lastBackup(continueBlock.latest.folder, Settings.backupFolder) : ""
+
+                    text: Settings.backupFolder === "" ? "Backups are off. Settings can turn them on."
+                        : when !== "" ? "Last backup " + when + ", in " + Settings.backupFolder
+                        : "No backup yet. One is made when the project closes."
+                }
             }
 
             // An empty workspace.
