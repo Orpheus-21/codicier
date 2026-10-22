@@ -138,6 +138,21 @@ private slots:
         QCOMPARE(formatAt(*document, 2).background().style(), Qt::NoBrush);
     }
 
+    void codexNamesHaveAQuietUnderline()
+    {
+        highlighter->setNames({ "Mara", "Mara Vell" });
+        document->setPlainText(QStringLiteral("Then mara vell said no."));
+        QCOMPARE(formatAt(*document, 5).underlineStyle(), QTextCharFormat::SingleUnderline);
+        QCOMPARE(formatAt(*document, 12).underlineStyle(), QTextCharFormat::SingleUnderline);
+        QCOMPARE(formatAt(*document, 0).underlineStyle(), QTextCharFormat::NoUnderline);
+        // A name inside another word does not count.
+        document->setPlainText(QStringLiteral("Amarante"));
+        QCOMPARE(formatAt(*document, 1).underlineStyle(), QTextCharFormat::NoUnderline);
+        highlighter->setNames({ });
+        document->setPlainText(QStringLiteral("Mara"));
+        QCOMPARE(formatAt(*document, 0).underlineStyle(), QTextCharFormat::NoUnderline);
+    }
+
     void headingIsLargerAndBold()
     {
         document->setPlainText(QStringLiteral("## Chapter 1"));

@@ -194,6 +194,9 @@ public:
     Q_INVOKABLE QString entityByName(const QString &name) const;
     // The entity of the [[link]] at position in text, or "".
     Q_INVOKABLE QString entityAt(const QString &text, int position) const;
+    // The start of the text of an entity: its first paragraph, up to 200
+    // characters. For the card that shows over a name on the page.
+    Q_INVOKABLE QString summaryOf(const QString &id) const;
     // The texts of the manuscript that name the entity, by its title or an
     // alias, as whole words with no regard to case, in binder order. Each
     // has an id, a title, and the count of mentions.
@@ -445,6 +448,11 @@ private:
     // Teaches the checker the words of dictionary.txt and of the names of
     // the codex.
     void teachSpelling();
+    // The titles and aliases of the entities outside the trash.
+    QStringList entityNames() const;
+    // The pattern that finds those names as whole words, longest first.
+    static QRegularExpression namePattern(const QStringList &names);
+    QStringList knownNames;
     int historyTotal = 0;
     // The search index builds at the first search after a load or a binder
     // edit. Between those, only the files that changed are read again.

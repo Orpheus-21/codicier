@@ -111,6 +111,8 @@ public:
     void setStyleChecks(int checks);
     // True hides the Markdown marks on the page. See MarkdownHighlighter.
     void setHideMarks(bool hide);
+    // The names of the codex, which the page underlines.
+    void setEntityNames(const QStringList &names);
     // The cursor of the page, or -1 when the page has no focus. Its
     // paragraph shows its Markdown marks.
     Q_INVOKABLE void cursorAt(int position);
@@ -147,6 +149,7 @@ private:
     const SpellChecker *spell = nullptr;
     int styleChecks = 0;
     bool hideMarks = false;
+    QStringList entityNames;
     int cursorBlock = -1;
     int cursorOffset = 0;
     int scopeOfFocus = 0;

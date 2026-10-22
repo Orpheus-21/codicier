@@ -1013,6 +1013,28 @@ private slots:
         QVERIFY(session->synonyms("lamp").isEmpty());
     }
 
+    void plainNamesFindTheirEntity()
+    {
+        const QString id = session->add("character");
+        QVERIFY(session->rename(id, "Mara Vell"));
+        QVERIFY(session->setField(id, "aliases", QStringList { "the clerk" }));
+        const QString text = QStringLiteral("Then Mara Vell met the clerk.");
+        QCOMPARE(session->entityAt(text, 7), id);
+        QCOMPARE(session->entityAt(text, 24), id);
+        QVERIFY(session->entityAt(text, 1).isEmpty());
+        QVERIFY(session->summaryOf("no-such-item").isEmpty());
+        // The summary is the first paragraph of the text of the entity. Another
+        // item opens first, so the file holds the text.
+        session->setCurrentId("m1n2p3q4r5");
+        const QString file = session->fields(id).value("file").toString();
+        QFile out(QDir(session->folder()).filePath(file));
+        QVERIFY(out.open(QIODevice::WriteOnly));
+        out.write("A clerk of the river office.\nShe keeps the ledgers.\n\nBorn in Varn.\n");
+        out.close();
+        QCOMPARE(session->summaryOf(id),
+                 QStringLiteral("A clerk of the river office. She keeps the ledgers."));
+    }
+
     void projectDictionaryAndCodexNames()
     {
         QCOMPARE(session->dictionary(), QStringLiteral("en_TEST"));

@@ -133,6 +133,7 @@ void ProjectSession::setFolder(const QString &folder)
         thesaurus = std::make_unique<Thesaurus>(language);
     }
     teachSpelling();
+    knownNames = entityNames();
     applySpelling();
     emit spellChanged();
     emit versionsChanged();
@@ -366,6 +367,11 @@ bool ProjectSession::commit(const QStringList &newFiles)
     binderModel.setProject(project);
     // A new or renamed entity is a word of the story.
     teachSpelling();
+    // The pages underline the names of the codex.
+    if (const QStringList names = entityNames(); names != knownNames) {
+        knownNames = names;
+        applySpelling();
+    }
     emit edited();
     return errors.isEmpty();
 }
@@ -1198,7 +1204,54 @@ QString ProjectSession::entityAt(const QString &text, int position) const
         if (position >= match.capturedStart() && position <= match.capturedEnd())
             return entityByName(match.captured(1));
     }
+    // A plain name of the codex, with no brackets.
+    if (knownNames.isEmpty())
+        return { };
+    it = namePattern(knownNames).globalMatch(text);
+    while (it.hasNext()) {
+        const QRegularExpressionMatch match = it.next();
+        if (position >= match.capturedStart() && position < match.capturedEnd())
+            return entityByName(match.captured(1));
+    }
     return { };
+}
+
+QStringList ProjectSession::entityNames() const
+{
+    QStringList names;
+    for (const ProjectItem &item : project.items) {
+        if (!isEntity(item.kind) || item.section == QLatin1String("trash"))
+            continue;
+        names.append(item.title.trimmed());
+        for (const QString &alias : strings(item.data.get("aliases")))
+            names.append(alias.trimmed());
+    }
+    names.removeAll(QString());
+    names.removeDuplicates();
+    return names;
+}
+
+QRegularExpression ProjectSession::namePattern(const QStringList &names)
+{
+    QStringList escaped;
+    for (const QString &name : names)
+        escaped.append(QRegularExpression::escape(name));
+    // The longest name first, so "Mara Vell" wins over "Mara".
+    std::ranges::sort(escaped,
+                      [](const QString &a, const QString &b) { return a.size() > b.size(); });
+    return QRegularExpression(
+        QStringLiteral("(?<!\\w)(") + escaped.join(u'|') + QStringLiteral(")(?!\\w)"),
+        QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
+}
+
+QString ProjectSession::summaryOf(const QString &id) const
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.items.at(index).file.isEmpty())
+        return { };
+    const QString paragraph
+        = textOf(index).trimmed().section(QStringLiteral("\n\n"), 0, 0).simplified();
+    return paragraph.size() > 200 ? paragraph.left(199).trimmed() + u'\u2026' : paragraph;
 }
 
 QVariantList ProjectSession::mentionsOf(const QString &id)
@@ -1687,11 +1740,13 @@ void ProjectSession::applySpelling()
     text.setSpellChecker(checker);
     text.setStyleChecks(checksOfStyle);
     text.setHideMarks(marksHidden);
+    text.setEntityNames(knownNames);
     for (const QPointer<Document> &document : std::as_const(tracked)) {
         if (document) {
             document->setSpellChecker(checker);
             document->setStyleChecks(checksOfStyle);
             document->setHideMarks(marksHidden);
+            document->setEntityNames(knownNames);
         }
     }
 }
@@ -2633,6 +2688,7 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
     document->setSpellChecker(checkSpelling ? spell.get() : nullptr);
     document->setStyleChecks(checksOfStyle);
     document->setHideMarks(marksHidden);
+    document->setEntityNames(knownNames);
     connect(document, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);

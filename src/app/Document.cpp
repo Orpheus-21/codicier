@@ -95,6 +95,7 @@ void Document::attach(QTextDocument *value)
     highlighter->setSpellChecker(spell);
     highlighter->setStyleChecks(styleChecks);
     highlighter->setHideMarks(hideMarks);
+    highlighter->setNames(entityNames);
     highlighter->setShownBlock(cursorBlock, cursorOffset);
     highlighter->setFocusScope(scopeOfFocus);
     setPasses(passes);
@@ -164,6 +165,13 @@ void Document::setFocusScope(int scope)
     if (highlighter != nullptr)
         highlighter->setFocusScope(scope);
     emit styleChanged();
+}
+
+void Document::setEntityNames(const QStringList &names)
+{
+    entityNames = names;
+    if (highlighter != nullptr)
+        highlighter->setNames(names);
 }
 
 void Document::setHideMarks(bool hide)

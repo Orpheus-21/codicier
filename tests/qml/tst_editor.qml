@@ -474,6 +474,25 @@ TestCase {
         verify(!marker.visible);
     }
 
+    function test_hoverOverACodexNameShowsItsCard() {
+        const view = makeView();
+        const id = view.session.add("character");
+        verify(view.session.rename(id, "Elin"));
+        const scene = view.session.items().find(item => item.kind === "scene").id;
+        view.session.currentId = scene;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "Then Elin climbed.";
+        waitForRendering(text);
+        const card = findChild(view, "entityCard") as Rectangle;
+        verify(!card.visible);
+        const rect = text.positionToRectangle(6);
+        mouseMove(text, rect.x + 2, rect.y + rect.height / 2);
+        tryVerify(() => card.visible);
+        // Ctrl+click on the name opens the entry.
+        mouseClick(text, rect.x + 2, rect.y + rect.height / 2, Qt.LeftButton, Qt.ControlModifier);
+        tryCompare(view.session, "currentId", id);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

@@ -50,6 +50,8 @@ public:
     // True draws the Markdown marks (the # of a heading, the stars of bold
     // and italic) at 1 px with no colour. The text keeps them.
     void setHideMarks(bool hide);
+    // The names of the codex. Each one has a quiet underline on the page.
+    void setNames(const QStringList &names);
     // The block that shows its marks while the others hide them: the block
     // with the cursor, or -1 for none. offset is the cursor in the block.
     void setShownBlock(int block, int offset = 0);
@@ -73,6 +75,9 @@ private:
     QTextCharFormat markOver(QTextCharFormat base) const;
 
     bool hideMarks = false;
+    QStringList nameList;
+    QRegularExpression names;
+    QTextCharFormat nameFormat;
     int shownBlock = -1;
     int shownOffset = 0;
     int focusScope = 0;

@@ -43,6 +43,22 @@ Item {
     property int wordStart: -1
     property int wordEnd: -1
     property var wordSuggestions: []
+    // The entity of the codex under the pointer, and the place of the pointer
+    // on the page.
+    property string hoverId: ""
+    property point hoverPoint: Qt.point(0, 0)
+
+    Timer {
+        id: hoverTimer
+
+        interval: 400
+        onTriggered: {
+            if (!editorArea.session)
+                return;
+            const at = textEdit.positionAt(editorArea.hoverPoint.x, editorArea.hoverPoint.y);
+            editorArea.hoverId = editorArea.session.entityAt(textEdit.text, at);
+        }
+    }
     property var wordSynonyms: []
 
     // Opens the menu of spelling suggestions for a misspelled word at
@@ -286,6 +302,20 @@ Item {
                     eventPoint.position.x, eventPoint.position.y)
             }
 
+            // A pause over a name of the codex shows its card.
+            HoverHandler {
+                onPointChanged: {
+                    editorArea.hoverPoint = point.position;
+                    hoverTimer.restart();
+                }
+                onHoveredChanged: {
+                    if (!hovered) {
+                        hoverTimer.stop();
+                        editorArea.hoverId = "";
+                    }
+                }
+            }
+
             TapHandler {
                 acceptedModifiers: Qt.ControlModifier
                 onTapped: eventPoint => {
@@ -483,5 +513,61 @@ Item {
     function openFind(replace: bool) {
         if (editorArea.document.file !== "")
             findBar.open(replace);
+    }
+
+    // The card of a codex entry under the pointer.
+    Rectangle {
+        id: entityCard
+
+        objectName: "entityCard"
+        readonly property point place: textEdit.mapToItem(editorArea, editorArea.hoverPoint.x,
+                                                          editorArea.hoverPoint.y)
+
+        visible: editorArea.hoverId !== ""
+        z: 6
+        x: Math.min(place.x + Theme.space.m, editorArea.width - width - Theme.space.s)
+        y: place.y + Theme.space.l
+        width: 300
+        height: cardColumn.implicitHeight + 2 * Theme.space.m
+        radius: Theme.radius.medium
+        color: Theme.color.surface
+        border.width: 1
+        border.color: Theme.color.rule
+
+        Column {
+            id: cardColumn
+
+            x: Theme.space.m
+            y: Theme.space.m
+            width: parent.width - 2 * Theme.space.m
+            spacing: Theme.space.xs
+
+            Text {
+                width: parent.width
+                text: entityCard.visible ? (editorArea.session.fields(editorArea.hoverId).title ?? "") : ""
+                elide: Text.ElideRight
+                font.family: Theme.type.reading
+                font.pixelSize: Theme.type.large
+                color: Theme.color.ink
+            }
+
+            Text {
+                objectName: "entitySummary"
+                visible: text !== ""
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: entityCard.visible ? editorArea.session.summaryOf(editorArea.hoverId) : ""
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.ink
+            }
+
+            Text {
+                text: "Ctrl+click to open"
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.small
+                color: Theme.color.inkMuted
+            }
+        }
     }
 }

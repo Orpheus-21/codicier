@@ -117,6 +117,18 @@ void MarkdownHighlighter::styleBlock(const QString &text)
     styleSpans(text, footnote, 0, footnoteFormat);
     styleSpans(text, link, 2, linkFormat);
     styleSpans(text, highlight, 2, highlightFormat);
+    // The names of the codex: a quiet underline in the mark colour.
+    if (!nameList.isEmpty()) {
+        auto found = names.globalMatch(text);
+        while (found.hasNext()) {
+            const QRegularExpressionMatch match = found.next();
+            const auto start = static_cast<int>(match.capturedStart());
+            QTextCharFormat merged = format(start);
+            merged.setUnderlineStyle(QTextCharFormat::SingleUnderline);
+            merged.setUnderlineColor(markFormat.foreground().color());
+            setFormat(start, static_cast<int>(match.capturedLength()), merged);
+        }
+    }
     tintPasses(text);
     // The comments: a dotted line in the accent color under the quote.
     const int first = currentBlock().position();
@@ -275,6 +287,26 @@ void MarkdownHighlighter::checkSpelling(const QString &text)
         merged.setUnderlineColor(linkFormat.foreground().color());
         setFormat(static_cast<int>(start), static_cast<int>(match.capturedLength()), merged);
     }
+}
+
+void MarkdownHighlighter::setNames(const QStringList &list)
+{
+    if (list == nameList)
+        return;
+    nameList = list;
+    QStringList escaped;
+    for (const QString &name : list)
+        escaped.append(QRegularExpression::escape(name));
+    // The longest name first, so "Mara Vell" wins over "Mara".
+    std::ranges::sort(escaped,
+                      [](const QString &a, const QString &b) { return a.size() > b.size(); });
+    names = escaped.isEmpty()
+        ? QRegularExpression()
+        : QRegularExpression(QStringLiteral("(?<!\\w)(") + escaped.join(u'|')
+                                 + QStringLiteral(")(?!\\w)"),
+                             QRegularExpression::CaseInsensitiveOption
+                                 | QRegularExpression::UseUnicodePropertiesOption);
+    rehighlight();
 }
 
 void MarkdownHighlighter::setHideMarks(bool hide)
