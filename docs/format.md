@@ -26,7 +26,8 @@ the-salt-ledger/
     notes/              one Markdown file for each note
     research/           any files: images, PDF files, and other documents
     snapshots/          copies of a text at a moment, one folder for each item
-    history.toml        the words that the author wrote on each day
+    canvases/           one TOML file for each idea canvas
+    history.toml        the words and the minutes of writing of each day
     dictionary.txt      the words of the project for the spell check, one on each line
     .codicier/          app data that the app can build again or lose with no harm
 ```
@@ -303,3 +304,7 @@ A file in `canvases/` holds one idea canvas. It has `format = 1`, then a `[[node
 | `text` | string | node | The text of a note. |
 | `item` | string | node | The id of the text that a card shows. A node with an item is a card. |
 | `from`, `to` | string | edge | The ids of the two nodes of a line. |
+
+## history.toml
+
+The history has a `[days]` table with the net words that the author added to the manuscript on each day, and a `[minutes]` table with the minutes of writing on each day. A minute with an edit counts. The keys are dates, such as `2026-10-22`.
