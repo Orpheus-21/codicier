@@ -161,6 +161,10 @@ Ctrl+Alt+A makes names for characters: real names, or names invented in the styl
 
 On the page, the names and aliases of the codex have a quiet underline. A pause over a name shows the start of its entry, and Ctrl+click opens it. The corkboard can colour each card by its point of view character, and the inspector of a scene has optional fields for its goal, conflict, and outcome.
 
+The corkboard shows the cards in a grid or free. On the free board, drag a card anywhere; a card dropped on another one forms a stack. The board keeps the place of each card.
+
+"New idea canvas" in the add menu of the binder makes a canvas with the notes. Double-click the canvas for a note, add cards of the texts of the manuscript, and drag from the dot on the right of a node to another node to draw a line. Click a node and press Delete to remove it. The canvas saves to a file in `canvases/`.
+
 The project menu turns on numbers for the chapters and the scenes in the binder and the outliner. The titles do not change.
 
 Right-click a misspelled word on the page to see spelling suggestions. Right-click a correct word to see its synonyms from the thesaurus. Click a word in the list to put it in place of the word on the page.
