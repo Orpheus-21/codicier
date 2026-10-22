@@ -14,6 +14,8 @@ finish-args:
   - --socket=fallback-x11
   - --share=ipc
   - --device=dri
+  # The daily reminder is a desktop notification. It stays on the computer.
+  - --talk-name=org.freedesktop.Notifications
   # A project folder can be anywhere in the home folder.
   - --filesystem=home
 cleanup:
