@@ -282,7 +282,7 @@ Click the settings button on the workspace screen to change these settings. Each
 | Setting | Default | What it does |
 |---|---|---|
 | Theme | System | System, Light, Dark, Sepia, Night, Mist, or High contrast. System follows the light or dark setting of the system. In High contrast, all text has a contrast of 7 to 1 or more. |
-| Accent colour | Theme | Theme, Blue, Green, Plum, or Red. The colour of links, marks, and the focus ring. High contrast keeps its own accent. |
+| Accent colour | Theme | Theme, Blue, Green, Plum, or Red. The colour of links, the main buttons, and the focus ring. High contrast keeps its own accent. |
 | Font of the text | Literata | The font of the page. The list shows the fonts of the computer. |
 | Font of the menus | Inter | The font of the binder, the inspector, and the menus. |
 | Size of the text | 19 px | The size of the text on the page, from 14 px to 28 px. |
