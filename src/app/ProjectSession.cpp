@@ -578,7 +578,24 @@ QVariantMap ProjectSession::insights()
         QRegularExpression pattern;
     };
     QList<Character> characters;
+    // Every entity of the codex, for the names group. The words of the names
+    // stay out of the most used words.
+    QList<Character> entities;
+    QHash<QString, int> named;
+    QSet<QString> nameWords;
+    static const QRegularExpression notLetters(QStringLiteral("[^\\p{L}'’]+"),
+                                               QRegularExpression::UseUnicodePropertiesOption);
+    for (const QString &name : std::as_const(knownNames)) {
+        for (const QString &part : name.split(notLetters, Qt::SkipEmptyParts))
+            nameWords.insert(part.toLower());
+    }
     for (const ProjectItem &item : std::as_const(project.items)) {
+        if (isEntity(item.kind) && !binderModel.isInTrash(item.id)) {
+            QStringList names = strings(item.data.get("aliases"));
+            names.prepend(item.title);
+            names.removeAll(QString());
+            entities.append({ item.id, item.title, namePattern(names) });
+        }
         if (item.kind != QLatin1String("character") || binderModel.isInTrash(item.id))
             continue;
         QStringList names = strings(item.data.get("aliases"));
@@ -627,10 +644,17 @@ QVariantMap ProjectSession::insights()
                     }
                     present[c] = count;
                 }
+                for (const Character &entity : std::as_const(entities)) {
+                    QRegularExpressionMatchIterator found = entity.pattern.globalMatch(body);
+                    while (found.hasNext()) {
+                        found.next();
+                        ++named[entity.id];
+                    }
+                }
                 QRegularExpressionMatchIterator words = wordPattern.globalMatch(body);
                 while (words.hasNext()) {
                     const QString word = words.next().captured().toLower();
-                    if (word.size() > 2 && !stopWords.contains(word))
+                    if (word.size() > 2 && !stopWords.contains(word) && !nameWords.contains(word))
                         ++frequency[word];
                 }
             }
@@ -670,6 +694,21 @@ QVariantMap ProjectSession::insights()
     for (qsizetype i = 0; i < std::min<qsizetype>(30, ranked.size()); ++i)
         common.append(QVariantMap { { QStringLiteral("word"), ranked.at(i).first },
                                     { QStringLiteral("count"), ranked.at(i).second } });
+    // The names of the codex, most named first.
+    QList<const Character *> byCount;
+    for (const Character &entity : std::as_const(entities)) {
+        if (named.value(entity.id) > 0)
+            byCount.append(&entity);
+    }
+    std::ranges::sort(byCount, [&named](const Character *a, const Character *b) {
+        return named.value(a->id) != named.value(b->id) ? named.value(a->id) > named.value(b->id)
+                                                        : a->title < b->title;
+    });
+    QVariantList names;
+    for (const Character *entity : std::as_const(byCount))
+        names.append(QVariantMap { { QStringLiteral("id"), entity->id },
+                                   { QStringLiteral("word"), entity->title },
+                                   { QStringLiteral("count"), named.value(entity->id) } });
     QVariantList people;
     for (const Character &character : std::as_const(characters))
         people.append(QVariantMap { { QStringLiteral("id"), character.id },
@@ -677,6 +716,7 @@ QVariantMap ProjectSession::insights()
     return { { QStringLiteral("chapters"), chapters },
              { QStringLiteral("povNames"), povNames },
              { QStringLiteral("words"), common },
+             { QStringLiteral("names"), names },
              { QStringLiteral("characters"), people } };
 }
 

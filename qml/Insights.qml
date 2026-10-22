@@ -346,6 +346,26 @@ Item {
             }
 
             Heading {
+                visible: (insights.figures.names ?? []).length > 0
+                text: "Names of the codex"
+            }
+
+            Repeater {
+                model: insights.figures.names ?? []
+
+                Bar {
+                    required property var modelData
+
+                    objectName: "frequentName"
+                    child: true
+                    label: modelData.word
+                    value: modelData.count
+                    maximum: insights.figures.names[0].count
+                    itemId: modelData.id
+                }
+            }
+
+            Heading {
                 text: "Dialogue"
             }
 

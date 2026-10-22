@@ -1567,6 +1567,26 @@ private slots:
         QCOMPARE(letter.value("dialogue").toDouble(), 4.0 / words);
     }
 
+    void insightsKeepNamesApart()
+    {
+        const QString salt = session->add("character");
+        QVERIFY(session->rename(salt, "Salt Vane"));
+        QVERIFY(session->setField(salt, "aliases", QStringList { "the clerk" }));
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText("Salt Vane wrote. The clerk wrote. Vane wrote again.");
+        const QVariantMap figures = session->insights();
+        QStringList words;
+        for (const QVariant &each : figures.value("words").toList())
+            words.append(each.toMap().value("word").toString());
+        QVERIFY(words.contains("wrote"));
+        QVERIFY(!words.contains("salt") && !words.contains("vane") && !words.contains("clerk"));
+        const QVariantMap first = figures.value("names").toList().first().toMap();
+        QCOMPARE(first.value("word").toString(), QStringLiteral("Salt Vane"));
+        QCOMPARE(first.value("count").toInt(), 2);
+    }
+
     void insightsGiveTheMostUsedWords()
     {
         session->setCurrentId("m1n2p3q4r5");
