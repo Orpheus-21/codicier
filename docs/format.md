@@ -155,6 +155,7 @@ Do not say so yet."""
 | `include` | boolean | text items | False leaves the item out of the manuscript: no total counts its words. The default is true, and the app writes the key only when it is false. |
 | `query` | string | saved searches | The text of the search. |
 | `regex` | boolean | saved searches | True makes the query a regular expression. The default is false, and the app writes the key only when it is true. |
+| `board-x`, `board-y` | integer | items | The place of the card on the free corkboard, in pixels from the top left. |
 | `notes` | string | all | Free notes for the item. |
 | `restore` | string | items in the trash | The id of the parent before the move to the trash. |
 
