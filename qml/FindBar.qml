@@ -23,7 +23,7 @@ Rectangle {
         replacing = withReplace;
         visible = true;
         const chosen = target.selectedText;
-        if (chosen !== "" && !chosen.includes(" "))
+        if (chosen !== "" && !chosen.includes("\u2029"))
             findField.text = chosen;
         findField.forceActiveFocus();
         findField.selectAll();
