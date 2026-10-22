@@ -252,38 +252,110 @@ T.Popup {
                 text: "History"
             }
 
-            // The net words of each of the last 26 weeks, oldest first, a
-            // column for each week. A darker square is a day with more words.
-            Grid {
-                id: heatMap
+            // The history with labels: the weekday of each row on the left and
+            // the month where a column starts one on top.
+            Row {
+                spacing: Theme.space.s
 
-                readonly property var days: dialog.opened ? dialog.session.historyDays(182) : []
-                // The most words of a day, 0 with no history.
-                readonly property int best: Math.max(0, ...days.map(day => day.words))
+                Column {
+                    // Under the month labels.
+                    topPadding: 18
+                    spacing: 3
 
-                objectName: "heatMap"
-                rows: 7
-                flow: Grid.TopToBottom
-                spacing: 3
+                    Repeater {
+                        model: heatMap.days.slice(0, 7)
 
-                Repeater {
-                    model: heatMap.days
+                        Text {
+                            required property var modelData
+                            required property int index
 
-                    Rectangle {
-                        required property var modelData
+                            height: 15
+                            verticalAlignment: Text.AlignVCenter
+                            // Every other row, so the labels stay apart.
+                            text: index % 2 === 0
+                                  ? Date.fromLocaleDateString(Qt.locale("en_GB"), modelData.date, "yyyy-MM-dd")
+                                        .toLocaleDateString(Qt.locale("en_GB"), "ddd")
+                                  : ""
+                            font.family: Theme.type.ui
+                            font.pixelSize: Theme.type.small - 1
+                            color: Theme.color.inkMuted
+                        }
+                    }
+                }
 
-                        width: 15
+                Column {
+                    spacing: 3
+
+                    Row {
+                        objectName: "monthLabels"
                         height: 15
-                        radius: 3
-                        // When the dialog closes, best falls to 0 before the cells go.
-                        color: modelData.words > 0
-                               ? Qt.alpha(Theme.color.accent,
-                                          0.25 + 0.75 * Math.min(1, modelData.words / Math.max(1, heatMap.best)))
-                               : Theme.color.surface
-                        border.width: modelData.words > 0 ? 0 : 1
-                        border.color: Theme.color.rule
-                        Accessible.role: Accessible.StaticText
-                        Accessible.name: modelData.date + ": " + modelData.words + " words"
+                        spacing: 3
+
+                        Repeater {
+                            // The first day of each column.
+                            model: heatMap.days.filter((day, at) => at % 7 === 0)
+
+                            Item {
+                                id: column
+
+                                required property var modelData
+                                required property int index
+                                // The month starts in this column. The first column has a label
+                                // too, unless a month starts soon after, where the two would touch.
+                                readonly property bool starts: heatMap.days.slice(index * 7, index * 7 + 7)
+                                    .some(day => day.date.endsWith("-01"))
+                                    || (index === 0 && !heatMap.days.slice(7, 21).some(day => day.date.endsWith("-01")))
+
+                                width: 15
+                                height: 15
+
+                                Text {
+                                    visible: column.starts
+                                    text: Date.fromLocaleDateString(Qt.locale("en_GB"),
+                                                                    heatMap.days[Math.min(heatMap.days.length - 1, column.index * 7 + 6)].date,
+                                                                    "yyyy-MM-dd").toLocaleDateString(Qt.locale("en_GB"), "MMM")
+                                    font.family: Theme.type.ui
+                                    font.pixelSize: Theme.type.small - 1
+                                    color: Theme.color.inkMuted
+                                }
+                            }
+                        }
+                    }
+
+                    // The net words of each of the last 26 weeks, oldest first, a
+                    // column for each week. A darker square is a day with more words.
+                    Grid {
+                        id: heatMap
+
+                        readonly property var days: dialog.opened ? dialog.session.historyDays(182) : []
+                        // The most words of a day, 0 with no history.
+                        readonly property int best: Math.max(0, ...days.map(day => day.words))
+
+                        objectName: "heatMap"
+                        rows: 7
+                        flow: Grid.TopToBottom
+                        spacing: 3
+
+                        Repeater {
+                            model: heatMap.days
+
+                            Rectangle {
+                                required property var modelData
+
+                                width: 15
+                                height: 15
+                                radius: 3
+                                // When the dialog closes, best falls to 0 before the cells go.
+                                color: modelData.words > 0
+                                       ? Qt.alpha(Theme.color.accent,
+                                                  0.25 + 0.75 * Math.min(1, modelData.words / Math.max(1, heatMap.best)))
+                                       : Theme.color.surface
+                                border.width: modelData.words > 0 ? 0 : 1
+                                border.color: Theme.color.rule
+                                Accessible.role: Accessible.StaticText
+                                Accessible.name: modelData.date + ": " + modelData.words + " words"
+                            }
+                        }
                     }
                 }
             }
