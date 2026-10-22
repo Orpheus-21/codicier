@@ -60,6 +60,15 @@ QString take(const QString &projectFolder, const QString &itemId, const QString 
     QByteArray bytes;
     if (itemId.isEmpty() || file.isEmpty() || !readAll(dir.filePath(file), &bytes))
         return { };
+    return keep(projectFolder, itemId, title, bytes);
+}
+
+QString keep(const QString &projectFolder, const QString &itemId, const QString &title,
+             const QByteArray &bytes)
+{
+    const QDir dir(projectFolder);
+    if (itemId.isEmpty())
+        return { };
     const QString folder = QStringLiteral("snapshots/") + itemId;
     if (!dir.mkpath(folder))
         return { };

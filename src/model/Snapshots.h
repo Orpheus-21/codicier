@@ -21,6 +21,10 @@ struct Snapshot
 QString take(const QString &projectFolder, const QString &itemId, const QString &file,
              const QString &title);
 
+// Keeps bytes as a snapshot of the item, as take does with its file.
+QString keep(const QString &projectFolder, const QString &itemId, const QString &title,
+             const QByteArray &bytes);
+
 // The snapshots of the item, newest first.
 QList<Snapshot> list(const QString &projectFolder, const QString &itemId);
 

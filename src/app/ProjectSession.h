@@ -296,6 +296,9 @@ public:
     // Track changes of the open text: a baseline of the text when tracking
     // started, kept in .codicier/track/. The page marks the changes since.
     Q_PROPERTY(bool tracking READ tracking NOTIFY trackChanged)
+    // The snapshot that holds text recovered after a crash, for the open
+    // text, or "". The page offers to compare it.
+    Q_PROPERTY(QString recoveredSnapshot MEMBER recoveredPath NOTIFY recoveredChanged)
     bool tracking() const;
     Q_INVOKABLE bool startTracking();
     // The changes since the baseline, in text order: the removed text, the
@@ -437,6 +440,7 @@ signals:
     void backupChanged();
     void spellChanged();
     void trackChanged();
+    void recoveredChanged();
     void versionsChanged();
     void passesChanged();
     // A text file changed: the app saved it, or another program changed it.
@@ -500,6 +504,7 @@ private:
     // When the session began, and whether the history has it yet.
     QDateTime sessionBegan;
     bool sessionKept = false;
+    QString recoveredPath;
     // The baseline file of the open text, and the marks of its changes.
     QString trackFile() const;
     QString baseline() const;

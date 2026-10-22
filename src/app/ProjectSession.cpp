@@ -70,6 +70,19 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
         markChanges();
         emit trackChanged();
     });
+    // Text that a crash left in a journal becomes a snapshot of its item.
+    connect(
+        &text, &Document::recovered, this, [this](const QString &file, const QByteArray &bytes) {
+            for (const ProjectItem &item : std::as_const(project.items)) {
+                if (item.file == file) {
+                    recoveredPath = Snapshots::keep(
+                        project.folder, item.id, QStringLiteral("Recovered after a crash"), bytes);
+                    emit snapshotsChanged();
+                    emit recoveredChanged();
+                    return;
+                }
+            }
+        });
     connect(this, &ProjectSession::currentIdChanged, this, &ProjectSession::wordsChanged);
     connect(this, &ProjectSession::edited, this, &ProjectSession::wordsChanged);
     connect(this, &ProjectSession::loaded, this, &ProjectSession::wordsChanged);
@@ -236,8 +249,11 @@ void ProjectSession::setCurrentId(const QString &id)
     if (!known)
         return;
     current = id;
+    // The open may recover text from a crash, so the old notice goes first.
+    recoveredPath.clear();
     text.open(project.folder, file);
     emit currentIdChanged();
+    emit recoveredChanged();
 }
 
 namespace {

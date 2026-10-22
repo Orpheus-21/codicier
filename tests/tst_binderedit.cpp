@@ -1273,6 +1273,23 @@ private slots:
         QVERIFY(sessions.first().toMap().value("words").toInt() >= 4);
     }
 
+    void crashTextBecomesASnapshot()
+    {
+        session->setCurrentId("t6v4h9r2mz");
+        QDir(dir.path()).mkpath(".codicier/journal");
+        QFile out(dir.filePath(".codicier/journal/manuscript_the-river-office.md"));
+        QVERIFY(out.open(QIODevice::WriteOnly));
+        out.write("The river office, as it was before the crash.\n");
+        out.close();
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        session->setCurrentId("m1n2p3q4r5");
+        const QString path = session->property("recoveredSnapshot").toString();
+        QVERIFY(path.startsWith("snapshots/m1n2p3q4r5/"));
+        QVERIFY(path.contains("Recovered after a crash"));
+        QCOMPARE(readFile(path), QByteArray("The river office, as it was before the crash.\n"));
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

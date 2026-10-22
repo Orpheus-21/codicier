@@ -51,6 +51,9 @@ Document::Document(QObject *parent) : QObject(parent)
     countTimer.setSingleShot(true);
     countTimer.setInterval(countDelayMs);
     connect(&countTimer, &QTimer::timeout, this, &Document::countWords);
+    journalTimer.setSingleShot(true);
+    journalTimer.setInterval(200);
+    connect(&journalTimer, &QTimer::timeout, this, &Document::writeJournal);
     // A normal quit saves the last edits.
     if (QCoreApplication::instance() != nullptr)
         connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this,
@@ -312,6 +315,27 @@ void Document::replaceAll(const QString &target)
     cursor.insertText(target.mid(head, target.size() - head - tail));
 }
 
+QString Document::journalPath() const
+{
+    if (path.isEmpty())
+        return { };
+    QString name = path;
+    name.replace(u'/', u'_');
+    return QDir(folder).filePath(QStringLiteral(".codicier/journal/") + name);
+}
+
+void Document::writeJournal()
+{
+    if (!unsaved || path.isEmpty() || document == nullptr
+        || !QDir(folder).mkpath(QStringLiteral(".codicier/journal")))
+        return;
+    QSaveFile file(journalPath());
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(toFile(text()));
+        file.commit();
+    }
+}
+
 void Document::setFirstLineIndent(qreal value)
 {
     if (qFuzzyCompare(value + 1, indent + 1))
@@ -376,6 +400,15 @@ void Document::open(const QString &projectFolder, const QString &file)
     showText();
     countWords();
     emit fileChanged();
+    // A journal that the file does not match is text from a run that crashed.
+    QFile journal(journalPath());
+    if (!path.isEmpty() && journal.open(QIODevice::ReadOnly)) {
+        const QByteArray bytes = journal.readAll();
+        journal.close();
+        QFile::remove(journalPath());
+        if (fromFile(QString::fromUtf8(bytes)) != loadedText)
+            emit recovered(path, bytes);
+    }
     emit conflictChanged();
 }
 
@@ -426,6 +459,7 @@ void Document::edited()
         return;
     setDirty(true);
     timer.start(saveDelayMs);
+    journalTimer.start();
     countTimer.start();
 }
 
@@ -457,6 +491,8 @@ bool Document::save()
         return false;
     }
     setError(QString());
+    journalTimer.stop();
+    QFile::remove(journalPath());
     keepUndo(loadedText, current);
     // The saved text is now the text of the file.
     loadedText = current;

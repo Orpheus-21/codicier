@@ -1004,6 +1004,58 @@ Item {
                 }
             }
 
+            // Text that a crash left behind came back as a snapshot.
+            Rectangle {
+                id: recoveryBar
+
+                property string dismissed: ""
+
+                objectName: "recoveryBar"
+                visible: view.session.recoveredSnapshot !== "" && dismissed !== view.session.recoveredSnapshot
+                         && view.viewMode === "page"
+                anchors.top: editorBar.bottom
+                anchors.horizontalCenter: editor.horizontalCenter
+                anchors.topMargin: Theme.space.s
+                z: 6
+                width: Math.min(editor.width - 2 * Theme.space.l, recoveryRow.implicitWidth + 2 * Theme.space.m)
+                height: recoveryRow.implicitHeight + Theme.space.s * 2
+                radius: Theme.radius.medium
+                color: Theme.color.surface
+                border.width: 1
+                border.color: Theme.color.accent
+
+                Row {
+                    id: recoveryRow
+
+                    anchors.centerIn: parent
+                    spacing: Theme.space.s
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Text from before a crash is kept as a snapshot."
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.body
+                        color: Theme.color.ink
+                    }
+
+                    Button {
+                        objectName: "compareRecovered"
+                        kind: "primary"
+                        text: "Compare"
+                        onClicked: {
+                            view.compareLabel = "Recovered after a crash";
+                            view.comparePath = view.session.recoveredSnapshot;
+                            recoveryBar.dismissed = view.session.recoveredSnapshot;
+                        }
+                    }
+
+                    Button {
+                        text: "Dismiss"
+                        onClicked: recoveryBar.dismissed = view.session.recoveredSnapshot
+                    }
+                }
+            }
+
             SidePage {
                 id: sidePage
 

@@ -631,6 +631,18 @@ TestCase {
         verify(!view.session.tracking);
     }
 
+    function test_recoveryBarOffersTheCompare() {
+        const view = makeView();
+        const bar = findChild(view, "recoveryBar") as Rectangle;
+        verify(!bar.visible);
+        const snapshot = view.session.takeSnapshot(view.session.currentId, "Recovered after a crash");
+        view.session.recoveredSnapshot = snapshot;
+        verify(bar.visible);
+        mouseClick(findChild(bar, "compareRecovered") as Item);
+        compare(view.comparePath, snapshot);
+        verify(!bar.visible);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

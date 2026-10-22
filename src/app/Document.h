@@ -143,6 +143,9 @@ signals:
     void wordsChanged();
     // The app wrote file, so its new content is not an outside edit.
     void saved(const QString &file);
+    // The opened file had a journal from a run that ended before a save:
+    // text that the file does not hold. The bytes are in the form of a file.
+    void recovered(const QString &file, const QByteArray &bytes);
 
 private:
     QPointer<QQuickTextDocument> quickDocument;
@@ -175,6 +178,11 @@ private:
     QString lastError;
     QTimer timer;
     QTimer countTimer;
+    // Writes the unsaved text to a journal soon after each edit, so a crash
+    // loses almost nothing. A save removes the journal.
+    QTimer journalTimer;
+    QString journalPath() const;
+    void writeJournal();
     int wordCount = 0;
 
     void edited();

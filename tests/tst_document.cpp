@@ -199,6 +199,39 @@ private slots:
         QVERIFY(!other.isUndoAvailable());
     }
 
+    void journalKeepsUnsavedTextAndComesBack()
+    {
+        const QString journal
+            = QDir(dir.path()).filePath(".codicier/journal/" + QString(scene).replace(u'/', u'_'));
+        {
+            Document document;
+            QTextDocument text;
+            document.attach(&text);
+            document.open(dir.path(), scene);
+            QTextCursor cursor(&text);
+            cursor.movePosition(QTextCursor::End);
+            cursor.insertText(" A last line.");
+            // The journal comes soon after the edit, before the save.
+            QTRY_VERIFY(QFile::exists(journal));
+            QVERIFY(document.save());
+            QVERIFY(!QFile::exists(journal));
+        }
+        // A run that crashed left a journal with text that the file lacks.
+        QFile out(journal);
+        QVERIFY(out.open(QIODevice::WriteOnly));
+        out.write("Text from before the crash.\n");
+        out.close();
+        Document document;
+        QTextDocument text;
+        document.attach(&text);
+        QSignalSpy recovered(&document, &Document::recovered);
+        document.open(dir.path(), scene);
+        QCOMPARE(recovered.size(), 1);
+        QCOMPARE(recovered.first().at(1).toByteArray(),
+                 QByteArray("Text from before the crash.\n"));
+        QVERIFY(!QFile::exists(journal));
+    }
+
     void savesOneSecondAfterTheLastEdit()
     {
         Document document;
