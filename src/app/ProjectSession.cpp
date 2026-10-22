@@ -10,6 +10,7 @@
 #include "Naming.h"
 #include "ProjectStore.h"
 #include "Snapshots.h"
+#include "Sources.h"
 #include "SpellChecker.h"
 #include "Thesaurus.h"
 #include "Versions.h"
@@ -3037,6 +3038,36 @@ QVariantList ProjectSession::items() const
             walk(root, QString());
     }
     return list;
+}
+
+QVariantList ProjectSession::sources() const
+{
+    return project.folder.isEmpty() ? QVariantList() : Sources::list(project.folder);
+}
+
+QString ProjectSession::saveSource(const QVariantMap &form)
+{
+    if (project.readOnly || project.folder.isEmpty())
+        return { };
+    QString id;
+    editError = Sources::save(project.folder, form, &id);
+    if (!editError.isEmpty())
+        id.clear();
+    else
+        changedSinceBackup = true;
+    emit edited();
+    return id;
+}
+
+bool ProjectSession::removeSource(const QString &id)
+{
+    if (project.readOnly || project.folder.isEmpty())
+        return false;
+    editError = Sources::remove(project.folder, id);
+    if (editError.isEmpty())
+        changedSinceBackup = true;
+    emit edited();
+    return editError.isEmpty();
 }
 
 QVariantMap ProjectSession::argumentMap() const

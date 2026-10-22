@@ -409,6 +409,7 @@ Item {
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
         { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
         { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
+        { id: "sources", name: "Edit the sources", sequence: "Ctrl+Alt+J", run: () => sourcesDialog.open() },
         { id: "argument", name: "Show or hide the argument map", sequence: "Ctrl+Alt+E", run: () => view.toggleViewMode("argument") },
         { id: "checklist", name: "Show or hide the revision checklist", sequence: "Ctrl+Alt+L", run: () => view.toggleViewMode("checklist") },
         { id: "changes", name: "Track and review changes", sequence: "Ctrl+Shift+R", run: () => view.openChanges() },
@@ -464,6 +465,14 @@ Item {
         title: "Choose the image of a map"
         nameFilters: ["Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)"]
         onAccepted: view.session.addMap(selectedFile)
+    }
+
+    SourcesDialog {
+        id: sourcesDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
     }
 
     CommentDialog {

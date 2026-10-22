@@ -283,6 +283,12 @@ public:
     // also has "evidence", the items whose supports key names it.
     // "loose" holds the evidence that supports no claim.
     Q_INVOKABLE QVariantMap argumentMap() const;
+    // The bibliography in sources.json, as forms (see Sources.h).
+    Q_INVOKABLE QVariantList sources() const;
+    // Adds or changes a source. Returns its key, or "" with the reason in
+    // lastError.
+    Q_INVOKABLE QString saveSource(const QVariantMap &form);
+    Q_INVOKABLE bool removeSource(const QString &id);
     // The state of the view in .codicier/state.toml, such as the open item
     // and the sizes of the panes. Values are text, true or false, or whole
     // numbers. A missing or bad file gives an empty map.

@@ -27,7 +27,7 @@ T.Dialog {
             return "Write";
         if (["palette", "find", "find.replace", "search", "replace"].includes(id))
             return "Find";
-        if (["calendar", "codex", "names", "sprint", "progress", "passes", "inbox", "changes"].includes(id))
+        if (["calendar", "codex", "names", "sprint", "progress", "passes", "inbox", "changes", "sources"].includes(id))
             return "Plan and track";
         if (["help", "close"].includes(id))
             return "App";

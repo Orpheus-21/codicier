@@ -24,7 +24,7 @@ qt_standard_project_setup(REQUIRES 6.12)
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
     src/model/Naming.cpp src/model/Templates.cpp src/model/Watcher.cpp src/model/Snapshots.cpp
-    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp src/model/Frameworks.cpp src/model/Calendar.cpp src/model/Canvas.cpp
+    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp src/model/Frameworks.cpp src/model/Calendar.cpp src/model/Canvas.cpp src/model/Sources.cpp
     src/index/Index.cpp)
 target_include_directories(codicier_core PUBLIC src/model src/index)
 # The plot frameworks of the beat board.
@@ -53,7 +53,7 @@ set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
     QML_FILES qml/Main.qml qml/Theme.qml qml/Icon.qml qml/IconPaths.js qml/Reading.js
-        qml/FocusRing.qml qml/Activator.qml qml/ArgumentMap.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
+        qml/FocusRing.qml qml/Activator.qml qml/ArgumentMap.qml qml/SourcesDialog.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
         qml/ListItem.qml qml/Pane.qml qml/Splitter.qml qml/Menu.qml
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
         qml/Binder.qml qml/BinderRow.qml qml/Editor.qml qml/TextArea.qml qml/Inspector.qml

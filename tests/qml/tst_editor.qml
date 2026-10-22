@@ -967,6 +967,42 @@ TestCase {
         verify(!(findChild(findChild(view, "claim-" + claim), "noEvidence") as Item).visible);
     }
 
+    function test_sourcesDialogAddsChangesAndRemoves() {
+        const view = makeView();
+        view.commands.find(command => command.id === "sources").run();
+        const overlay = view.T.Overlay.overlay;
+        tryVerify(() => (findChild(overlay, "addSource") as Item)?.visible ?? false);
+        mouseClick(findChild(overlay, "addSource") as Item);
+        const authors = findChild(overlay, "source-authors") as TextField;
+        tryVerify(() => authors.activeFocus);
+        authors.text = "Kurlansky, Mark";
+        (findChild(overlay, "source-title") as TextField).text = "Salt";
+        (findChild(overlay, "source-year") as TextField).text = "2002";
+        // The dialog grows for the form, so wait for its layout.
+        waitForRendering(view);
+        mouseClick(findChild(overlay, "type-article-journal") as Item);
+        mouseClick(findChild(overlay, "saveSource") as Item);
+        tryVerify(() => findChild(overlay, "source-kurlansky2002") !== null);
+        const saved = view.session.sources()[0];
+        compare(saved.label, "Kurlansky 2002, Salt");
+        compare(saved.type, "article-journal");
+
+        // A change keeps the key.
+        const row = findChild(overlay, "source-kurlansky2002") as Item;
+        waitForRendering(view);
+        mouseClick(findChild(row, "changeSource") as Item);
+        tryCompare(findChild(overlay, "source-title") as TextField, "text", "Salt");
+        (findChild(overlay, "source-title") as TextField).text = "Salt: A World History";
+        waitForRendering(view);
+        mouseClick(findChild(overlay, "saveSource") as Item);
+        tryVerify(() => view.session.sources()[0].title === "Salt: A World History");
+        compare(view.session.sources().length, 1);
+
+        view.session.removeSource("kurlansky2002");
+        compare(view.session.sources().length, 0);
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;
