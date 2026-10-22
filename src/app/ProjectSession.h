@@ -278,6 +278,11 @@ public:
     // Every item outside the trash, in binder order: the id, the title, the
     // kind, and the path of titles above it, as "Part One / The Letter".
     Q_INVOKABLE QVariantList items() const;
+    // The argument of an essay, in binder order: "thesis", "claims",
+    // "counters", and "conclusions" hold items as id and title. Each claim
+    // also has "evidence", the items whose supports key names it.
+    // "loose" holds the evidence that supports no claim.
+    Q_INVOKABLE QVariantMap argumentMap() const;
     // The state of the view in .codicier/state.toml, such as the open item
     // and the sizes of the panes. Values are text, true or false, or whole
     // numbers. A missing or bad file gives an empty map.

@@ -2742,7 +2742,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
                status.isEmpty() && item.kind == QLatin1String("scene") ? QStringLiteral("draft")
                                                                        : status);
     for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat", "date", "label",
-                             "goal", "conflict", "outcome" })
+                             "goal", "conflict", "outcome", "argument" })
         map.insert(QString::fromLatin1(key), string(key));
     map.insert(QStringLiteral("dateLabel"), calendar().label(string("date")));
     map.insert(QStringLiteral("boardX"),
@@ -2762,6 +2762,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
     }
     map.insert(QStringLiteral("aliases"), aliases);
     map.insert(QStringLiteral("plotlines"), strings(item.data.get("plotlines")));
+    map.insert(QStringLiteral("supports"), strings(item.data.get("supports")));
     // The values of the fields of the entity type, by field name.
     QVariantMap values;
     if (const toml::table *fields = item.data.get_as<toml::table>("fields")) {
@@ -2788,7 +2789,7 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
     toml::table &data = project.items[index].data;
     const std::string name = key.toStdString();
     if (key == QLatin1String("tags") || key == QLatin1String("aliases")
-        || key == QLatin1String("plotlines")) {
+        || key == QLatin1String("plotlines") || key == QLatin1String("supports")) {
         // A list of names: trimmed, no empty names, no copies, in the order given.
         QStringList tags;
         for (const QString &tag : value.toStringList()) {
@@ -3036,6 +3037,64 @@ QVariantList ProjectSession::items() const
             walk(root, QString());
     }
     return list;
+}
+
+QVariantMap ProjectSession::argumentMap() const
+{
+    QVariantList thesis;
+    QVariantList counters;
+    QVariantList conclusions;
+    QList<int> claims;
+    QList<int> evidence;
+    const auto entry = [this](int at) {
+        const ProjectItem &item = project.items.at(at);
+        return QVariantMap { { QStringLiteral("id"), item.id },
+                             { QStringLiteral("title"), item.title } };
+    };
+    const std::function<void(int)> walk = [&](int at) {
+        const std::string part = project.items.at(at).data["argument"].value_or(std::string());
+        if (part == "thesis")
+            thesis.append(entry(at));
+        else if (part == "claim")
+            claims.append(at);
+        else if (part == "evidence")
+            evidence.append(at);
+        else if (part == "counter")
+            counters.append(entry(at));
+        else if (part == "conclusion")
+            conclusions.append(entry(at));
+        for (const int child : project.items.at(at).children)
+            walk(child);
+    };
+    for (const int root : project.roots) {
+        if (project.items.at(root).section != QLatin1String("trash"))
+            walk(root);
+    }
+    QVariantList claimList;
+    QSet<int> used;
+    for (const int claim : std::as_const(claims)) {
+        QVariantList support;
+        for (const int each : std::as_const(evidence)) {
+            if (strings(project.items.at(each).data.get("supports"))
+                    .contains(project.items.at(claim).id)) {
+                support.append(entry(each));
+                used.insert(each);
+            }
+        }
+        QVariantMap map = entry(claim);
+        map.insert(QStringLiteral("evidence"), support);
+        claimList.append(map);
+    }
+    QVariantList loose;
+    for (const int each : std::as_const(evidence)) {
+        if (!used.contains(each))
+            loose.append(entry(each));
+    }
+    return { { QStringLiteral("thesis"), thesis },
+             { QStringLiteral("claims"), claimList },
+             { QStringLiteral("counters"), counters },
+             { QStringLiteral("conclusions"), conclusions },
+             { QStringLiteral("loose"), loose } };
 }
 
 void ProjectSession::trackDocument(Document *document, const QString &id)

@@ -944,6 +944,29 @@ TestCase {
         tryCompare(findChild(view, "page") as Flickable, "contentY", scroll);
     }
 
+    function test_argumentMapShowsClaimsWithNoEvidence() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("On Salt", "essay", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/on-salt" }) as ProjectView;
+        view.toggleViewMode("argument");
+        waitForRendering(view);
+        const summary = findChild(view, "argumentSummary") as Text;
+        compare(summary.text, "2 claims, 2 with no evidence");
+
+        // The evidence note supports the first claim in the inspector.
+        const items = view.session.items();
+        const claim = items.find(item => item.title === "Claim 1").id;
+        view.session.currentId = items.find(item => item.title === "Evidence").id;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const choice = findChild(view, "supports-" + claim) as Item;
+        verify(choice && choice.visible);
+        mouseClick(choice);
+        tryCompare(summary, "text", "2 claims, 1 with no evidence");
+        verify(!(findChild(findChild(view, "claim-" + claim), "noEvidence") as Item).visible);
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;

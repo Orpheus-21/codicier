@@ -31,6 +31,7 @@ Pane {
         inspector.entityType = session.entityTypes().find(type => type.kind === inspector.fields.kind);
         inspector.mentions = inspector.entityType ? session.mentionsOf(session.currentId) : [];
         inspector.plotlines = session.plotlines();
+        inspector.claims = inspector.argued ? session.argumentMap().claims : [];
         inspector.relations = inspector.entityType ? session.relations(session.currentId) : [];
     }
 
@@ -39,6 +40,17 @@ Pane {
 
     // The plotlines of the project, read again after each change.
     property var plotlines: []
+
+    // The claims of the argument, for an evidence item to support.
+    property var claims: []
+    // Essays and non-fiction have the parts of an argument.
+    readonly property bool argued: ["essay", "essay-collection", "non-fiction"].includes(session.kind)
+
+    // Lets the open evidence support a claim, or stops it.
+    function toggleSupport(id: string) {
+        const now = inspector.fields.supports ?? [];
+        save("supports", now.includes(id) ? now.filter(each => each !== id) : now.concat([id]));
+    }
 
     // Puts the open scene on a plotline, or takes it off.
     function togglePlotline(id: string) {
@@ -281,6 +293,74 @@ Pane {
                         label: "Left out"
                         chosen: !(inspector.fields.include ?? true)
                         onClicked: inspector.save("include", false)
+                    }
+                }
+            }
+
+            // The part of the argument, in an essay or non-fiction.
+            Column {
+                visible: inspector.argued && (inspector.fields.file ?? "") !== ""
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Part of the argument"
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: Theme.space.xs
+
+                    Repeater {
+                        model: [["", "None"], ["thesis", "Thesis"], ["claim", "Claim"], ["evidence", "Evidence"],
+                            ["counter", "Counter"], ["conclusion", "Conclusion"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "argument-" + (modelData[0] || "none")
+                            label: modelData[1]
+                            chosen: (inspector.fields.argument ?? "") === modelData[0]
+                            onClicked: inspector.save("argument", modelData[0])
+                        }
+                    }
+                }
+            }
+
+            Column {
+                visible: inspector.argued && inspector.fields.argument === "evidence"
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Supports"
+                }
+
+                Text {
+                    visible: inspector.claims.length === 0
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: "Mark a text as a claim to link this evidence to it."
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.small
+                    color: Theme.color.inkMuted
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: Theme.space.xs
+
+                    Repeater {
+                        model: inspector.claims
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "supports-" + modelData.id
+                            label: modelData.title
+                            chosen: (inspector.fields.supports ?? []).includes(modelData.id)
+                            onClicked: inspector.toggleSupport(modelData.id)
+                        }
                     }
                 }
             }

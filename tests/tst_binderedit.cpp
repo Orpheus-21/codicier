@@ -1334,6 +1334,43 @@ private slots:
         QVERIFY(!readFile("binder.toml").contains("argument ="));
     }
 
+    void argumentMapLinksEvidenceToClaims()
+    {
+        QStringList scenes;
+        QString note;
+        for (const QVariant &each : session->items()) {
+            const QVariantMap item = each.toMap();
+            // Any item can hold a part of the argument.
+            if (item.value("kind") != "note")
+                scenes.append(item.value("id").toString());
+            else if (note.isEmpty())
+                note = item.value("id").toString();
+        }
+        QVERIFY(scenes.size() >= 3);
+        QVERIFY(!note.isEmpty());
+        QVERIFY(session->setField(scenes[0], "argument", "thesis"));
+        QVERIFY(session->setField(scenes[1], "argument", "claim"));
+        QVERIFY(session->setField(scenes[2], "argument", "claim"));
+        QVERIFY(session->setField(note, "argument", "evidence"));
+        QVERIFY(session->setField(note, "supports", QStringList { scenes[1] }));
+        QVERIFY(readFile("binder.toml").contains("supports = ["));
+
+        QVariantMap map = session->argumentMap();
+        QCOMPARE(map.value("thesis").toList().size(), 1);
+        const QVariantList claims = map.value("claims").toList();
+        QCOMPARE(claims.size(), 2);
+        QCOMPARE(claims[0].toMap().value("id").toString(), scenes[1]);
+        QCOMPARE(claims[0].toMap().value("evidence").toList().size(), 1);
+        QVERIFY(claims[1].toMap().value("evidence").toList().isEmpty());
+        QVERIFY(map.value("loose").toList().isEmpty());
+        QCOMPARE(session->fields(note).value("supports").toStringList(), QStringList { scenes[1] });
+
+        // Evidence that supports no claim is loose.
+        QVERIFY(session->setField(note, "supports", QStringList()));
+        map = session->argumentMap();
+        QCOMPARE(map.value("loose").toList().size(), 1);
+    }
+
     void numbersFollowTheBinder()
     {
         QVERIFY(!session->numbered());

@@ -107,7 +107,8 @@ Item {
     // "outline" for the outliner, "beats" for the beat board, "grid" for the
     // plot grid, "timeline" for the timeline, "relations" for the
     // relationship graph, "family" for the family tree, "insights" for the
-    // figures of the manuscript, or "checklist" for the revision checklist.
+    // figures of the manuscript, "checklist" for the revision checklist, or
+    // "argument" for the argument map of an essay.
     property string viewMode: "page"
 
     function toggleViewMode(mode: string) {
@@ -119,7 +120,8 @@ Item {
     onViewModeChanged: {
         const shown = ({ "board": boardView, "checklist": checklistArea, "insights": insightsArea,
                          "family": familyArea, "relations": relationsArea, "timeline": timelineArea,
-                         "grid": gridArea, "beats": beatsArea, "outline": outlineArea })[viewMode];
+                         "grid": gridArea, "beats": beatsArea, "outline": outlineArea,
+                         "argument": argumentArea })[viewMode];
         if (shown)
             shown.forceActiveFocus();
         else if (session.document.file !== "")
@@ -407,6 +409,7 @@ Item {
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
         { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
         { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
+        { id: "argument", name: "Show or hide the argument map", sequence: "Ctrl+Alt+E", run: () => view.toggleViewMode("argument") },
         { id: "checklist", name: "Show or hide the revision checklist", sequence: "Ctrl+Alt+L", run: () => view.toggleViewMode("checklist") },
         { id: "changes", name: "Track and review changes", sequence: "Ctrl+Shift+R", run: () => view.openChanges() },
         { id: "passes", name: "Draft passes", sequence: "Ctrl+Alt+D", run: () => passDialog.open() },
@@ -902,6 +905,19 @@ Item {
                 z: 4
                 session: view.session
                 itemId: visible ? view.boardId : ""
+                onOpened: id => view.openText(id)
+            }
+
+            ArgumentMap {
+                id: argumentArea
+
+                objectName: "argumentMap"
+                visible: view.viewMode === "argument"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 4
+                session: view.session
                 onOpened: id => view.openText(id)
             }
 
