@@ -180,7 +180,7 @@ Item {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "This text changed in another program."
+                text: "Another program changed this file."
                 font.family: Theme.type.ui
                 font.pixelSize: Theme.type.body
                 color: Theme.color.ink
@@ -193,7 +193,7 @@ Item {
             }
 
             Button {
-                text: "Use the file"
+                text: "Load theirs"
                 onClicked: editorArea.document.useFile()
             }
         }
