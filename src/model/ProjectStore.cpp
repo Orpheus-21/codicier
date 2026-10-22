@@ -599,11 +599,11 @@ constexpr std::array<std::string_view, 10> projectOrder { "format",  "title",   
                                                           "numbered" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 26> itemOrder {
+constexpr std::array<std::string_view, 28> itemOrder {
     "id",       "kind",    "section",  "parent",  "title",   "file",      "status",
     "label",    "include", "pov",      "place",   "time",    "date",      "beat",
     "synopsis", "goal",    "conflict", "outcome", "aliases", "plotlines", "tags",
-    "target",   "query",   "regex",    "restore", "notes"
+    "target",   "query",   "regex",    "restore", "board-x", "board-y",   "notes"
 };
 
 TomlWriter::Order orderFor(std::string_view path)

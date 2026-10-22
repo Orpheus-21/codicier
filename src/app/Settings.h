@@ -42,6 +42,8 @@ class Settings : public QObject
     // What stays bright in focus mode: 0 all the text, 1 the paragraph with
     // the cursor, 2 its sentence.
     Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY changed)
+    // True places the cards of the corkboard anywhere, in place of a grid.
+    Q_PROPERTY(bool freeBoard READ freeBoard WRITE setFreeBoard NOTIFY changed)
     // The colour of the cards on the corkboard: "label" for the colour
     // label of each item, or "pov" for its point of view character.
     Q_PROPERTY(QString cardColour READ cardColour WRITE setCardColour NOTIFY changed)
@@ -104,6 +106,8 @@ public:
     int focusScope() const { return scope; }
     void setFocusScope(int value) { change(scope, std::clamp(value, 0, 2), "view/focusScope"); }
     QString cardColour() const { return cards; }
+    bool freeBoard() const { return free; }
+    void setFreeBoard(bool value) { change(free, value, "view/freeBoard"); }
     void setCardColour(const QString &value)
     {
         if (value == QLatin1String("label") || value == QLatin1String("pov"))
@@ -152,6 +156,7 @@ private:
     bool seen = false;
     bool marksHidden = true;
     QString cards = QStringLiteral("label");
+    bool free = false;
     int scope = 1;
     int spacing = 150;
     int paragraphSpace = 100;

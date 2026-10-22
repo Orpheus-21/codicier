@@ -206,6 +206,10 @@ private slots:
         Settings again;
         QCOMPARE(again.cardColour(), QStringLiteral("pov"));
         again.setCardColour("label");
+        QVERIFY(!again.freeBoard());
+        again.setFreeBoard(true);
+        QVERIFY(Settings().freeBoard());
+        again.setFreeBoard(false);
     }
 
     void hideMarksSurvivesARestart()

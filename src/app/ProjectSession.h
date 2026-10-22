@@ -243,6 +243,9 @@ public:
     // Sets one field and saves the binder. An empty value removes the key.
     // Returns false for an unknown key or a value that is not valid.
     Q_INVOKABLE bool setField(const QString &id, const QString &key, const QVariant &value);
+    // The place of a card on the free corkboard, in pixels from the top
+    // left. fields() gives it as boardX and boardY, or -1 for none.
+    Q_INVOKABLE bool setBoardPlace(const QString &id, int x, int y);
     // The text items below the item, in binder order, as maps with id,
     // title, and file. For the composite view.
     Q_INVOKABLE QVariantList textsUnder(const QString &id) const;

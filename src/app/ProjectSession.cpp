@@ -982,6 +982,17 @@ QVariantMap ProjectSession::numbers() const
     return map;
 }
 
+bool ProjectSession::setBoardPlace(const QString &id, int x, int y)
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.readOnly)
+        return false;
+    toml::table &data = project.items[index].data;
+    data.insert_or_assign("board-x", std::max(0, x));
+    data.insert_or_assign("board-y", std::max(0, y));
+    return commit({ });
+}
+
 QString ProjectSession::sceneBreak() const
 {
     return QString::fromStdString(project.data["scene-break"].value_or(std::string("***")));
@@ -2406,6 +2417,10 @@ QVariantMap ProjectSession::fields(const QString &id) const
                              "goal", "conflict", "outcome" })
         map.insert(QString::fromLatin1(key), string(key));
     map.insert(QStringLiteral("dateLabel"), calendar().label(string("date")));
+    map.insert(QStringLiteral("boardX"),
+               static_cast<int>(item.data["board-x"].value_or(std::int64_t { -1 })));
+    map.insert(QStringLiteral("boardY"),
+               static_cast<int>(item.data["board-y"].value_or(std::int64_t { -1 })));
     QStringList tags;
     if (const toml::array *list = item.data.get_as<toml::array>("tags")) {
         for (const toml::node &tag : *list)

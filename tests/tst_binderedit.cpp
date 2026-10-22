@@ -1202,6 +1202,16 @@ private slots:
         QVERIFY(names.generate("Atlantean", "any", 5, false).isEmpty());
     }
 
+    void boardPlacesAreKept()
+    {
+        QCOMPARE(session->fields("m1n2p3q4r5").value("boardX").toInt(), -1);
+        QVERIFY(session->setBoardPlace("m1n2p3q4r5", 120, -5));
+        QCOMPARE(session->fields("m1n2p3q4r5").value("boardX").toInt(), 120);
+        QCOMPARE(session->fields("m1n2p3q4r5").value("boardY").toInt(), 0);
+        QVERIFY(readFile("binder.toml").contains("board-x = 120"));
+        QVERIFY(!session->setBoardPlace("no-such-item", 1, 1));
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

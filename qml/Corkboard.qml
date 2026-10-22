@@ -35,11 +35,52 @@ Item {
     property string dragId: ""
     property int dropIndex: -1
 
+    // The cards in the order of their last move, so the last one is on top.
+    property var raised: []
+    // The place of each card on the free board, by id. refresh() reads them
+    // again after each edit.
+    property var places: ({})
+
+    // The place of a card on the free board: its own place, or its place in
+    // the grid.
+    function placeOf(id: string, at: int): point {
+        const fields = session.fields(id);
+        if ((fields.boardX ?? -1) >= 0)
+            return Qt.point(fields.boardX, fields.boardY);
+        const columns = Math.max(1, Math.floor(grid.width / grid.cellWidth));
+        return Qt.point((at % columns) * grid.cellWidth + Theme.space.s,
+                        Math.floor(at / columns) * grid.cellHeight + Theme.space.s);
+    }
+
+    // Keeps the place of a dropped card. On another card, it snaps to a
+    // small offset from it.
+    function placeCard(id: string, x: real, y: real) {
+        let place = Qt.point(Math.round(x), Math.round(y));
+        for (let at = 0; at < cards.length; ++at) {
+            if (cards[at].id === id)
+                continue;
+            const other = placeOf(cards[at].id, at);
+            if (Math.abs(other.x - x) < grid.cellWidth / 2 && Math.abs(other.y - y) < grid.cellHeight / 2) {
+                place = Qt.point(other.x + 18, other.y + 18);
+                break;
+            }
+        }
+        raised = raised.filter(each => each !== id).concat([id]);
+        session.setBoardPlace(id, place.x, place.y);
+    }
+
+    function readPlaces() {
+        let found = {};
+        cards.forEach((card, at) => found[card.id] = placeOf(card.id, at));
+        places = found;
+    }
+
     function refresh() {
         allPovs = session.items().filter(item => item.kind === "scene")
             .map(item => session.fields(item.id).pov ?? "")
             .filter((pov, at, all) => pov !== "" && all.indexOf(pov) === at);
         cards = itemId === "" ? [] : session.childrenOf(itemId);
+        readPlaces();
     }
 
     // Moves the dragged card before the card under it, or after the last card.
@@ -85,6 +126,79 @@ Item {
         color: Theme.color.inkMuted
     }
 
+    // One index card: the title, the synopsis, the status, and the words.
+    component CardFace: Rectangle {
+        id: face
+
+        required property var item
+        // True while a card of the grid hovers over this one.
+        property bool marked: false
+
+        radius: Theme.radius.small
+        color: Theme.color.surface
+        border.width: marked ? 2 : 1
+        border.color: marked ? Theme.color.accent : Theme.color.rule
+        Accessible.role: Accessible.ListItem
+        Accessible.name: item.title
+
+        // The colour label: a stripe along the top of the card.
+        Rectangle {
+            width: parent.width
+            height: 4
+            radius: Theme.radius.small
+            color: board.cardColor(face.item.id)
+        }
+
+        Column {
+            x: Theme.space.m
+            y: Theme.space.m
+            width: parent.width - 2 * Theme.space.m
+            spacing: Theme.space.xs
+
+            Text {
+                width: parent.width
+                text: face.item.title
+                elide: Text.ElideRight
+                font.family: Theme.type.reading
+                font.pixelSize: Theme.type.large
+                color: Theme.color.ink
+            }
+
+            Text {
+                width: parent.width
+                height: face.height - 2 * Theme.space.m - 2 * Theme.type.large - Theme.space.s
+                text: face.item.synopsis !== "" ? face.item.synopsis : "No synopsis"
+                wrapMode: Text.Wrap
+                elide: Text.ElideRight
+                font.family: Theme.type.reading
+                font.italic: true
+                font.pixelSize: Theme.type.body
+                color: face.item.synopsis !== "" ? Theme.color.ink : Theme.color.inkMuted
+            }
+        }
+
+        Text {
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.margins: Theme.space.m
+            text: face.item.status !== "" ? face.item.status : face.item.kind
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.small
+            font.capitalization: Font.Capitalize
+            color: Theme.color.inkMuted
+        }
+
+        Text {
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: Theme.space.m
+            text: Number(face.item.words).toLocaleString(Qt.locale("en_GB"), "f", 0) + " words"
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.small
+            color: Theme.color.inkMuted
+        }
+    }
+
     // The colour of the cards, and a legend of the point of view colours.
     Flow {
         id: colourBar
@@ -94,6 +208,25 @@ Item {
         y: Theme.space.l
         width: parent.width - 2 * Theme.space.xl
         spacing: Theme.space.s
+
+        Choice {
+            objectName: "gridBoard"
+            label: "Grid"
+            chosen: !Settings.freeBoard
+            onClicked: Settings.freeBoard = false
+        }
+
+        Choice {
+            objectName: "freeBoardChoice"
+            label: "Free"
+            chosen: Settings.freeBoard
+            onClicked: Settings.freeBoard = true
+        }
+
+        Item {
+            width: Theme.space.l
+            height: 1
+        }
 
         Choice {
             objectName: "cardsByLabel"
@@ -143,6 +276,9 @@ Item {
     GridView {
         id: grid
 
+        visible: !Settings.freeBoard
+        // The grid places of the cards with no place of their own follow the width.
+        onWidthChanged: board.readPlaces()
         objectName: "corkboard"
         anchors.fill: parent
         anchors.margins: Theme.space.xl
@@ -169,79 +305,16 @@ Item {
             width: grid.cellWidth
             height: grid.cellHeight
 
-            Rectangle {
+            CardFace {
                 id: card
 
-                objectName: "card"
                 x: Theme.space.s
                 y: Theme.space.s
                 width: parent.width - 2 * Theme.space.s
                 height: parent.height - 2 * Theme.space.s
-                radius: Theme.radius.small
-                color: Theme.color.surface
-                border.width: board.dropIndex === cell.index && board.dragId !== cell.modelData.id ? 2 : 1
-                border.color: board.dropIndex === cell.index && board.dragId !== cell.modelData.id
-                              ? Theme.color.accent : Theme.color.rule
+                item: cell.modelData
+                marked: board.dropIndex === cell.index && board.dragId !== cell.modelData.id
                 opacity: board.dragId === cell.modelData.id ? 0.5 : 1
-                Accessible.role: Accessible.ListItem
-                Accessible.name: cell.modelData.title
-
-                // The colour label: a stripe along the top of the card.
-                Rectangle {
-                    width: parent.width
-                    height: 4
-                    radius: Theme.radius.small
-                    color: board.cardColor(cell.modelData.id)
-                }
-
-                Column {
-                    x: Theme.space.m
-                    y: Theme.space.m
-                    width: parent.width - 2 * Theme.space.m
-                    spacing: Theme.space.xs
-
-                    Text {
-                        width: parent.width
-                        text: cell.modelData.title
-                        elide: Text.ElideRight
-                        font.family: Theme.type.reading
-                        font.pixelSize: Theme.type.large
-                        color: Theme.color.ink
-                    }
-
-                    Text {
-                        width: parent.width
-                        height: card.height - 2 * Theme.space.m - 2 * Theme.type.large - Theme.space.s
-                        text: cell.modelData.synopsis !== "" ? cell.modelData.synopsis : "No synopsis"
-                        wrapMode: Text.Wrap
-                        elide: Text.ElideRight
-                        font.family: Theme.type.reading
-                        font.italic: true
-                        font.pixelSize: Theme.type.body
-                        color: cell.modelData.synopsis !== "" ? Theme.color.ink : Theme.color.inkMuted
-                    }
-                }
-
-                Text {
-                    anchors.left: parent.left
-                    anchors.bottom: parent.bottom
-                    anchors.margins: Theme.space.m
-                    text: cell.modelData.status !== "" ? cell.modelData.status : cell.modelData.kind
-                    font.family: Theme.type.ui
-                    font.pixelSize: Theme.type.small
-                    font.capitalization: Font.Capitalize
-                    color: Theme.color.inkMuted
-                }
-
-                Text {
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.margins: Theme.space.m
-                    text: Number(cell.modelData.words).toLocaleString(Qt.locale("en_GB"), "f", 0) + " words"
-                    font.family: Theme.type.ui
-                    font.pixelSize: Theme.type.small
-                    color: Theme.color.inkMuted
-                }
 
                 // A click with no drag opens the item.
                 TapHandler {
@@ -262,6 +335,71 @@ Item {
                             return;
                         const point = card.mapToItem(grid.contentItem, centroid.position.x, centroid.position.y);
                         board.dropIndex = grid.indexAt(point.x, point.y);
+                    }
+                }
+            }
+        }
+    }
+
+    // The free board: each card stays where the author puts it. A card that
+    // lands on another card sits a little lower and to the right of it, so
+    // the stack shows. A card with no place starts at its place in the grid.
+    Flickable {
+        id: free
+
+        objectName: "freeBoard"
+        visible: Settings.freeBoard
+        anchors.fill: grid
+        contentWidth: Math.max(width, ...board.cards.map((card, at) => board.placeOf(card.id, at).x + grid.cellWidth))
+        contentHeight: Math.max(height, ...board.cards.map((card, at) => board.placeOf(card.id, at).y + grid.cellHeight))
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
+
+        WheelHandler {
+            onWheel: event => {
+                const end = Math.max(0, free.contentHeight - free.height);
+                free.contentY = Math.min(end, Math.max(0, free.contentY - event.angleDelta.y / 2));
+            }
+        }
+
+        Repeater {
+            model: Settings.freeBoard ? board.cards : []
+
+            CardFace {
+                id: loose
+
+                required property var modelData
+                required property int index
+                readonly property point place: board.places[modelData.id] ?? Qt.point(0, 0)
+                // The move of the drag that runs. The place itself changes
+                // only when the card drops.
+                property point moving: Qt.point(0, 0)
+
+                objectName: "freeCard"
+                x: place.x + moving.x
+                y: place.y + moving.y
+                z: drag.active ? 1000 : board.raised.indexOf(modelData.id)
+                width: grid.cellWidth - 2 * Theme.space.s
+                height: grid.cellHeight - 2 * Theme.space.s
+                item: modelData
+
+                TapHandler {
+                    onTapped: board.opened(loose.modelData.id)
+                }
+
+                DragHandler {
+                    id: drag
+
+                    target: null
+                    onActiveTranslationChanged: {
+                        if (active)
+                            loose.moving = activeTranslation;
+                    }
+                    onActiveChanged: {
+                        if (!active) {
+                            board.placeCard(loose.modelData.id, loose.x, loose.y);
+                            loose.moving = Qt.point(0, 0);
+                        }
                     }
                 }
             }

@@ -48,6 +48,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     labels = settings.value("view/buttonLabels", false).toBool();
     seen = settings.value("view/hintsSeen", false).toBool();
     marksHidden = settings.value("view/hideMarks", true).toBool();
+    free = settings.value("view/freeBoard", false).toBool();
     cards = settings.value("view/cardColour", cards).toString() == QLatin1String("pov")
         ? QStringLiteral("pov")
         : QStringLiteral("label");
