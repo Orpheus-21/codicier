@@ -157,6 +157,10 @@ The inspector shows the reading time of the open item, and the insights show the
 
 In the binder, Ctrl+click adds an item to the selection, and Shift+click selects the items from the open item to the clicked one. The binder menu then sets the status, adds a tag, or moves to the trash on all selected items, and a drag moves all of them. The binder menu also gives an item a colour label, which the binder, the outliner, and the cards show, and duplicates an item with everything below it.
 
+Ctrl+Alt+A makes names for characters: real names, or names invented in the style of a culture, for 14 cultures. Click a name to add it to the codex as a character. The name lists come from Wikidata, which is in the public domain (CC0).
+
+On the page, the names and aliases of the codex have a quiet underline. A pause over a name shows the start of its entry, and Ctrl+click opens it. The corkboard can colour each card by its point of view character, and the inspector of a scene has optional fields for its goal, conflict, and outcome.
+
 The project menu turns on numbers for the chapters and the scenes in the binder and the outliner. The titles do not change.
 
 Right-click a misspelled word on the page to see spelling suggestions. Right-click a correct word to see its synonyms from the thesaurus. Click a word in the list to put it in place of the word on the page.
