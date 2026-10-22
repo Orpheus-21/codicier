@@ -22,11 +22,48 @@ TestCase {
 
     function cleanup() {
         Settings.theme = "system";
+        Settings.accent = "theme";
         Theme.motion.reduced = false;
     }
 
-    function test_threeThemes() {
-        compare(Object.keys(Theme.palettes).sort(), ["dark", "light", "sepia"]);
+    function test_themes() {
+        compare(Object.keys(Theme.palettes).sort(), ["contrast", "dark", "light", "mist", "night", "sepia"]);
+    }
+
+    // Each accent passes 4.5 on the paper and surface of each theme. The
+    // welcome title uses ink, so test_textContrast covers it.
+    function test_accentContrast() {
+        for (const accent of Object.keys(Theme.accents)) {
+            Settings.accent = accent;
+            for (const theme of Object.keys(Theme.palettes)) {
+                Settings.theme = theme;
+                for (const bg of backgrounds) {
+                    const ratio = contrast(Theme.color.accent, Theme.color[bg]);
+                    verify(ratio >= 4.5, `${accent} on ${theme} ${bg}: ${ratio.toFixed(2)}`);
+                }
+            }
+        }
+    }
+
+    function test_accentReplacesTheAccentOfTheTheme() {
+        Settings.theme = "light";
+        Settings.accent = "green";
+        compare(Theme.color.accent, Theme.accents.green[0]);
+        compare(Theme.color.focus, Theme.accents.green[0]);
+        Settings.theme = "night";
+        compare(Theme.color.accent, Theme.accents.green[1]);
+        Settings.accent = "theme";
+        compare(Theme.color.accent, Theme.palettes.night.accent);
+    }
+
+    // High contrast: WCAG AAA, 7 or more, for every text role, also with an
+    // accent picked.
+    function test_highContrastIsAAA() {
+        Settings.theme = "contrast";
+        Settings.accent = "plum";
+        for (const text of textRoles)
+            for (const bg of backgrounds.concat(["selection"]))
+                verify(contrast(Theme.color[text], Theme.color[bg]) >= 7, `${text} on ${bg}`);
     }
 
     function test_textContrast_data() {

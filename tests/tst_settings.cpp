@@ -302,6 +302,20 @@ private slots:
         Document::saveDelayMs = 1000;
     }
 
+    void accentSurvivesAndRejectsUnknownNames()
+    {
+        Settings settings;
+        QCOMPARE(settings.accent(), QStringLiteral("theme"));
+        settings.setAccent(QStringLiteral("plum"));
+        settings.setAccent(QStringLiteral("neon"));
+        QCOMPARE(settings.accent(), QStringLiteral("plum"));
+        QCOMPARE(Settings().accent(), QStringLiteral("plum"));
+        QSettings(Workspaces::settingsPath(), QSettings::IniFormat).setValue("view/accent", "neon");
+        QCOMPARE(Settings().accent(), QStringLiteral("theme"));
+        settings.setTheme(QStringLiteral("contrast"));
+        QCOMPARE(Settings().theme(), QStringLiteral("contrast"));
+    }
+
     void sessionTargetSurvivesARestart()
     {
         {

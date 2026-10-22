@@ -22,6 +22,8 @@ class Settings : public QObject
     Q_PROPERTY(int backupsToKeep READ backupsToKeep WRITE setBackupsToKeep NOTIFY changed)
     // "system", "light", "dark", or "sepia".
     Q_PROPERTY(QString theme READ theme WRITE setTheme NOTIFY changed)
+    // The accent colour: "theme" for the accent of the theme, or a name.
+    Q_PROPERTY(QString accent READ accent WRITE setAccent NOTIFY changed)
     // A font family, or "" for the font that comes with the app.
     Q_PROPERTY(QString readingFont READ readingFont WRITE setReadingFont NOTIFY changed)
     Q_PROPERTY(QString uiFont READ uiFont WRITE setUiFont NOTIFY changed)
@@ -85,6 +87,8 @@ public:
     void setBackupsToKeep(int value);
     QString theme() const { return themeName; }
     void setTheme(const QString &value);
+    QString accent() const { return accentName; }
+    void setAccent(const QString &value);
     QString readingFont() const { return readingFamily; }
     void setReadingFont(const QString &value) { change(readingFamily, value, "view/readingFont"); }
     QString uiFont() const { return uiFamily; }
@@ -154,6 +158,7 @@ private:
     QString folder;
     int keep = defaultBackupsToKeep;
     QString themeName = QStringLiteral("system");
+    QString accentName = QStringLiteral("theme");
     QString readingFamily;
     QString uiFamily;
     int size = 19;

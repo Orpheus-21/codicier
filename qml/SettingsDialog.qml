@@ -239,7 +239,8 @@ T.Popup {
                     label: "Theme"
 
                     Repeater {
-                        model: [["system", "System"], ["light", "Light"], ["dark", "Dark"], ["sepia", "Sepia"]]
+                        model: [["system", "System"], ["light", "Light"], ["dark", "Dark"], ["sepia", "Sepia"],
+                            ["night", "Night"], ["mist", "Mist"], ["contrast", "High contrast"]]
 
                         Choice {
                             required property var modelData
@@ -248,6 +249,23 @@ T.Popup {
                             label: modelData[1]
                             chosen: Settings.theme === modelData[0]
                             onClicked: Settings.theme = modelData[0]
+                        }
+                    }
+                }
+
+                Setting {
+                    label: "Accent colour"
+
+                    Repeater {
+                        model: [["theme", "Theme"], ["blue", "Blue"], ["green", "Green"], ["plum", "Plum"], ["red", "Red"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "accent-" + modelData[0]
+                            label: modelData[1]
+                            chosen: Settings.accent === modelData[0]
+                            onClicked: Settings.accent = modelData[0]
                         }
                     }
                 }

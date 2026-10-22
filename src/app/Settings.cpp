@@ -18,11 +18,14 @@ namespace {
 constexpr auto folderKey = "backup/folder";
 constexpr auto keepKey = "backup/keep";
 constexpr int maxKeep = 1000;
-constexpr std::array<QStringView, 4> themes { u"system", u"light", u"dark", u"sepia" };
+constexpr std::array<QStringView, 7> themes { u"system", u"light", u"dark",    u"sepia",
+                                              u"night",  u"mist",  u"contrast" };
+// "theme" keeps the accent of the theme. Theme.qml holds the colours.
+constexpr std::array<QStringView, 5> accents { u"theme", u"blue", u"green", u"plum", u"red" };
 
-bool isTheme(const QString &name)
+template <std::size_t N> bool isOneOf(const std::array<QStringView, N> &names, const QString &name)
 {
-    return std::ranges::find(themes, QStringView(name)) != themes.end();
+    return std::ranges::find(names, QStringView(name)) != names.end();
 }
 
 } // namespace
@@ -45,8 +48,11 @@ Settings::Settings(QObject *parent) : QObject(parent)
     folder = settings.value(folderKey, defaultBackupFolder()).toString();
     keep = std::clamp(settings.value(keepKey, defaultBackupsToKeep).toInt(), 1, maxKeep);
     themeName = settings.value("view/theme", themeName).toString();
-    if (!isTheme(themeName))
+    if (!isOneOf(themes, themeName))
         themeName = QStringLiteral("system");
+    accentName = settings.value("view/accent", accentName).toString();
+    if (!isOneOf(accents, accentName))
+        accentName = QStringLiteral("theme");
     readingFamily = settings.value("view/readingFont").toString();
     uiFamily = settings.value("view/uiFont").toString();
     size = std::clamp(settings.value("view/readingSize", size).toInt(), 14, 28);
@@ -79,8 +85,14 @@ Settings::Settings(QObject *parent) : QObject(parent)
 
 void Settings::setTheme(const QString &value)
 {
-    if (isTheme(value))
+    if (isOneOf(themes, value))
         change(themeName, value, "view/theme");
+}
+
+void Settings::setAccent(const QString &value)
+{
+    if (isOneOf(accents, value))
+        change(accentName, value, "view/accent");
 }
 
 void Settings::setSessionTarget(int value)

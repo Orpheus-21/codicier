@@ -8,7 +8,8 @@ import QtQuick
 QtObject {
     id: theme
 
-    // The theme the author picked: "system", "light", "dark", or "sepia".
+    // The theme the author picked: "system", "light", "dark", "sepia",
+    // "night", "mist", or "contrast".
     property string choice: Settings.theme
     // "system" follows the light or dark setting of the desktop.
     readonly property string name: {
@@ -61,9 +62,63 @@ QtObject {
                 // The chart series, in fixed order. dataviz validate_palette passes
                 // them on this paper; the light ones need labels or a table.
                 "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+            },
+            "night": {
+                "paper": "#161a20",
+                "surface": "#1d222a",
+                "selection": "#2e3846",
+                "rule": "#2c333d",
+                "ink": "#e3e7ee",
+                "inkMuted": "#a3acb9",
+                "mark": "#868e99",
+                "accent": "#7fb0e0",
+                "focus": "#7fb0e0",
+                "series": ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181"]
+            },
+            "mist": {
+                "paper": "#f4f6f8",
+                "surface": "#e9edf1",
+                "selection": "#d3dce6",
+                "rule": "#d8dee5",
+                "ink": "#1f2730",
+                "inkMuted": "#4e5966",
+                "mark": "#5e6874",
+                "accent": "#2f5f8f",
+                "focus": "#2f5f8f",
+                "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+            },
+            // High contrast: every text role has a contrast of 7 or more.
+            "contrast": {
+                "paper": "#ffffff",
+                "surface": "#f0f0f0",
+                "selection": "#c4d8f5",
+                "rule": "#767676",
+                "ink": "#000000",
+                "inkMuted": "#262626",
+                "mark": "#383838",
+                "accent": "#6a2600",
+                "focus": "#6a2600",
+                "series": ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
             }
         })
-    readonly property var color: palettes[name]
+    readonly property var darkThemes: ["dark", "night"]
+    // The accent colours the author can pick, as [on a light paper, on a dark
+    // paper]. Each passes 4.5 on the paper and surface of each theme.
+    readonly property var accents: ({
+            "blue": ["#2d5f96", "#7fb0e0"],
+            "green": ["#2f6b45", "#79bf8e"],
+            "plum": ["#7a3d6e", "#d39ac6"],
+            "red": ["#a33a2e", "#ec8f7f"]
+        })
+    // The palette with the accent of the author. The high-contrast theme keeps
+    // its own accent, so its text stays at 7 or more.
+    readonly property var color: {
+        const pick = accents[Settings.accent];
+        if (pick === undefined || name === "contrast")
+            return palettes[name];
+        const tone = pick[darkThemes.includes(name) ? 1 : 0];
+        return Object.assign({}, palettes[name], { "accent": tone, "focus": tone });
+    }
     // The colour labels of binder items, from the chart series of the theme.
     readonly property var labels: ["blue", "orange", "green", "yellow", "pink"]
 
