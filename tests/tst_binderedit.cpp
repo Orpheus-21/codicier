@@ -1624,6 +1624,34 @@ private slots:
         QVERIFY(qAbs(chapter.value("readingEase").toDouble() - 118.175) < 0.01);
     }
 
+    void trackedChangesAreAcceptedOrRejected()
+    {
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText("The cat sat on the mat.");
+        QVERIFY(!session->tracking());
+        QVERIFY(session->startTracking());
+        QVERIFY(session->tracking());
+        QTextCursor cursor(&editor);
+        cursor.select(QTextCursor::Document);
+        cursor.insertText("The dog sat on the red mat.");
+        const QVariantList list = session->changes();
+        QCOMPARE(list.size(), 2);
+        QCOMPARE(list.at(0).toMap().value("removed").toString().trimmed(), QStringLiteral("cat"));
+        QCOMPARE(list.at(0).toMap().value("added").toString().trimmed(), QStringLiteral("dog"));
+        QCOMPARE(list.at(1).toMap().value("added").toString().trimmed(), QStringLiteral("red"));
+        // Reject puts the old words back in the page.
+        QVERIFY(session->rejectChange(1));
+        QCOMPARE(editor.toPlainText(), QStringLiteral("The dog sat on the mat."));
+        // Accept puts the change into the baseline, so no change is left.
+        QVERIFY(session->acceptChange(0));
+        QVERIFY(session->changes().isEmpty());
+        QVERIFY(!session->acceptChange(0));
+        QVERIFY(session->acceptAll());
+        QVERIFY(!session->tracking());
+    }
+
     void insightsGiveTheMostUsedWords()
     {
         session->setCurrentId("m1n2p3q4r5");

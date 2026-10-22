@@ -231,9 +231,21 @@ Item {
     property bool codexOpen: false
     property bool versionsOpen: false
     property bool inboxOpen: false
+    property bool changesOpen: false
+
+    function openChanges() {
+        setFocusMode(false);
+        searchOpen = false;
+        codexOpen = false;
+        versionsOpen = false;
+        inboxOpen = false;
+        changesOpen = true;
+        changesPanel.start();
+    }
 
     function openInbox() {
         setFocusMode(false);
+        changesOpen = false;
         searchOpen = false;
         codexOpen = false;
         versionsOpen = false;
@@ -251,6 +263,7 @@ Item {
 
     function openVersions() {
         setFocusMode(false);
+        changesOpen = false;
         searchOpen = false;
         codexOpen = false;
         inboxOpen = false;
@@ -260,6 +273,7 @@ Item {
 
     function openCodex() {
         setFocusMode(false);
+        changesOpen = false;
         searchOpen = false;
         versionsOpen = false;
         inboxOpen = false;
@@ -270,6 +284,7 @@ Item {
     // Opens the search panel, or with replace the replace mode of it.
     function openSearch(replace: bool) {
         setFocusMode(false);
+        changesOpen = false;
         codexOpen = false;
         versionsOpen = false;
         inboxOpen = false;
@@ -365,6 +380,7 @@ Item {
         { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
         { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
         { id: "checklist", name: "Show or hide the revision checklist", sequence: "Ctrl+Alt+L", run: () => view.toggleViewMode("checklist") },
+        { id: "changes", name: "Track and review changes", sequence: "Ctrl+Shift+R", run: () => view.openChanges() },
         { id: "passes", name: "Draft passes", sequence: "Ctrl+Alt+D", run: () => passDialog.open() },
         { id: "versions.list", name: "Show the versions", sequence: "Ctrl+Alt+H", run: () => view.openVersions() },
         { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
@@ -725,6 +741,23 @@ Item {
                 }
             }
 
+            ChangesPanel {
+                id: changesPanel
+
+                objectName: "changesPanel"
+                visible: view.changesOpen
+                anchors.top: projectButton.bottom
+                anchors.topMargin: Theme.space.s
+                anchors.bottom: parent.bottom
+                width: parent.width
+                session: view.session
+                onCloseRequested: {
+                    view.changesOpen = false;
+                    binder.forceActiveFocus();
+                }
+                onPlaced: (at, length) => editor.selectRange(at, length)
+            }
+
             InboxPanel {
                 id: inbox
 
@@ -768,6 +801,7 @@ Item {
                 objectName: "binder"
 
                 visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen && !view.inboxOpen
+                         && !view.changesOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()
                 onBesideRequested: id => view.openBeside(id)

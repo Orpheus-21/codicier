@@ -47,6 +47,10 @@ public:
     // Underlines each commented part of the text, as a start and a length
     // in the whole text, with a dotted line.
     void setComments(const QList<std::pair<int, int>> &ranges);
+    // The tracked changes: each inserted range (start and length in the
+    // whole text) has an accent underline and tint, and the character before
+    // each deletion point has a dotted accent line.
+    void setChanges(const QList<std::pair<int, int>> &inserts, const QList<int> &deletions);
     // True draws the Markdown marks (the # of a heading, the stars of bold
     // and italic) at 1 px with no colour. The text keeps them.
     void setHideMarks(bool hide);
@@ -103,6 +107,8 @@ private:
     QList<PassRange> passRanges;
     QList<QColor> passColors;
     QList<std::pair<int, int>> commentRanges;
+    QList<std::pair<int, int>> insertRanges;
+    QList<int> deletionPoints;
     // Tints the parts of this block that a pass wrote.
     void tintPasses(const QString &text);
     bool has(StyleCheck check) const { return (styleChecks & static_cast<unsigned>(check)) != 0U; }

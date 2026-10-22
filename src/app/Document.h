@@ -122,6 +122,8 @@ public:
     void setPassColors(const QVariantList &colors);
     // The commented parts of the text, as a start and a length each.
     void setComments(const QList<std::pair<int, int>> &ranges);
+    // The tracked changes. See MarkdownHighlighter::setChanges.
+    void setChanges(const QList<std::pair<int, int>> &inserts, const QList<int> &deletions);
     // Reads the file again, if there are no unsaved edits.
     void reloadIfClean();
     // The watcher saw an outside edit while the text was not saved.

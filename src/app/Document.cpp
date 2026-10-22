@@ -130,6 +130,12 @@ void Document::setPasses(const QList<MarkdownHighlighter::PassRange> &ranges)
     highlighter->setPasses(ranges, colors);
 }
 
+void Document::setChanges(const QList<std::pair<int, int>> &inserts, const QList<int> &deletions)
+{
+    if (highlighter != nullptr)
+        highlighter->setChanges(inserts, deletions);
+}
+
 void Document::setComments(const QList<std::pair<int, int>> &ranges)
 {
     comments = ranges;

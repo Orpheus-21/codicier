@@ -286,6 +286,21 @@ public:
     // Writes a snapshot back to the item. The current text first becomes a
     // snapshot "Before restore".
     Q_INVOKABLE bool restoreSnapshot(const QString &id, const QString &path);
+
+    // Track changes of the open text: a baseline of the text when tracking
+    // started, kept in .codicier/track/. The page marks the changes since.
+    Q_PROPERTY(bool tracking READ tracking NOTIFY trackChanged)
+    bool tracking() const;
+    Q_INVOKABLE bool startTracking();
+    // The changes since the baseline, in text order: the removed text, the
+    // added text, and the place of the added text in the open text.
+    Q_INVOKABLE QVariantList changes() const;
+    // Accept puts a change into the baseline. Reject puts the removed text
+    // back in the page, as one step of undo.
+    Q_INVOKABLE bool acceptChange(int index);
+    Q_INVOKABLE bool rejectChange(int index);
+    // Accepts every change and stops the tracking of the open text.
+    Q_INVOKABLE bool acceptAll();
     // The word difference from a snapshot to the current text of the item:
     // a map with segments (each a map with kind "same", "added", or
     // "removed", and text), addedWords, and removedWords. snapshotPath can
@@ -408,6 +423,7 @@ signals:
     void snapshotsChanged();
     void backupChanged();
     void spellChanged();
+    void trackChanged();
     void versionsChanged();
     void passesChanged();
     // A text file changed: the app saved it, or another program changed it.
@@ -466,6 +482,10 @@ private:
     // The pattern that finds those names as whole words, longest first.
     static QRegularExpression namePattern(const QStringList &names);
     QStringList knownNames;
+    // The baseline file of the open text, and the marks of its changes.
+    QString trackFile() const;
+    QString baseline() const;
+    void markChanges();
     int historyTotal = 0;
     // The search index builds at the first search after a load or a binder
     // edit. Between those, only the files that changed are read again.

@@ -58,6 +58,11 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
         if (!text.file().isEmpty())
             binderModel.setItemWords(current, text.words());
         emit wordsChanged();
+        markChanges();
+    });
+    connect(this, &ProjectSession::currentIdChanged, this, [this] {
+        markChanges();
+        emit trackChanged();
     });
     connect(this, &ProjectSession::currentIdChanged, this, &ProjectSession::wordsChanged);
     connect(this, &ProjectSession::edited, this, &ProjectSession::wordsChanged);
@@ -2982,6 +2987,155 @@ QVariantList ProjectSession::snapshots(const QString &id) const
         });
     }
     return list;
+}
+
+QString ProjectSession::trackFile() const
+{
+    if (text.file().isEmpty())
+        return { };
+    QString name = text.file();
+    name.replace(u'/', u'_');
+    return QDir(project.folder).filePath(QStringLiteral(".codicier/track/") + name);
+}
+
+QString ProjectSession::baseline() const
+{
+    QFile file(trackFile());
+    return file.open(QIODevice::ReadOnly) ? QString::fromUtf8(file.readAll()) : QString();
+}
+
+bool ProjectSession::tracking() const
+{
+    return !trackFile().isEmpty() && QFileInfo::exists(trackFile());
+}
+
+bool ProjectSession::startTracking()
+{
+    if (text.file().isEmpty() || project.readOnly)
+        return false;
+    QDir(project.folder).mkpath(QStringLiteral(".codicier/track"));
+    QSaveFile file(trackFile());
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+    file.write(text.text().toUtf8());
+    if (!file.commit())
+        return false;
+    markChanges();
+    emit trackChanged();
+    return true;
+}
+
+namespace {
+
+// The changes between two texts: each run of removed and added segments.
+struct Change
+{
+    QString removed;
+    QString added;
+    int at = 0;
+    // The segments of the change, in the list of all segments.
+    qsizetype first = 0;
+    qsizetype last = 0;
+};
+
+QList<Change> changesBetween(const QList<Diff::Segment> &segments)
+{
+    QList<Change> list;
+    int at = 0;
+    for (qsizetype i = 0; i < segments.size(); ++i) {
+        const Diff::Segment &segment = segments.at(i);
+        if (segment.kind == Diff::Segment::Same) {
+            at += static_cast<int>(segment.text.size());
+            continue;
+        }
+        if (list.isEmpty() || list.last().last != i - 1)
+            list.append({ { }, { }, at, i, i });
+        Change &change = list.last();
+        change.last = i;
+        if (segment.kind == Diff::Segment::Removed) {
+            change.removed += segment.text;
+        } else {
+            change.added += segment.text;
+            at += static_cast<int>(segment.text.size());
+        }
+    }
+    return list;
+}
+
+} // namespace
+
+QVariantList ProjectSession::changes() const
+{
+    QVariantList list;
+    if (!tracking())
+        return list;
+    for (const Change &change : changesBetween(Diff::words(baseline(), text.text())))
+        list.append(QVariantMap { { QStringLiteral("removed"), change.removed },
+                                  { QStringLiteral("added"), change.added },
+                                  { QStringLiteral("at"), change.at } });
+    return list;
+}
+
+bool ProjectSession::acceptChange(int index)
+{
+    const QList<Diff::Segment> segments = Diff::words(baseline(), text.text());
+    const QList<Change> list = changesBetween(segments);
+    if (!tracking() || index < 0 || index >= list.size())
+        return false;
+    // The new baseline: the old one with this change in it.
+    QString next;
+    for (qsizetype i = 0; i < segments.size(); ++i) {
+        const Diff::Segment &segment = segments.at(i);
+        const bool inChange = i >= list.at(index).first && i <= list.at(index).last;
+        if (segment.kind == Diff::Segment::Same
+            || (segment.kind == Diff::Segment::Removed) != inChange)
+            next += segment.text;
+    }
+    QSaveFile file(trackFile());
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+    file.write(next.toUtf8());
+    if (!file.commit())
+        return false;
+    markChanges();
+    emit trackChanged();
+    return true;
+}
+
+bool ProjectSession::rejectChange(int index)
+{
+    const QList<Change> list = changesBetween(Diff::words(baseline(), text.text()));
+    if (!tracking() || index < 0 || index >= list.size())
+        return false;
+    const Change &change = list.at(index);
+    text.replace(change.at, change.at + static_cast<int>(change.added.size()), change.removed);
+    markChanges();
+    emit trackChanged();
+    return true;
+}
+
+bool ProjectSession::acceptAll()
+{
+    if (!tracking() || !QFile::remove(trackFile()))
+        return false;
+    markChanges();
+    emit trackChanged();
+    return true;
+}
+
+void ProjectSession::markChanges()
+{
+    QList<std::pair<int, int>> inserts;
+    QList<int> deletions;
+    if (tracking()) {
+        for (const Change &change : changesBetween(Diff::words(baseline(), text.text()))) {
+            if (!change.added.isEmpty())
+                inserts.append({ change.at, static_cast<int>(change.added.size()) });
+            else
+                deletions.append(change.at);
+        }
+    }
+    text.setChanges(inserts, deletions);
 }
 
 bool ProjectSession::restoreSnapshot(const QString &id, const QString &path)

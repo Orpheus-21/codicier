@@ -142,8 +142,42 @@ void MarkdownHighlighter::styleBlock(const QString &text)
         merged.setUnderlineColor(linkFormat.foreground().color());
         setFormat(from - first, to - from, merged);
     }
+    // The tracked changes.
+    const QColor accent = linkFormat.foreground().color();
+    for (const auto &[start, length] : std::as_const(insertRanges)) {
+        const int from = std::max(start, first);
+        const int to = std::min(start + length, static_cast<int>(first + text.size()));
+        if (from >= to)
+            continue;
+        QTextCharFormat merged = format(from - first);
+        merged.setUnderlineStyle(QTextCharFormat::SingleUnderline);
+        merged.setUnderlineColor(accent);
+        QColor tint = accent;
+        tint.setAlpha(0x26);
+        merged.setBackground(tint);
+        setFormat(from - first, to - from, merged);
+    }
+    for (const int point : std::as_const(deletionPoints)) {
+        const int at = std::max(point - 1, 0) - first;
+        if (at < 0 || at >= text.size())
+            continue;
+        QTextCharFormat merged = format(at);
+        merged.setUnderlineStyle(QTextCharFormat::DotLine);
+        merged.setUnderlineColor(accent);
+        setFormat(at, 1, merged);
+    }
     checkSpelling(text);
     checkStyle(text);
+}
+
+void MarkdownHighlighter::setChanges(const QList<std::pair<int, int>> &inserts,
+                                     const QList<int> &deletions)
+{
+    if (inserts == insertRanges && deletions == deletionPoints)
+        return;
+    insertRanges = inserts;
+    deletionPoints = deletions;
+    rehighlight();
 }
 
 void MarkdownHighlighter::setPasses(const QList<PassRange> &ranges, const QList<QColor> &colors)

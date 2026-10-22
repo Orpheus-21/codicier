@@ -153,6 +153,19 @@ private slots:
         QCOMPARE(formatAt(*document, 0).underlineStyle(), QTextCharFormat::NoUnderline);
     }
 
+    void trackedChangesHaveMarks()
+    {
+        document->setPlainText(QStringLiteral("The dog sat."));
+        highlighter->setChanges({ { 4, 3 } }, { 11 });
+        QCOMPARE(formatAt(*document, 5).underlineStyle(), QTextCharFormat::SingleUnderline);
+        QVERIFY(formatAt(*document, 5).background().color().alpha() > 0);
+        QCOMPARE(formatAt(*document, 0).underlineStyle(), QTextCharFormat::NoUnderline);
+        // A deletion marks the character before it.
+        QCOMPARE(formatAt(*document, 10).underlineStyle(), QTextCharFormat::DotLine);
+        highlighter->setChanges({ }, { });
+        QCOMPARE(formatAt(*document, 5).underlineStyle(), QTextCharFormat::NoUnderline);
+    }
+
     void headingIsLargerAndBold()
     {
         document->setPlainText(QStringLiteral("## Chapter 1"));

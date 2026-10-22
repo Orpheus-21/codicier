@@ -608,6 +608,29 @@ TestCase {
         tryVerify(() => view.session.canvasOf(id).nodes.length === 1, 3000);
     }
 
+    function test_changesPanelTracksAndRejects() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "The cat sat.";
+        view.forceActiveFocus();
+        keyClick(Qt.Key_R, Qt.ControlModifier | Qt.ShiftModifier);
+        verify(view.changesOpen);
+        const panel = findChild(view, "changesPanel") as ChangesPanel;
+        mouseClick(findChild(panel, "startTracking") as Item);
+        verify(view.session.tracking);
+        text.forceActiveFocus();
+        text.cursorPosition = text.length;
+        for (const c of " Then it slept.")
+            keyClick(c);
+        tryVerify(() => panel.entries.length === 1);
+        compare(panel.entries[0].added.trim(), "Then it slept.");
+        view.session.rejectChange(0);
+        compare(text.text, "The cat sat.");
+        tryCompare(panel.entries, "length", 0);
+        view.session.acceptAll();
+        verify(!view.session.tracking);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;
