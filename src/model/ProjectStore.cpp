@@ -32,6 +32,9 @@ constexpr std::array<std::string_view, 8> sections {
     "manuscript", "front", "back", "codex", "notes", "research", "searches", "trash"
 };
 constexpr std::array<std::string_view, 3> statuses { "draft", "revised", "final" };
+// The parts of an argument, for essays and non-fiction.
+constexpr std::array<std::string_view, 5> arguments { "thesis", "claim", "evidence", "counter",
+                                                      "conclusion" };
 constexpr std::string_view idAlphabet = "0123456789abcdefghjkmnpqrstvwxyz";
 constexpr std::size_t idLength = 10;
 
@@ -476,6 +479,11 @@ private:
             status && !contains(statuses, *status))
             error(file, lineOf(*entry.get("status")),
                   QStringLiteral("`status` must be draft, revised, or final"));
+        if (const auto argument = string(entry, "argument", file, line, false);
+            argument && !contains(arguments, *argument))
+            error(file, lineOf(*entry.get("argument")),
+                  QStringLiteral(
+                      "`argument` must be thesis, claim, evidence, counter, or conclusion"));
         checkStrings(entry, "tags", file);
         checkStrings(entry, "aliases", file);
         checkStrings(entry, "plotlines", file);
@@ -601,11 +609,11 @@ constexpr std::array<std::string_view, 10> projectOrder { "format",  "title",   
                                                           "numbered" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 28> itemOrder {
-    "id",       "kind",    "section",  "parent",  "title",   "file",      "status",
-    "label",    "include", "pov",      "place",   "time",    "date",      "beat",
-    "synopsis", "goal",    "conflict", "outcome", "aliases", "plotlines", "tags",
-    "target",   "query",   "regex",    "restore", "board-x", "board-y",   "notes"
+constexpr std::array<std::string_view, 29> itemOrder {
+    "id",       "kind",    "section",  "parent",  "title",     "file", "status",   "label",
+    "include",  "pov",     "place",    "time",    "date",      "beat", "synopsis", "goal",
+    "conflict", "outcome", "argument", "aliases", "plotlines", "tags", "target",   "query",
+    "regex",    "restore", "board-x",  "board-y", "notes"
 };
 
 TomlWriter::Order orderFor(std::string_view path)

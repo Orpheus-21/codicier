@@ -1325,6 +1325,15 @@ private slots:
         QVERIFY(session->fields("m1n2p3q4r5").value("label").toString().isEmpty());
     }
 
+    void argumentPartsAreChecked()
+    {
+        QVERIFY(session->setField("m1n2p3q4r5", "argument", "claim"));
+        QVERIFY(readFile("binder.toml").contains("argument = \"claim\""));
+        QVERIFY(!session->setField("m1n2p3q4r5", "argument", "opinion"));
+        QVERIFY(session->setField("m1n2p3q4r5", "argument", ""));
+        QVERIFY(!readFile("binder.toml").contains("argument ="));
+    }
+
     void numbersFollowTheBinder()
     {
         QVERIFY(!session->numbered());

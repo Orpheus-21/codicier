@@ -22,7 +22,7 @@ private slots:
         QTest::newRow("novella") << "novella" << 1;
         QTest::newRow("novel") << "novel" << 4;
         QTest::newRow("series") << "series" << 1;
-        QTest::newRow("essay") << "essay" << 1;
+        QTest::newRow("essay") << "essay" << 6;
         QTest::newRow("essay collection") << "essay-collection" << 2;
         QTest::newRow("non-fiction") << "non-fiction" << 5;
     }
@@ -77,6 +77,23 @@ private slots:
         QCOMPARE(result.project.items.at(4).file, QStringLiteral("manuscript/scene-1.md"));
         QCOMPARE(result.project.data["goals"]["words"].value_or(0), 80000);
         QVERIFY(!result.project.data.contains("author"));
+    }
+
+    void essayHasTheArgumentParts()
+    {
+        QTemporaryDir dir;
+        QVERIFY(Templates::create(dir.path(), "essay", "E", QString()).isEmpty());
+        const LoadResult result = ProjectStore::load(dir.path());
+        QVERIFY(result.ok());
+        QStringList parts;
+        for (const ProjectItem &item : result.project.items)
+            parts.append(item.title + ":"
+                         + QString::fromStdString(item.data["argument"].value_or(std::string())));
+        QCOMPARE(parts,
+                 (QStringList { "Thesis:thesis", "Claim 1:claim", "Claim 2:claim",
+                                "Counter-arguments:counter", "Conclusion:conclusion",
+                                "Evidence:evidence" }));
+        QCOMPARE(result.project.items.last().section, QStringLiteral("notes"));
     }
 
     void refusesAFolderWithFiles()

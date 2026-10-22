@@ -201,6 +201,9 @@ private slots:
             << "a part has no `file`";
         QTest::newRow("bad status") << projectText() << goodBinder() + "status = \"done\"\n"
                                     << "binder.toml:21: `status` must be draft, revised, or final";
+        QTest::newRow("bad argument")
+            << projectText() << goodBinder() + "argument = \"opinion\"\n"
+            << "binder.toml:21: `argument` must be thesis, claim, evidence, counter, or conclusion";
         QTest::newRow("bad tags") << projectText() << goodBinder() + "tags = [\"a\", 2]\n"
                                   << "binder.toml:21: `tags` must hold only strings";
         QTest::newRow("bad target") << projectText() << goodBinder() + "target = \"many\"\n"

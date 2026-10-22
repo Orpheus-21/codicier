@@ -2827,6 +2827,16 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
             && status != QLatin1String("final"))
             return false;
         data.insert_or_assign(name, status.toStdString());
+    } else if (key == QLatin1String("argument")) {
+        // The part of an argument, or "" for none.
+        const QString part = value.toString();
+        if (part.isEmpty())
+            data.erase(name);
+        else if (QStringList { "thesis", "claim", "evidence", "counter", "conclusion" }.contains(
+                     part))
+            data.insert_or_assign(name, part.toStdString());
+        else
+            return false;
     } else if (key == QLatin1String("date")) {
         // A date of story time, valid in the calendar of the project.
         const QString date = value.toString().trimmed();

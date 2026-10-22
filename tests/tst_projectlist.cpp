@@ -72,9 +72,9 @@ private slots:
     void lastLineIsPlainProse()
     {
         QTemporaryDir dir;
-        QVERIFY(Templates::create(dir.filePath("p"), "essay", "E", "").isEmpty());
+        QVERIFY(Templates::create(dir.filePath("p"), "blank", "E", "").isEmpty());
         writeFile(
-            dir.filePath("p/manuscript/draft.md"),
+            dir.filePath("p/manuscript/untitled.md"),
             "# A heading\n\nThe letter said *the fourth* of **March**, _snake_case_ stays.[^1]\n\n"
             "[^1]: A footnote.\n");
         ProjectList list;

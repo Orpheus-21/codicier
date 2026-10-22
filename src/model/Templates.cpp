@@ -24,6 +24,13 @@ public:
         return index;
     }
 
+    // Sets the part of the argument of an item, for an essay.
+    int argument(int index, const char *part)
+    {
+        project.items[index].data.insert_or_assign("argument", part);
+        return index;
+    }
+
     // Adds an item below parent.
     int below(int parent, const QString &kind, const QString &title)
     {
@@ -100,7 +107,16 @@ int fill(Builder &b, const QString &kind)
         return 0;
     }
     if (kind == QLatin1String("essay")) {
-        b.top(scene, manuscript, QStringLiteral("Draft"));
+        // The parts of an argument, in the usual order. The evidence note
+        // holds the facts and sources that the claims need.
+        b.argument(b.top(scene, manuscript, QStringLiteral("Thesis")), "thesis");
+        b.argument(b.top(scene, manuscript, QStringLiteral("Claim 1")), "claim");
+        b.argument(b.top(scene, manuscript, QStringLiteral("Claim 2")), "claim");
+        b.argument(b.top(scene, manuscript, QStringLiteral("Counter-arguments")), "counter");
+        b.argument(b.top(scene, manuscript, QStringLiteral("Conclusion")), "conclusion");
+        b.argument(
+            b.top(QStringLiteral("note"), QStringLiteral("notes"), QStringLiteral("Evidence")),
+            "evidence");
         return 3000;
     }
     if (kind == QLatin1String("essay-collection")) {
