@@ -214,6 +214,12 @@ public:
     // right after the item. The copy gets new ids and files, and the title
     // of the top copy ends with "(copy)". Returns the id of the top copy.
     Q_INVOKABLE QString duplicate(const QString &id);
+    // Makes an empty idea canvas with the notes, opens it, and returns its id.
+    Q_INVOKABLE QString addCanvas();
+    // The nodes and the edges of a canvas. See Canvas::read.
+    Q_INVOKABLE QVariantMap canvasOf(const QString &id) const;
+    // Writes the nodes and the edges of a canvas to its file.
+    Q_INVOKABLE bool saveCanvas(const QString &id, const QVariantMap &canvas);
     // The keyboard modifiers now, as Qt::KeyboardModifier flags. A click
     // handler in QML reads them to tell a Ctrl or Shift click.
     Q_INVOKABLE static int keyboardModifiers();

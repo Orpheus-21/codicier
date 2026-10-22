@@ -1212,6 +1212,41 @@ private slots:
         QVERIFY(!session->setBoardPlace("no-such-item", 1, 1));
     }
 
+    void canvasKeepsNodesAndEdges()
+    {
+        const QString id = session->addCanvas();
+        QVERIFY(!id.isEmpty());
+        QCOMPARE(session->fields(id).value("kind").toString(), QStringLiteral("canvas"));
+        QVERIFY(session->canvasOf(id).value("nodes").toList().isEmpty());
+        const QVariantMap canvas {
+            { "nodes",
+              QVariantList {
+                  QVariantMap { { "id", "n1" },
+                                { "x", 40 },
+                                { "y", 60 },
+                                { "text", "Why does the lamp\nnever go out?" } },
+                  QVariantMap {
+                      { "id", "n2" }, { "x", 300 }, { "y", 60 }, { "item", "m1n2p3q4r5" } } } },
+            { "edges", QVariantList { QVariantMap { { "from", "n1" }, { "to", "n2" } } } }
+        };
+        QVERIFY(session->saveCanvas(id, canvas));
+        const QVariantMap back = session->canvasOf(id);
+        const QVariantList nodes = back.value("nodes").toList();
+        QCOMPARE(nodes.size(), 2);
+        QCOMPARE(nodes.at(0).toMap().value("text").toString(),
+                 QStringLiteral("Why does the lamp\nnever go out?"));
+        QCOMPARE(nodes.at(1).toMap().value("item").toString(), QStringLiteral("m1n2p3q4r5"));
+        QCOMPARE(nodes.at(1).toMap().value("x").toInt(), 300);
+        QCOMPARE(back.value("edges").toList().first().toMap().value("to").toString(),
+                 QStringLiteral("n2"));
+        // A second canvas gets its own file, and the project loads with both.
+        const QString other = session->addCanvas();
+        QVERIFY(session->canvasOf(other).value("nodes").toList().isEmpty());
+        QCOMPARE(session->canvasOf(id).value("nodes").toList().size(), 2);
+        QVERIFY(ProjectStore::load(session->folder()).ok());
+        QVERIFY(!session->saveCanvas("m1n2p3q4r5", canvas));
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

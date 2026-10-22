@@ -71,6 +71,8 @@ T.ItemDelegate {
             return "tag";
         case "map":
             return "map-pin";
+        case "canvas":
+            return "workflow";
         case "search":
             return "search";
         default:

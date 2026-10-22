@@ -2,6 +2,7 @@
 
 #include "Backup.h"
 #include "Calendar.h"
+#include "Canvas.h"
 #include "Diff.h"
 #include "Frameworks.h"
 #include "History.h"
@@ -239,7 +240,7 @@ constexpr std::array<std::pair<QStringView, QStringView>, 6> builtInTypes { {
 bool isEntity(const QString &kind)
 {
     static const QStringList base { "part", "chapter", "folder", "scene", "page",
-                                    "note", "file",    "search", "map" };
+                                    "note", "file",    "search", "map",   "canvas" };
     return !kind.isEmpty() && !base.contains(kind);
 }
 
@@ -1454,6 +1455,61 @@ QString ProjectSession::duplicate(const QString &id)
     const QString copyId = project.items.at(top).id;
     setCurrentId(copyId);
     return copyId;
+}
+
+QString ProjectSession::addCanvas()
+{
+    if (project.readOnly || !loadError.isEmpty())
+        return { };
+    const QDir dir(project.folder);
+    dir.mkpath(QStringLiteral("canvases"));
+    const QStringList names = QDir(dir.filePath(QStringLiteral("canvases"))).entryList(QDir::Files);
+    QSet<QString> taken;
+    for (const QString &name : names)
+        taken.insert(QFileInfo(name).completeBaseName() + QStringLiteral(".md"));
+    QString name = Naming::fileNameFor(QStringLiteral("Ideas"), taken);
+    name.chop(3);
+    const QString file = QStringLiteral("canvases/") + name + QStringLiteral(".toml");
+    const QString error = Canvas::write(dir.filePath(file), { });
+    if (!error.isEmpty()) {
+        editError = QStringLiteral("Cannot make %1: %2").arg(file, error);
+        emit edited();
+        return { };
+    }
+    QSet<QString> ids;
+    for (const ProjectItem &each : std::as_const(project.items))
+        ids.insert(each.id);
+    ProjectItem item;
+    item.id = Naming::newItemId(ids);
+    item.kind = QStringLiteral("canvas");
+    item.title = QStringLiteral("Ideas");
+    item.file = file;
+    project.items.append(item);
+    place(static_cast<int>(project.items.size() - 1), -1, static_cast<int>(project.roots.size()),
+          QStringLiteral("notes"));
+    commit({ file });
+    setCurrentId(item.id);
+    return item.id;
+}
+
+QVariantMap ProjectSession::canvasOf(const QString &id) const
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.items.at(index).kind != QLatin1String("canvas"))
+        return Canvas::read(QString());
+    return Canvas::read(QDir(project.folder).filePath(project.items.at(index).file));
+}
+
+bool ProjectSession::saveCanvas(const QString &id, const QVariantMap &canvas)
+{
+    const int index = indexOf(id);
+    if (index < 0 || project.readOnly || project.items.at(index).kind != QLatin1String("canvas"))
+        return false;
+    const QString file = project.items.at(index).file;
+    if (watcher)
+        watcher->noteSaved(file);
+    changedSinceBackup = true;
+    return Canvas::write(QDir(project.folder).filePath(file), canvas).isEmpty();
 }
 
 QString ProjectSession::saveSearch(const QString &query, bool regex)

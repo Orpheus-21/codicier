@@ -21,7 +21,7 @@ qt_standard_project_setup(REQUIRES 6.12)
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
     src/model/Naming.cpp src/model/Templates.cpp src/model/Watcher.cpp src/model/Snapshots.cpp
-    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp src/model/Frameworks.cpp src/model/Calendar.cpp
+    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp src/model/Frameworks.cpp src/model/Calendar.cpp src/model/Canvas.cpp
     src/index/Index.cpp)
 target_include_directories(codicier_core PUBLIC src/model src/index)
 # The plot frameworks of the beat board.
@@ -52,7 +52,7 @@ qt_add_qml_module(codicier_ui
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
         qml/Binder.qml qml/BinderRow.qml qml/Editor.qml qml/TextArea.qml qml/Inspector.qml
         qml/PageText.qml qml/Composite.qml qml/CompositeBlock.qml
-        qml/CompareView.qml qml/SettingsDialog.qml qml/SearchPanel.qml qml/CommandPalette.qml qml/Choice.qml qml/FontPicker.qml qml/DeleteProjectDialog.qml qml/CodexPanel.qml qml/TypeDialog.qml qml/Corkboard.qml qml/Outliner.qml qml/ProgressDialog.qml qml/VersionDialog.qml qml/VersionsPanel.qml qml/BeatBoard.qml qml/PlotGrid.qml qml/Timeline.qml qml/CalendarDialog.qml qml/RelationGraph.qml qml/FamilyTree.qml qml/MapView.qml qml/Insights.qml qml/PassDialog.qml qml/CommentDialog.qml qml/InboxPanel.qml qml/Checklist.qml qml/KeySheet.qml qml/FirstRunHint.qml qml/FindBar.qml qml/SidePage.qml qml/LanguageDialog.qml qml/NameDialog.qml
+        qml/CompareView.qml qml/SettingsDialog.qml qml/SearchPanel.qml qml/CommandPalette.qml qml/Choice.qml qml/FontPicker.qml qml/DeleteProjectDialog.qml qml/CodexPanel.qml qml/TypeDialog.qml qml/Corkboard.qml qml/Outliner.qml qml/ProgressDialog.qml qml/VersionDialog.qml qml/VersionsPanel.qml qml/BeatBoard.qml qml/PlotGrid.qml qml/Timeline.qml qml/CalendarDialog.qml qml/RelationGraph.qml qml/FamilyTree.qml qml/MapView.qml qml/Insights.qml qml/PassDialog.qml qml/CommentDialog.qml qml/InboxPanel.qml qml/Checklist.qml qml/KeySheet.qml qml/FirstRunHint.qml qml/FindBar.qml qml/SidePage.qml qml/LanguageDialog.qml qml/NameDialog.qml qml/CanvasView.qml
     SOURCES src/app/Workspaces.cpp src/app/Workspaces.h
         src/app/ProjectList.cpp src/app/ProjectList.h
         src/app/ProjectSession.cpp src/app/ProjectSession.h

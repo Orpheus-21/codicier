@@ -577,6 +577,37 @@ TestCase {
         Settings.freeBoard = false;
     }
 
+    function test_ideaCanvasKeepsNotesCardsAndLines() {
+        const view = makeView();
+        const scene = view.session.currentId;
+        const id = view.session.addCanvas();
+        compare(view.session.currentId, id);
+        const canvas = findChild(view, "canvasView") as CanvasView;
+        tryVerify(() => canvas.visible);
+        const surface = findChild(canvas, "canvasSurface") as Flickable;
+        waitForRendering(surface);
+        // A double-click on an empty spot makes a note, and the typing goes in.
+        mouseDoubleClickSequence(surface, 200, 200);
+        tryCompare(canvas.nodes, "length", 1);
+        for (const c of "Lamp")
+            keyClick(c);
+        tryCompare(canvas.nodes[0], "text", "Lamp");
+        const card = canvas.addNode(500, 200, "", scene);
+        canvas.link(canvas.nodes[0].id, card);
+        canvas.link(card, canvas.nodes[0].id);
+        compare(canvas.edges.length, 1);
+        // The file holds the result after the pause.
+        tryVerify(() => view.session.canvasOf(id).edges.length === 1, 3000);
+        compare(view.session.canvasOf(id).nodes[1].item, scene);
+        // Delete takes the chosen node and its lines.
+        canvas.chosenId = card;
+        canvas.forceActiveFocus();
+        keyClick(Qt.Key_Delete);
+        compare(canvas.nodes.length, 1);
+        compare(canvas.edges.length, 0);
+        tryVerify(() => view.session.canvasOf(id).nodes.length === 1, 3000);
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

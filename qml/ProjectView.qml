@@ -617,6 +617,7 @@ Item {
                 T.Action { text: "New lore"; onTriggered: binder.addItem("lore") }
                 T.Action { text: "New term"; onTriggered: binder.addItem("term") }
                 T.Action { text: "New map…"; onTriggered: mapDialog.open() }
+                T.Action { text: "New idea canvas"; onTriggered: view.session.addCanvas() }
             }
 
             Menu {
@@ -801,6 +802,18 @@ Item {
                     session: view.session
                     itemId: view.session.currentId
                 }
+            }
+
+            CanvasView {
+                objectName: "canvasView"
+                visible: view.viewMode === "page" && view.currentKind === "canvas"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 3
+                session: view.session
+                itemId: visible ? view.session.currentId : ""
+                onOpened: id => view.openText(id)
             }
 
             MapView {

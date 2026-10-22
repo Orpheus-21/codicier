@@ -31,7 +31,8 @@ struct ProjectItem
 // a map. The search, the word counts, and the spell check skip such files.
 inline bool holdsNoText(const QString &kind)
 {
-    return kind == QLatin1String("file") || kind == QLatin1String("map");
+    return kind == QLatin1String("file") || kind == QLatin1String("map")
+        || kind == QLatin1String("canvas");
 }
 
 struct Project
