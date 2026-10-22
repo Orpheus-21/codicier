@@ -1609,6 +1609,21 @@ private slots:
             QVERIFY(each.toMap().value("phrase").toString() != "she was in the");
     }
 
+    void insightsGiveSentenceLengthAndEase()
+    {
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        // Two sentences of four words: 8 words, 2 sentences, 8 syllables.
+        editor.setPlainText("The cat sat down. The dog ran off!");
+        session->setCurrentId("t6v4h9r2mz");
+        editor.setPlainText("");
+        const QVariantMap chapter = session->insights().value("chapters").toList().first().toMap();
+        QCOMPARE(chapter.value("sentenceLength").toDouble(), 4.0);
+        // 206.835 - 1.015 * 4 - 84.6 * 1 = 118.175
+        QVERIFY(qAbs(chapter.value("readingEase").toDouble() - 118.175) < 0.01);
+    }
+
     void insightsGiveTheMostUsedWords()
     {
         session->setCurrentId("m1n2p3q4r5");

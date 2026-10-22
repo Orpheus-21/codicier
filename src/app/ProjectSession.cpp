@@ -303,6 +303,41 @@ const QSet<QString> &stopWords()
     return words;
 }
 
+// The sentences, words, and syllables of a text, for the readability.
+struct Readability
+{
+    int sentences = 0;
+    int words = 0;
+    int syllables = 0;
+};
+
+// The syllables of an English word: each group of vowels, less a silent e
+// at the end, at least one.
+int syllablesOf(const QString &word)
+{
+    static const QRegularExpression vowels(QStringLiteral("[aeiouy]+"));
+    int count = static_cast<int>(word.count(vowels));
+    if (count > 1 && word.endsWith(u'e') && !word.endsWith(QStringLiteral("le")))
+        --count;
+    return std::max(1, count);
+}
+
+Readability readabilityOf(const QString &text)
+{
+    static const QRegularExpression end(QStringLiteral("[.!?\u2026]+[\"\u201D\u2019)]*(?=\\s|$)"));
+    Readability result;
+    QRegularExpressionMatchIterator it = wordPattern().globalMatch(text);
+    while (it.hasNext()) {
+        ++result.words;
+        result.syllables += syllablesOf(it.next().captured().toLower());
+    }
+    result.sentences = static_cast<int>(text.count(end));
+    // A text with words and no end mark is one sentence.
+    if (result.words > 0 && result.sentences == 0)
+        result.sentences = 1;
+    return result;
+}
+
 QString homeSection(const QString &kind)
 {
     if (kind == QLatin1String("page"))
@@ -696,6 +731,11 @@ QVariantMap ProjectSession::insights()
     for (const ChapterGroup &group : std::as_const(groups)) {
         QVariantList scenes;
         int words = 0;
+        // For the readability: the sentences, and the words and syllables
+        // of those sentences.
+        int sentences = 0;
+        int counted = 0;
+        int syllables = 0;
         int dialogue = 0;
         QHash<QString, int> povWords;
         QVariantList present(characters.size(), 0);
@@ -709,6 +749,10 @@ QVariantMap ProjectSession::insights()
             QFile file(QDir(project.folder).filePath(scene.file));
             if (file.open(QIODevice::ReadOnly)) {
                 const QString body = QString::fromUtf8(file.readAll());
+                const Readability measure = readabilityOf(body);
+                sentences += measure.sentences;
+                counted += measure.words;
+                syllables += measure.syllables;
                 QRegularExpressionMatchIterator it = quoted.globalMatch(body);
                 while (it.hasNext())
                     dialogue += Index::countWords(it.next().captured());
@@ -752,6 +796,13 @@ QVariantMap ProjectSession::insights()
             { QStringLiteral("scenes"), scenes },
             { QStringLiteral("pov"), pov },
             { QStringLiteral("dialogue"), words > 0 ? double(dialogue) / words : 0.0 },
+            { QStringLiteral("sentenceLength"), sentences > 0 ? double(counted) / sentences : 0.0 },
+            // Flesch reading ease, for English: 206.835 - 1.015 words per
+            // sentence - 84.6 syllables per word.
+            { QStringLiteral("readingEase"),
+              sentences > 0 && counted > 0
+                  ? 206.835 - 1.015 * counted / sentences - 84.6 * syllables / counted
+                  : 0.0 },
             { QStringLiteral("presence"), present } });
     }
     // The POV names by their words in the whole manuscript, most first, so

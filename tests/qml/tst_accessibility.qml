@@ -910,6 +910,7 @@ TestCase {
         waitForRendering(view);
         compare(faults(insightsView), []);
         verify(findChild(insightsView, "lengthChapter"));
+        verify(findChild(insightsView, "readability"));
         compare((findChild(insightsView, "bookReading") as Text).text,
                 "The manuscript: 6 words, under 1 min to read.");
         verify(findChild(insightsView, "povChapter"));

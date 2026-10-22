@@ -15,6 +15,14 @@ Item {
     signal opened(id: string)
 
     property var figures: ({ chapters: [], povNames: [] })
+    // The reading ease is a measure for English only.
+    readonly property bool english: session.dictionary.startsWith("en")
+
+    // The Flesch bands, as words.
+    function easeWords(ease: real): string {
+        return ease >= 90 ? "very easy" : ease >= 80 ? "easy" : ease >= 70 ? "fairly easy"
+             : ease >= 60 ? "plain" : ease >= 50 ? "fairly hard" : ease >= 30 ? "hard" : "very hard";
+    }
     // The phrases that come back in two or more scenes.
     property var phrases: []
     // The POV names with a color: the five with the most words. The rest
@@ -345,6 +353,46 @@ Item {
                     value: modelData.count
                     maximum: insights.figures.words[0].count
                     itemId: ""
+                }
+            }
+
+            Heading {
+                text: "Readability"
+            }
+
+            Repeater {
+                model: insights.figures.chapters.filter(chapter => chapter.words > 0)
+
+                Row {
+                    id: readable
+
+                    required property var modelData
+
+                    objectName: "readability"
+                    width: parent.width
+                    height: 28
+
+                    Text {
+                        width: 220
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: readable.modelData.title
+                        elide: Text.ElideRight
+                        font.family: Theme.type.reading
+                        font.pixelSize: Theme.type.body + 1
+                        color: Theme.color.ink
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: Math.round(readable.modelData.sentenceLength) + " words a sentence"
+                              + (insights.english
+                                 ? ", reading ease " + Math.round(readable.modelData.readingEase)
+                                   + " (" + insights.easeWords(readable.modelData.readingEase) + ")"
+                                 : "")
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.body
+                        color: Theme.color.inkMuted
+                    }
                 }
             }
 
