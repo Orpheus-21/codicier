@@ -104,6 +104,11 @@ void ProjectSession::noteSaved(const QString &file)
 QString ProjectSession::backup()
 {
     saveAll();
+    // The close of a project ends the session, so the history keeps it once.
+    if (history && !sessionKept) {
+        history->addSession(sessionBegan, sessionWords());
+        sessionKept = true;
+    }
     if (history)
         history->save();
     if (!changedSinceBackup || project.folder.isEmpty() || !loadError.isEmpty()
@@ -133,6 +138,8 @@ void ProjectSession::setFolder(const QString &folder)
     // The session and the history count the words added from now on.
     sessionStart = manuscriptWords();
     historyTotal = sessionStart;
+    sessionBegan = QDateTime::currentDateTime();
+    sessionKept = false;
     if (!folder.isEmpty() && loadError.isEmpty() && !project.readOnly)
         history = std::make_unique<History>(folder);
     // The dictionary of the project language.
@@ -2497,6 +2504,21 @@ int ProjectSession::dailyGoal() const
 int ProjectSession::todayWords() const
 {
     return history ? history->words(QDate::currentDate()) : 0;
+}
+
+QVariantList ProjectSession::recentSessions(int count) const
+{
+    QVariantList list;
+    if (!history)
+        return list;
+    const QMap<QDateTime, int> &all = history->sessions();
+    auto it = all.cend();
+    for (int i = 0; i < count && it != all.cbegin(); ++i) {
+        --it;
+        list.prepend(QVariantMap { { QStringLiteral("start"), it.key().toString(Qt::ISODate) },
+                                   { QStringLiteral("words"), it.value() } });
+    }
+    return list;
 }
 
 int ProjectSession::todayMinutes() const

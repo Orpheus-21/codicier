@@ -423,6 +423,8 @@ public:
     int dailyGoal() const;
     int todayWords() const;
     int todayMinutes() const;
+    // The words of the last count sessions, oldest first: start and words.
+    Q_INVOKABLE QVariantList recentSessions(int count) const;
 
 signals:
     void loaded();
@@ -495,6 +497,9 @@ private:
     QStringList knownNames;
     // The last minute that counted as writing time, in minutes since 1970.
     qint64 lastMinute = -1;
+    // When the session began, and whether the history has it yet.
+    QDateTime sessionBegan;
+    bool sessionKept = false;
     // The baseline file of the open text, and the marks of its changes.
     QString trackFile() const;
     QString baseline() const;

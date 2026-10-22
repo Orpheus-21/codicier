@@ -39,10 +39,20 @@ History::History(QString projectFolder) : folder(std::move(projectFolder))
         };
         read("days", days);
         read("minutes", minutesOf);
+        if (const toml::table *list = table.get_as<toml::table>("sessions")) {
+            for (const auto &[key, value] : *list) {
+                const QDateTime start = QDateTime::fromString(
+                    QString::fromUtf8(key.str().data(), static_cast<qsizetype>(key.str().size())),
+                    Qt::ISODate);
+                if (start.isValid() && value.is_integer())
+                    sessionsOf.insert(start, static_cast<int>(value.value_or(std::int64_t { 0 })));
+            }
+        }
     } catch (const toml::parse_error &) {
         // A file that does not parse is an empty history.
         days.clear();
         minutesOf.clear();
+        sessionsOf.clear();
     }
 }
 
@@ -59,6 +69,16 @@ void History::addMinute(const QDate &day)
     if (!day.isValid())
         return;
     ++minutesOf[day];
+    changed = true;
+}
+
+void History::addSession(const QDateTime &start, int words)
+{
+    if (!start.isValid() || words <= 0)
+        return;
+    sessionsOf.insert(start, words);
+    while (sessionsOf.size() > 100)
+        sessionsOf.erase(sessionsOf.begin());
     changed = true;
 }
 
@@ -82,6 +102,12 @@ bool History::save()
     for (auto it = days.cbegin(); it != days.cend(); ++it)
         out += it.key().toString(Qt::ISODate).toUtf8() + " = " + QByteArray::number(it.value())
             + '\n';
+    if (!sessionsOf.isEmpty()) {
+        out += "\n[sessions]\n";
+        for (auto it = sessionsOf.cbegin(); it != sessionsOf.cend(); ++it)
+            out += '"' + it.key().toString(Qt::ISODate).toUtf8()
+                + "\" = " + QByteArray::number(it.value()) + '\n';
+    }
     if (!minutesOf.isEmpty()) {
         out += "\n[minutes]\n";
         for (auto it = minutesOf.cbegin(); it != minutesOf.cend(); ++it)

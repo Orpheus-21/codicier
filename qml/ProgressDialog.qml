@@ -364,6 +364,121 @@ T.Popup {
                 }
             }
 
+            Heading {
+                text: "Sessions"
+            }
+
+            Note {
+                visible: sessionChart.sessions.length === 0
+                text: "The words of each session show here once a project closes."
+            }
+
+            // The words of the last 30 sessions, oldest first. One series, so
+            // no legend: the heading names it. Only the highest bar has a
+            // number; the others show theirs on hover.
+            Item {
+                id: sessionChart
+
+                readonly property var sessions: dialog.opened ? dialog.session.recentSessions(30) : []
+                readonly property int best: Math.max(1, ...sessions.map(each => each.words))
+                readonly property real barWidth: Math.min(18, (width - 29 * 2) / 30)
+                property int hovered: -1
+
+                function label(each: var): string {
+                    return Date.fromLocaleString(Qt.locale("en_GB"), each.start, "yyyy-MM-ddTHH:mm:ss")
+                               .toLocaleDateString(Qt.locale("en_GB"), "d MMM") + ", "
+                        + Number(each.words).toLocaleString(Qt.locale("en_GB"), "f", 0) + " words";
+                }
+
+                objectName: "sessionChart"
+                visible: sessions.length > 0
+                width: parent.width
+                height: 130
+
+                Text {
+                    text: Number(sessionChart.best).toLocaleString(Qt.locale("en_GB"), "f", 0) + " words"
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.small
+                    color: Theme.color.inkMuted
+                }
+
+                Rectangle {
+                    id: chartFloor
+
+                    anchors.bottom: parent.bottom
+                    width: parent.width
+                    height: 1
+                    color: Theme.color.rule
+                }
+
+                Row {
+                    anchors.bottom: chartFloor.top
+                    spacing: 2
+
+                    Repeater {
+                        model: sessionChart.sessions
+
+                        Item {
+                            id: sessionColumn
+
+                            required property var modelData
+                            required property int index
+
+                            width: sessionChart.barWidth
+                            height: sessionChart.height - 24
+                            Accessible.role: Accessible.StaticText
+                            Accessible.name: sessionChart.label(modelData)
+
+                            // The bar: rounded at the top end only. The clip cuts off the
+                            // round lower corners, so the bar stands square on the floor.
+                            Item {
+                                anchors.bottom: parent.bottom
+                                width: parent.width
+                                height: Math.max(2, parent.height * sessionColumn.modelData.words / sessionChart.best)
+                                clip: true
+                                opacity: sessionChart.hovered < 0 || sessionChart.hovered === sessionColumn.index ? 1 : 0.55
+
+                                Rectangle {
+                                    width: parent.width
+                                    height: parent.height + 2
+                                    radius: 2
+                                    color: Theme.color.series[0]
+                                }
+                            }
+
+                            HoverHandler {
+                                onHoveredChanged: sessionChart.hovered = hovered ? sessionColumn.index
+                                                : sessionChart.hovered === sessionColumn.index ? -1 : sessionChart.hovered
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    objectName: "sessionTip"
+                    visible: sessionChart.hovered >= 0
+                    x: Math.min(sessionChart.width - width,
+                                Math.max(0, sessionChart.hovered * (sessionChart.barWidth + 2) - width / 2))
+                    y: 18
+                    width: tipText.implicitWidth + 2 * Theme.space.s
+                    height: tipText.implicitHeight + Theme.space.s
+                    radius: Theme.radius.small
+                    color: Theme.color.surface
+                    border.width: 1
+                    border.color: Theme.color.rule
+
+                    Text {
+                        id: tipText
+
+                        anchors.centerIn: parent
+                        text: sessionChart.hovered >= 0 ? sessionChart.label(sessionChart.sessions[sessionChart.hovered]) : ""
+                        font.family: Theme.type.ui
+                        font.pixelSize: Theme.type.small
+                        color: Theme.color.ink
+                    }
+                }
+            }
+
             Note {
                 objectName: "streak"
                 text: (dialog.session.streak === 1 ? "1 day in a row" : dialog.session.streak + " days in a row")

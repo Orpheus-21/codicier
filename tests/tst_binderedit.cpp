@@ -1258,6 +1258,21 @@ private slots:
         QVERIFY(session->todayWords() >= 0);
     }
 
+    void closingKeepsTheSession()
+    {
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText(editor.toPlainText() + " four more new words");
+        // The count of the words comes a moment after the edit.
+        QTRY_VERIFY(session->sessionWords() >= 4);
+        session->backup();
+        session->backup();
+        const QVariantList sessions = session->recentSessions(30);
+        QCOMPARE(sessions.size(), 1);
+        QVERIFY(sessions.first().toMap().value("words").toInt() >= 4);
+    }
+
     void colourLabelsAreChecked()
     {
         QVERIFY(session->setField("m1n2p3q4r5", "label", "green"));

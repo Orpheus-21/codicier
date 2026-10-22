@@ -59,6 +59,25 @@ private slots:
         QCOMPARE(again.minutes(day.addDays(1)), 0);
     }
 
+    void sessionsAreKept()
+    {
+        QTemporaryDir dir;
+        const QDateTime start(QDate(2026, 10, 22), QTime(14, 5));
+        {
+            History history(dir.path());
+            history.addSession(start, 340);
+            history.addSession(start.addSecs(3600), 0);
+            for (int i = 1; i <= 110; ++i)
+                history.addSession(start.addDays(-i), i);
+            QVERIFY(history.save());
+        }
+        const History again(dir.path());
+        QCOMPARE(again.sessions().size(), 100);
+        QCOMPARE(again.sessions().value(start), 340);
+        // The oldest go first, so the newest stay.
+        QVERIFY(!again.sessions().contains(start.addDays(-110)));
+    }
+
     void badFileIsAnEmptyHistory()
     {
         QTemporaryDir dir;

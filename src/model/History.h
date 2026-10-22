@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDate>
+#include <QDateTime>
 #include <QMap>
 #include <QString>
 
@@ -20,6 +21,10 @@ public:
     // Counts one minute of writing on a day.
     void addMinute(const QDate &day);
     int minutes(const QDate &day) const { return minutesOf.value(day); }
+    // Keeps a session: its start and its words. The last 100 stay.
+    void addSession(const QDateTime &start, int words);
+    // The sessions by start, oldest first.
+    const QMap<QDateTime, int> &sessions() const { return sessionsOf; }
     // The days in a row with words, up to today. A day with no words yet
     // today does not end the streak.
     int streak(const QDate &today) const;
@@ -30,5 +35,6 @@ private:
     QString folder;
     QMap<QDate, int> days;
     QMap<QDate, int> minutesOf;
+    QMap<QDateTime, int> sessionsOf;
     bool changed = false;
 };

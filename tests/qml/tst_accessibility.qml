@@ -516,6 +516,21 @@ TestCase {
         tryVerify(() => view.session.todayMinutes >= 1, 2000);
     }
 
+    function test_sessionChartShowsClosedSessions() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "Four words for now.";
+        tryVerify(() => view.session.sessionWords >= 4, 2000);
+        view.session.backup();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_G, Qt.ControlModifier | Qt.ShiftModifier);
+        const chart = findChild(view.T.Overlay.overlay, "sessionChart") as Item;
+        tryVerify(() => chart && chart.visible);
+        compare(chart.sessions.length, 1);
+        compare(faults(chart), []);
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_heatMapColoursStayValid() {
         failOnWarning(/setAlphaF/);
         const view = makeView();
