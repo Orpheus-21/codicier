@@ -528,6 +528,12 @@ TestCase {
         tryVerify(() => !map.visible);
     }
 
+    SignalSpy {
+        id: finishedSpy
+
+        signalName: "sprintFinished"
+    }
+
     function test_sprintCountsWordsUntilTheEnd() {
         const view = makeView();
         let scene = "";
@@ -536,6 +542,8 @@ TestCase {
                 scene = item.id;
         }
         view.session.currentId = scene;
+        finishedSpy.target = view;
+        finishedSpy.clear();
         view.startSprint(2);
         const status = findChild(view, "sprintStatus") as Text;
         verify(status.visible);
@@ -545,6 +553,8 @@ TestCase {
         tryCompare(view, "sprintWords", 3, 2000);
         tryCompare(view, "sprintEnd", 0, 4000);
         compare(status.text, "Sprint: 3 words in 0 minutes");
+        // The end of the time tells the author.
+        compare(finishedSpy.count, 1);
     }
 
     function test_rightClickSuggestsAWord() {

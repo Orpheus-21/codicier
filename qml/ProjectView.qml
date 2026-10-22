@@ -206,6 +206,9 @@ Item {
         sprintTimer.start();
     }
 
+    // A sprint ran to its end.
+    signal sprintFinished
+
     function stopSprint() {
         sprintTimer.stop();
         const minutes = Math.round((sprintLength - sprintSeconds) / 60);
@@ -221,8 +224,13 @@ Item {
         repeat: true
         onTriggered: {
             view.sprintSeconds = Math.max(0, Math.ceil((view.sprintEnd - Date.now()) / 1000));
-            if (view.sprintSeconds === 0)
+            if (view.sprintSeconds === 0) {
                 view.stopSprint();
+                // The window asks for attention, as the end of a sprint is
+                // easy to miss while writing. The desktop shows it as urgent.
+                view.Window.window?.alert(0);
+                view.sprintFinished();
+            }
         }
     }
 
