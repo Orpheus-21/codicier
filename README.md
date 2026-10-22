@@ -148,6 +148,8 @@ These are the default keys. The key map file can change each key. See "Configura
 
 Tab types a tab character on the page. Use F6 to move the keyboard focus to the page and away from the page.
 
+Each view and dialog works with the keyboard alone. When a view opens, the keyboard focus goes into it. Tab moves to each control, card, and node, and a ring shows the focus. Return or Space opens the card or the node with the focus. Each view and dialog has a name for screen readers.
+
 The page hides the Markdown marks, such as the `#` of a heading and the stars of bold and italic, outside the paragraph with the cursor. The file keeps every mark, and a copy of the text includes them. The setting "Markdown marks" shows them everywhere.
 
 As you type, the page changes straight quotes to curly quotes, `--` to an em dash, and `...` to an ellipsis. Press Ctrl+Z once to get back the characters that you typed. The settings turn each change off.
@@ -279,16 +281,19 @@ Click the settings button on the workspace screen to change these settings. Each
 
 | Setting | Default | What it does |
 |---|---|---|
-| Theme | System | System, Light, Dark, or Sepia. System follows the light or dark setting of the system. |
+| Theme | System | System, Light, Dark, Sepia, Night, Mist, or High contrast. System follows the light or dark setting of the system. In High contrast, all text has a contrast of 7 to 1 or more. |
+| Accent colour | Theme | Theme, Blue, Green, Plum, or Red. The colour of links, marks, and the focus ring. High contrast keeps its own accent. |
 | Font of the text | Literata | The font of the page. The list shows the fonts of the computer. |
 | Font of the menus | Inter | The font of the binder, the inspector, and the menus. |
 | Size of the text | 19 px | The size of the text on the page, from 14 px to 28 px. |
 | Width of the page | 66 characters | The width of the text column, from 45 to 90 characters. |
+| Size of the menus | Normal | Normal, Large, or Larger: 100, 115, or 130 percent. The text of the menus and panels changes. The text on the page does not. |
 | Animations | On | Off stops all motion in the app. |
 | Markdown marks | Hide outside the cursor | "Show" shows the marks in every paragraph. |
 | Line spacing | Normal | Close, Normal, or Wide: 1.3, 1.5, or 1.8 lines. |
 | Space between paragraphs | One line | Half a line, one line, or none with a first-line indent, as in a printed book. The file does not change. |
 | Focus mode dims | Other paragraphs | Nothing, other paragraphs, or other sentences. |
+| Focus mode shows | Only the page | "The page and the bars" keeps the top bar and the status bar in focus mode. |
 | Daily reminder to write | Off | A time such as 09:30. Once a day at that time, while the app runs, a desktop notification reminds you to write. |
 | Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
@@ -313,7 +318,7 @@ An empty value turns the key of the command off. The app reads the file when a p
 
 ### The layout of a project
 
-The app writes the layout of each project to `.codicier/state.toml` in the project folder. Delete the file to go back to the default layout.
+The app writes the layout of each project to `.codicier/state.toml` in the project folder. The file also keeps the open item, the place of the cursor, and the scroll place, so a project opens where you left it. Delete the file to go back to the default layout.
 
 ## How it works
 
