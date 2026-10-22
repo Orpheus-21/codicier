@@ -114,6 +114,18 @@ Item {
         viewMode = viewMode === mode ? "page" : mode;
     }
 
+    // The keyboard focus goes with the view, so keys never reach a text that
+    // a view hides.
+    onViewModeChanged: {
+        const shown = ({ "board": boardView, "checklist": checklistArea, "insights": insightsArea,
+                         "family": familyArea, "relations": relationsArea, "timeline": timelineArea,
+                         "grid": gridArea, "beats": beatsArea, "outline": outlineArea })[viewMode];
+        if (shown)
+            shown.forceActiveFocus();
+        else if (session.document.file !== "")
+            editor.focusText();
+    }
+
     // The kind of the open item, such as "scene" or "map".
     // The board and the outliner show the children of the open item. For an
     // item with no children, they show the children of its parent.
@@ -879,6 +891,8 @@ Item {
             }
 
             Corkboard {
+                id: boardView
+
                 objectName: "corkboardView"
                 visible: view.viewMode === "board"
                 anchors.top: editorBar.bottom
@@ -891,6 +905,8 @@ Item {
             }
 
             Checklist {
+                id: checklistArea
+
                 objectName: "checklistView"
                 visible: view.viewMode === "checklist"
                 anchors.top: editorBar.bottom
@@ -901,6 +917,8 @@ Item {
             }
 
             Insights {
+                id: insightsArea
+
                 objectName: "insightsView"
                 visible: view.viewMode === "insights"
                 anchors.top: editorBar.bottom
@@ -912,6 +930,8 @@ Item {
             }
 
             FamilyTree {
+                id: familyArea
+
                 objectName: "familyTree"
                 visible: view.viewMode === "family"
                 anchors.top: editorBar.bottom
@@ -923,6 +943,8 @@ Item {
             }
 
             RelationGraph {
+                id: relationsArea
+
                 objectName: "relationGraph"
                 visible: view.viewMode === "relations"
                 anchors.top: editorBar.bottom
@@ -934,6 +956,8 @@ Item {
             }
 
             Timeline {
+                id: timelineArea
+
                 objectName: "timelineView"
                 visible: view.viewMode === "timeline"
                 anchors.top: editorBar.bottom
@@ -946,6 +970,8 @@ Item {
             }
 
             PlotGrid {
+                id: gridArea
+
                 objectName: "plotGridView"
                 visible: view.viewMode === "grid"
                 anchors.top: editorBar.bottom
@@ -956,6 +982,8 @@ Item {
             }
 
             BeatBoard {
+                id: beatsArea
+
                 objectName: "beatBoard"
                 visible: view.viewMode === "beats"
                 anchors.top: editorBar.bottom
@@ -967,6 +995,8 @@ Item {
             }
 
             Outliner {
+                id: outlineArea
+
                 objectName: "outlinerView"
                 visible: view.viewMode === "outline"
                 anchors.top: editorBar.bottom

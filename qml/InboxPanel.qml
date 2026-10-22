@@ -74,8 +74,16 @@ Item {
         clip: true
         spacing: Theme.space.s
         boundsBehavior: Flickable.StopAtBounds
-        activeFocusOnTab: true
+        // An empty list is no Tab stop. The ring marks the current entry.
+        activeFocusOnTab: count > 0
         model: panel.entries
+        highlight: Item {
+            z: 2
+
+            FocusRing {
+                visible: list.activeFocus
+            }
+        }
 
         WheelHandler {
             onWheel: event => {

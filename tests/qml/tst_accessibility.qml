@@ -120,6 +120,114 @@ TestCase {
         }
     }
 
+    // A control with the keyboard focus shows a ring. A text field shows
+    // its cursor in place of a ring, and a popup with no controls, such as
+    // the key sheet, is itself the focus.
+    function showsFocus(item: Item): bool {
+        if (item instanceof TextInput || item instanceof TextEdit || String(item).startsWith("QQuickPopupItem"))
+            return true;
+        const walk = (node, depth) => {
+            if (node instanceof FocusRing && node.visible)
+                return true;
+            if (depth === 0)
+                return false;
+            for (let i = 0; i < node.children.length; ++i) {
+                if (walk(node.children[i], depth - 1))
+                    return true;
+            }
+            return false;
+        };
+        return walk(item, 3);
+    }
+
+    // Tab from the focus through the controls until the focus comes back.
+    // Returns the controls with no ring.
+    function tabFaults(limit: int): list<string> {
+        let found = [];
+        const seen = [];
+        for (let step = 0; step < limit; ++step) {
+            keyClick(Qt.Key_Tab);
+            const item = testCase.Window.window.activeFocusItem;
+            // A text box of more than one line must not keep Tab. Only the
+            // page of the editor does, for F6 moves on from it. A popup with
+            // one stop, such as the palette, keeps the focus on purpose.
+            if (item instanceof TextEdit && item === seen[seen.length - 1] && !(item instanceof PageText))
+                found.push("Tab stuck: " + (item.objectName || item.Accessible.name || String(item)));
+            if (!item || seen.includes(item))
+                break;
+            seen.push(item);
+            if (!showsFocus(item))
+                found.push("no ring: " + String(item).split("(")[0] + " " + (item.objectName || item.text || item.Accessible.name || ""));
+        }
+        return found;
+    }
+
+    function test_everyViewAndDialogWorksByKeyboard() {
+        const view = makeView();
+        let scene = "";
+        for (const item of view.session.items()) {
+            if (item.kind === "scene" && scene === "")
+                scene = item.id;
+        }
+        view.session.currentId = scene;
+        waitForRendering(view);
+        const ids = ["board", "outline", "beats", "grid", "timeline", "insights", "family", "relations",
+                     "calendar", "progress", "codex", "inbox", "checklist", "changes", "passes",
+                     "versions.list", "help", "names", "palette", "search"];
+        let all = [];
+        for (const id of ids) {
+            const command = view.commands.find(each => each.id === id);
+            command.run();
+            waitForRendering(view);
+            wait(200);
+
+            // Keys never reach the text that a view hides.
+            if (view.viewMode !== "page")
+                verify(!(findChild(view, "editor") as Item).activeFocus, id);
+            const overlay = view.T.Overlay.overlay;
+            const popup = overlay.children.some(child => child.visible);
+            const root = popup ? overlay : view;
+            all = all.concat(faults(root).map(f => id + ": " + f));
+            all = all.concat(tabFaults(80).map(f => id + ": " + f));
+            if (popup)
+                keyClick(Qt.Key_Escape);
+            else if (id !== "search")
+                command.run();
+            waitForRendering(view);
+        }
+        compare(all, []);
+    }
+
+    function test_returnOpensACardOfTheBoard() {
+        const view = makeView();
+        const chapter = view.session.items().find(item => item.kind === "chapter")?.id
+                        ?? view.session.items()[0].id;
+        view.session.currentId = chapter;
+        view.toggleViewMode("board");
+        waitForRendering(view);
+        const board = findChild(view, "corkboardView") as Item;
+        const find = item => {
+            if (item instanceof Activator && item.visible)
+                return item;
+            for (let i = 0; i < item.children.length; ++i) {
+                const found = find(item.children[i]);
+                if (found)
+                    return found;
+            }
+            return null;
+        };
+        const card = find(board);
+        verify(card, "no card");
+        // The board closes on Return and its cards go, so keep the name.
+        const name = card.name;
+        verify(name.startsWith("Open "));
+        card.forceActiveFocus();
+        verify(showsFocus(card));
+        keyClick(Qt.Key_Return);
+        compare(view.viewMode, "page");
+        compare("Open " + view.session.fields(view.session.currentId).title, name);
+    }
+
     function test_f6MovesThroughThePanes() {
         const view = makeView();
         const model = view.session.binder;

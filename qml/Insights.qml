@@ -129,6 +129,12 @@ Item {
         TapHandler {
             onTapped: if (bar.itemId !== "") insights.opened(bar.itemId)
         }
+
+        Activator {
+            visible: bar.itemId !== ""
+            name: "Open " + bar.label
+            onActivated: insights.opened(bar.itemId)
+        }
     }
 
     Rectangle {
@@ -458,6 +464,10 @@ Item {
 
                                 TapHandler {
                                     onTapped: insights.opened(place.modelData.id)
+                                }
+
+                                Activator {
+                                    onActivated: insights.opened(place.modelData.id)
                                 }
                             }
                         }

@@ -321,6 +321,11 @@ Item {
                     onTapped: board.opened(cell.modelData.id)
                 }
 
+                Activator {
+                    name: "Open " + cell.modelData.title
+                    onActivated: board.opened(cell.modelData.id)
+                }
+
                 DragHandler {
                     target: null
                     onActiveChanged: {
@@ -385,6 +390,11 @@ Item {
 
                 TapHandler {
                     onTapped: board.opened(loose.modelData.id)
+                }
+
+                Activator {
+                    name: "Open " + loose.modelData.title
+                    onActivated: board.opened(loose.modelData.id)
                 }
 
                 DragHandler {

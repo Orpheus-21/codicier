@@ -223,6 +223,10 @@ Item {
         background: Rectangle {
             radius: Theme.radius.small
             color: regexButton.checked || regexButton.hovered ? Theme.color.selection : "transparent"
+
+            FocusRing {
+                visible: regexButton.visualFocus
+            }
         }
     }
 

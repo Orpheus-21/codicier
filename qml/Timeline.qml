@@ -222,6 +222,11 @@ Item {
                         TapHandler {
                             onTapped: timeline.opened(card.modelData.id)
                         }
+
+                        Activator {
+                            name: "Open " + card.modelData.title
+                            onActivated: timeline.opened(card.modelData.id)
+                        }
                     }
                 }
             }

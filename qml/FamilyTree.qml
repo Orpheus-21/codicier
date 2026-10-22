@@ -146,6 +146,11 @@ Item {
                 TapHandler {
                     onTapped: tree.opened(person.modelData.id)
                 }
+
+                Activator {
+                    name: "Open " + person.modelData.title
+                    onActivated: tree.opened(person.modelData.id)
+                }
             }
         }
     }

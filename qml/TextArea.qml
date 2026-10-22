@@ -17,6 +17,10 @@ T.TextArea {
     placeholderTextColor: Theme.color.inkMuted
     selectionColor: Theme.color.selection
     selectedTextColor: Theme.color.ink
+    // Tab and Shift+Tab move to the next control, as in a one-line field.
+    // A form field has no use for a tab character.
+    Keys.onTabPressed: control.nextItemInFocusChain(true).forceActiveFocus(Qt.TabFocusReason)
+    Keys.onBacktabPressed: control.nextItemInFocusChain(false).forceActiveFocus(Qt.BacktabFocusReason)
 
     background: Rectangle {
         radius: Theme.radius.small

@@ -166,6 +166,11 @@ Item {
             TapHandler {
                 onTapped: graph.opened(node.modelData.id)
             }
+
+            Activator {
+                name: "Open " + node.modelData.title
+                onActivated: graph.opened(node.modelData.id)
+            }
         }
     }
 }

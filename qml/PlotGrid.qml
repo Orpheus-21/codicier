@@ -183,6 +183,10 @@ Item {
                                 onTapped: grid.toggle(cell.modelData, lineRow.modelData.id)
                             }
 
+                            Activator {
+                                onActivated: grid.toggle(cell.modelData, lineRow.modelData.id)
+                            }
+
                             DragHandler {
                                 target: null
                                 enabled: cell.on

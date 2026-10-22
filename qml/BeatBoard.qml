@@ -172,6 +172,11 @@ Item {
                             onTapped: board.opened(card.modelData.id)
                         }
 
+                        Activator {
+                            name: "Open " + card.modelData.title
+                            onActivated: board.opened(card.modelData.id)
+                        }
+
                         DragHandler {
                             target: null
                             onActiveChanged: {
