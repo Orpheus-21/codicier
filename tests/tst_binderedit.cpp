@@ -1,3 +1,4 @@
+#include "NameGenerator.h"
 #include "ProjectSession.h"
 #include "ProjectStore.h"
 #include "SpellChecker.h"
@@ -1181,6 +1182,24 @@ private slots:
         QCOMPARE(row.value("outcome").toString(), QStringLiteral("No, and"));
         QVERIFY(row.value("conflict").toString().isEmpty());
         QVERIFY(readFile("binder.toml").contains("goal = \"Find the date\""));
+    }
+
+    void nameGeneratorMakesRealAndInventedNames()
+    {
+        const NameGenerator names;
+        const QStringList cultures = names.cultures();
+        QVERIFY(cultures.contains("English") && cultures.contains("Japanese"));
+        const QStringList real = names.generate("Japanese", "female", 10, false);
+        QCOMPARE(real.size(), 10);
+        for (const QString &name : real)
+            QCOMPARE(name.count(u' '), 1);
+        const QStringList invented = names.generate("Italian", "male", 8, true);
+        QCOMPARE(invented.size(), 8);
+        // An invented name is not a real pair from the same lists.
+        const QStringList known = names.generate("Italian", "male", 2000, false);
+        for (const QString &name : invented)
+            QVERIFY2(!known.contains(name), qPrintable(name));
+        QVERIFY(names.generate("Atlantean", "any", 5, false).isEmpty());
     }
 
     void colourLabelsAreChecked()

@@ -520,6 +520,23 @@ TestCase {
         verify(Qt.colorEqual(board.cardColor(second), "transparent"));
     }
 
+    function test_nameDialogAddsACharacter() {
+        const view = makeView();
+        view.forceActiveFocus();
+        keyClick(Qt.Key_A, Qt.ControlModifier | Qt.AltModifier);
+        const dialog = findChild(view, "nameDialog") as NameDialog;
+        tryVerify(() => dialog.opened);
+        compare(dialog.names.length, 12);
+        dialog.culture = "Japanese";
+        dialog.invented = true;
+        compare(dialog.names.length, 12);
+        const name = dialog.names[0];
+        dialog.addCharacter(name);
+        tryVerify(() => !dialog.visible);
+        compare(view.session.fields(view.session.currentId).title, name);
+        compare(view.session.fields(view.session.currentId).kind, "character");
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

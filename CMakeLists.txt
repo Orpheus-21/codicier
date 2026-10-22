@@ -26,7 +26,7 @@ add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter
 target_include_directories(codicier_core PUBLIC src/model src/index)
 # The plot frameworks of the beat board.
 # The sample project that the empty home screen offers.
-qt_add_resources(codicier_core "data" PREFIX "/" FILES data/frameworks.toml
+qt_add_resources(codicier_core "data" PREFIX "/" FILES data/frameworks.toml data/names.tsv
     data/sample/binder.toml data/sample/codex/elin.md data/sample/codex/the-lighthouse.md data/sample/codex/tomas.md data/sample/manuscript/a-storm.md data/sample/manuscript/arrival.md data/sample/manuscript/the-log.md data/sample/manuscript/the-stairs.md data/sample/notes/about-this-sample.md data/sample/project.toml)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
 target_link_libraries(codicier_core PUBLIC Qt6::Core Qt6::Sql PRIVATE Qt6::CorePrivate)
@@ -52,7 +52,7 @@ qt_add_qml_module(codicier_ui
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
         qml/Binder.qml qml/BinderRow.qml qml/Editor.qml qml/TextArea.qml qml/Inspector.qml
         qml/PageText.qml qml/Composite.qml qml/CompositeBlock.qml
-        qml/CompareView.qml qml/SettingsDialog.qml qml/SearchPanel.qml qml/CommandPalette.qml qml/Choice.qml qml/FontPicker.qml qml/DeleteProjectDialog.qml qml/CodexPanel.qml qml/TypeDialog.qml qml/Corkboard.qml qml/Outliner.qml qml/ProgressDialog.qml qml/VersionDialog.qml qml/VersionsPanel.qml qml/BeatBoard.qml qml/PlotGrid.qml qml/Timeline.qml qml/CalendarDialog.qml qml/RelationGraph.qml qml/FamilyTree.qml qml/MapView.qml qml/Insights.qml qml/PassDialog.qml qml/CommentDialog.qml qml/InboxPanel.qml qml/Checklist.qml qml/KeySheet.qml qml/FirstRunHint.qml qml/FindBar.qml qml/SidePage.qml qml/LanguageDialog.qml
+        qml/CompareView.qml qml/SettingsDialog.qml qml/SearchPanel.qml qml/CommandPalette.qml qml/Choice.qml qml/FontPicker.qml qml/DeleteProjectDialog.qml qml/CodexPanel.qml qml/TypeDialog.qml qml/Corkboard.qml qml/Outliner.qml qml/ProgressDialog.qml qml/VersionDialog.qml qml/VersionsPanel.qml qml/BeatBoard.qml qml/PlotGrid.qml qml/Timeline.qml qml/CalendarDialog.qml qml/RelationGraph.qml qml/FamilyTree.qml qml/MapView.qml qml/Insights.qml qml/PassDialog.qml qml/CommentDialog.qml qml/InboxPanel.qml qml/Checklist.qml qml/KeySheet.qml qml/FirstRunHint.qml qml/FindBar.qml qml/SidePage.qml qml/LanguageDialog.qml qml/NameDialog.qml
     SOURCES src/app/Workspaces.cpp src/app/Workspaces.h
         src/app/ProjectList.cpp src/app/ProjectList.h
         src/app/ProjectSession.cpp src/app/ProjectSession.h
@@ -62,6 +62,7 @@ qt_add_qml_module(codicier_ui
         src/app/Settings.cpp src/app/Settings.h
         src/app/KeyMap.cpp src/app/KeyMap.h src/app/SpellChecker.cpp src/app/SpellChecker.h
         src/app/Thesaurus.cpp src/app/Thesaurus.h
+        src/app/NameGenerator.cpp src/app/NameGenerator.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

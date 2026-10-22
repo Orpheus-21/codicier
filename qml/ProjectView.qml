@@ -379,6 +379,7 @@ Item {
         { id: "focus", name: "Focus mode", sequence: "F11", run: () => view.setFocusMode(!view.focusMode) },
         { id: "close", name: "Back to the workspace", sequence: "Ctrl+W", run: () => view.close() },
         { id: "help", name: "Show the keys", sequence: "F1", run: () => keySheet.open() },
+        { id: "names", name: "Make names for characters", sequence: "Ctrl+Alt+A", run: () => nameDialog.open() },
         { id: "zoom.in", name: "Larger text", sequence: "Ctrl+=", run: () => Settings.readingSize += 1 },
         { id: "zoom.out", name: "Smaller text", sequence: "Ctrl+-", run: () => Settings.readingSize -= 1 },
         { id: "zoom.reset", name: "Text at the normal size", sequence: "Ctrl+0", run: () => Settings.readingSize = 19 },
@@ -449,6 +450,15 @@ Item {
         anchors.centerIn: parent
         session: view.session
         onSaved: message => view.versionsMessage = message
+    }
+
+    NameDialog {
+        id: nameDialog
+
+        objectName: "nameDialog"
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
     }
 
     LanguageDialog {
