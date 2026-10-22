@@ -151,11 +151,13 @@ QtObject {
         readonly property int readingLine: Math.round(readingSize * readingLineHeight)
         // Characters per line in the writing view.
         readonly property int measure: Settings.measure
-        readonly property int small: 12
-        readonly property int body: 14
-        readonly property int large: 17
-        readonly property int title: 24
-        readonly property int display: 32
+        // The sizes of the menus and panels follow the setting of the author.
+        readonly property real uiScale: Settings.uiScale / 100
+        readonly property int small: Math.round(12 * uiScale)
+        readonly property int body: Math.round(14 * uiScale)
+        readonly property int large: Math.round(17 * uiScale)
+        readonly property int title: Math.round(24 * uiScale)
+        readonly property int display: Math.round(32 * uiScale)
     }
     readonly property TypeScale type: TypeScale {}
 

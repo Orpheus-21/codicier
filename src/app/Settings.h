@@ -29,6 +29,9 @@ class Settings : public QObject
     Q_PROPERTY(QString uiFont READ uiFont WRITE setUiFont NOTIFY changed)
     // The size of the text on the page in pixels, 14 to 28.
     Q_PROPERTY(int readingSize READ readingSize WRITE setReadingSize NOTIFY changed)
+    // The size of the menus and panels in percent, 100 to 130. The page text
+    // has its own size.
+    Q_PROPERTY(int uiScale READ uiScale WRITE setUiScale NOTIFY changed)
     // The width of the page in characters, 45 to 90.
     Q_PROPERTY(int measure READ measure WRITE setMeasure NOTIFY changed)
     // The wait before an autosave in milliseconds, 250 to 10000.
@@ -95,6 +98,8 @@ public:
     void setUiFont(const QString &value) { change(uiFamily, value, "view/uiFont"); }
     int readingSize() const { return size; }
     void setReadingSize(int value);
+    int uiScale() const { return scale; }
+    void setUiScale(int value);
     int measure() const { return columns; }
     void setMeasure(int value);
     int autosaveDelay() const { return delay; }
@@ -162,6 +167,7 @@ private:
     QString readingFamily;
     QString uiFamily;
     int size = 19;
+    int scale = 100;
     int columns = 66;
     int delay = 1000;
     bool lessMotion = false;

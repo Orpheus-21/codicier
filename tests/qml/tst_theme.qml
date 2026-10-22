@@ -23,6 +23,7 @@ TestCase {
     function cleanup() {
         Settings.theme = "system";
         Settings.accent = "theme";
+        Settings.uiScale = 100;
         Theme.motion.reduced = false;
     }
 
@@ -122,6 +123,14 @@ TestCase {
 
     function test_readingLineIsInPixels() {
         compare(Theme.type.readingLine, Math.round(Theme.type.readingSize * Theme.type.readingLineHeight));
+    }
+
+    function test_uiScaleLeavesThePageText() {
+        const page = Theme.type.readingSize;
+        Settings.uiScale = 130;
+        compare(Theme.type.body, 18);
+        compare(Theme.type.small, 16);
+        compare(Theme.type.readingSize, page);
     }
 
     function test_reducedMotionStopsMotion() {

@@ -56,6 +56,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     readingFamily = settings.value("view/readingFont").toString();
     uiFamily = settings.value("view/uiFont").toString();
     size = std::clamp(settings.value("view/readingSize", size).toInt(), 14, 28);
+    scale = std::clamp(settings.value("view/uiScale", scale).toInt(), 100, 130);
     columns = std::clamp(settings.value("view/measure", columns).toInt(), 45, 90);
     delay = std::clamp(settings.value("edit/autosaveDelay", delay).toInt(), 250, 10000);
     lessMotion = settings.value("view/reducedMotion", false).toBool();
@@ -108,6 +109,11 @@ void Settings::setSprintMinutes(int value)
 void Settings::setReadingSize(int value)
 {
     change(size, std::clamp(value, 14, 28), "view/readingSize");
+}
+
+void Settings::setUiScale(int value)
+{
+    change(scale, std::clamp(value, 100, 130), "view/uiScale");
 }
 
 void Settings::setMeasure(int value)

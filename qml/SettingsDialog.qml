@@ -324,6 +324,23 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Size of the menus"
+
+                    Repeater {
+                        model: [[100, "Normal"], [115, "Large"], [130, "Larger"]]
+
+                        Choice {
+                            required property var modelData
+
+                            objectName: "uiScale-" + modelData[0]
+                            label: modelData[1]
+                            chosen: Settings.uiScale === modelData[0]
+                            onClicked: Settings.uiScale = modelData[0]
+                        }
+                    }
+                }
+
+                Setting {
                     label: "First-run hints"
 
                     Choice {
