@@ -42,6 +42,9 @@ class Settings : public QObject
     // What stays bright in focus mode: 0 all the text, 1 the paragraph with
     // the cursor, 2 its sentence.
     Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY changed)
+    // The colour of the cards on the corkboard: "label" for the colour
+    // label of each item, or "pov" for its point of view character.
+    Q_PROPERTY(QString cardColour READ cardColour WRITE setCardColour NOTIFY changed)
     // True hides the Markdown marks outside the paragraph with the cursor.
     Q_PROPERTY(bool hideMarks READ hideMarks WRITE setHideMarks NOTIFY changed)
     // True after the author saw the first-run hints of a project.
@@ -100,6 +103,12 @@ public:
     }
     int focusScope() const { return scope; }
     void setFocusScope(int value) { change(scope, std::clamp(value, 0, 2), "view/focusScope"); }
+    QString cardColour() const { return cards; }
+    void setCardColour(const QString &value)
+    {
+        if (value == QLatin1String("label") || value == QLatin1String("pov"))
+            change(cards, value, "view/cardColour");
+    }
     bool hideMarks() const { return marksHidden; }
     // The spelling dictionaries on this computer, such as "en_GB".
     Q_INVOKABLE static QStringList dictionaries();
@@ -142,6 +151,7 @@ private:
     bool labels = false;
     bool seen = false;
     bool marksHidden = true;
+    QString cards = QStringLiteral("label");
     int scope = 1;
     int spacing = 150;
     int paragraphSpace = 100;

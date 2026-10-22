@@ -493,6 +493,28 @@ TestCase {
         tryCompare(view.session, "currentId", id);
     }
 
+    function test_cardsTakeTheColourOfTheirPov() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novel", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const first = view.session.currentId;
+        const second = view.session.add("scene");
+        view.session.setField(first, "pov", "Elin");
+        view.session.setField(second, "pov", "Tomas");
+        view.session.currentId = first;
+        view.viewMode = "board";
+        const board = findChild(view, "corkboardView") as Corkboard;
+        tryCompare(board.cards, "length", 2);
+        Settings.cardColour = "pov";
+        compare(board.povs.slice().sort(), ["Elin", "Tomas"]);
+        // A POV has the same colour on every board: its place in the manuscript.
+        verify(Qt.colorEqual(board.cardColor(first), Theme.color.series[board.allPovs.indexOf("Elin")]));
+        verify(!Qt.colorEqual(board.cardColor(first), board.cardColor(second)));
+        Settings.cardColour = "label";
+        verify(Qt.colorEqual(board.cardColor(second), "transparent"));
+    }
+
     function test_themeColoursReachTheDocument() {
         const view = makeView();
         const document = view.session.document;

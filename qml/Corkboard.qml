@@ -15,11 +15,30 @@ Item {
     signal opened(id: string)
 
     property var cards: []
+    // The point of view characters of the whole manuscript, in order of
+    // first use, so each one has the same colour on every board.
+    property var allPovs: []
+    // The ones on this board, for the legend.
+    readonly property var povs: allPovs.filter(pov => cards.some(card => (session.fields(card.id).pov ?? "") === pov))
+
+    function povColor(pov: string): color {
+        const at = allPovs.indexOf(pov);
+        return at < 0 ? "transparent" : Theme.color.series[at % Theme.color.series.length];
+    }
+
+    // The colour of a card: its label, or the colour of its point of view.
+    function cardColor(id: string): color {
+        return Settings.cardColour === "pov" ? povColor(session.fields(id).pov ?? "")
+                                             : Theme.labelColor(session.fields(id).label ?? "");
+    }
     // The card that the drag holds, and the card under the pointer.
     property string dragId: ""
     property int dropIndex: -1
 
     function refresh() {
+        allPovs = session.items().filter(item => item.kind === "scene")
+            .map(item => session.fields(item.id).pov ?? "")
+            .filter((pov, at, all) => pov !== "" && all.indexOf(pov) === at);
         cards = itemId === "" ? [] : session.childrenOf(itemId);
     }
 
@@ -66,12 +85,68 @@ Item {
         color: Theme.color.inkMuted
     }
 
+    // The colour of the cards, and a legend of the point of view colours.
+    Flow {
+        id: colourBar
+
+        visible: board.cards.length > 0
+        x: Theme.space.xl
+        y: Theme.space.l
+        width: parent.width - 2 * Theme.space.xl
+        spacing: Theme.space.s
+
+        Choice {
+            objectName: "cardsByLabel"
+            label: "Colour by label"
+            chosen: Settings.cardColour === "label"
+            onClicked: Settings.cardColour = "label"
+        }
+
+        Choice {
+            objectName: "cardsByPov"
+            label: "Colour by POV"
+            chosen: Settings.cardColour === "pov"
+            onClicked: Settings.cardColour = "pov"
+        }
+
+        Repeater {
+            model: Settings.cardColour === "pov" ? board.povs : []
+
+            Row {
+                id: entry
+
+                required property string modelData
+
+                height: 32
+                spacing: Theme.space.xs
+                leftPadding: Theme.space.s
+
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 10
+                    height: 10
+                    radius: 5
+                    color: board.povColor(entry.modelData)
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: entry.modelData
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.small
+                    color: Theme.color.inkMuted
+                }
+            }
+        }
+    }
+
     GridView {
         id: grid
 
         objectName: "corkboard"
         anchors.fill: parent
         anchors.margins: Theme.space.xl
+        anchors.topMargin: colourBar.visible ? colourBar.y + colourBar.height + Theme.space.s : Theme.space.xl
         cellWidth: 248
         cellHeight: 176
         clip: true
@@ -116,7 +191,7 @@ Item {
                     width: parent.width
                     height: 4
                     radius: Theme.radius.small
-                    color: Theme.labelColor(board.session.fields(cell.modelData.id).label ?? "")
+                    color: board.cardColor(cell.modelData.id)
                 }
 
                 Column {

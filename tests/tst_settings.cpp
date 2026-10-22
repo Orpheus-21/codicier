@@ -194,6 +194,20 @@ private slots:
         again.setFocusScope(1);
     }
 
+    void cardColourSurvivesARestart()
+    {
+        {
+            Settings settings;
+            QCOMPARE(settings.cardColour(), QStringLiteral("label"));
+            settings.setCardColour("plaid");
+            QCOMPARE(settings.cardColour(), QStringLiteral("label"));
+            settings.setCardColour("pov");
+        }
+        Settings again;
+        QCOMPARE(again.cardColour(), QStringLiteral("pov"));
+        again.setCardColour("label");
+    }
+
     void hideMarksSurvivesARestart()
     {
         {
