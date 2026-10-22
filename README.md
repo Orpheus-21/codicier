@@ -10,7 +10,7 @@ The app also does these things:
 
 - It counts the words of the scene, the chapter, and the book. It shows the count against the word goal of the project.
 - It keeps snapshots of a scene. It shows the differences between a snapshot and the current text, and it restores a snapshot.
-- It writes a zip backup of a project when the project closes.
+- It writes a zip backup of a project when the project closes. The home screen shows the date of the last backup.
 - It searches the full text of the project, also with regular expressions. It replaces words across the manuscript.
 - It has a focus mode with typewriter scroll.
 - It shows the work as index cards, an outline table, a beat board, a plot grid, and a timeline in story time.
@@ -325,7 +325,11 @@ The code has three parts:
 
 A project folder holds `project.toml`, `binder.toml`, and the Markdown files. `binder.toml` holds the structure of the binder and the data of each item. A Markdown file holds only the prose. The app writes each file through a temporary file, so a crash cannot leave half a file. The app can delete the `.codicier` folder and build it again at any time. `docs/format.md` describes the format in full.
 
-When another program changes a file of an open project, the app loads the new text. If the text in the app has changes that are not saved, the app asks which text to keep.
+When another program changes a file of an open project, the app loads the new text. If the text in the app has changes that are not saved, a bar above the text asks which text to keep: "Keep mine" or "Load theirs". "Load theirs" first keeps a copy of the text of the app in `.codicier/recovered/`.
+
+The app writes unsaved text to `.codicier/journal/` 200 ms after each edit, and a save removes it. If the app stops before a save, the next open keeps that text as a snapshot named "Recovered after a crash", and a bar offers to compare it.
+
+One window at a time writes to a project. The first window takes the lock file `.codicier/lock`. A second window on the same project opens it read-only, and the status bar says why. A lock of a program that ended counts as free.
 
 ## License
 
