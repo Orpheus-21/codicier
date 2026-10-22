@@ -920,6 +920,30 @@ TestCase {
         verify(Math.abs(pane.width - before - 60) <= 2, pane.width);
     }
 
+    function test_projectOpensAtTheLastPlace() {
+        let view = makeView();
+        const folder = view.folder;
+        const id = view.session.currentId;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = Array(80).fill("The tide came in over the harbour wall.").join("\n\n");
+        waitForRendering(view);
+        text.cursorPosition = 2000;
+        waitForRendering(view);
+        // A scroll a little past the place the cursor brings, with the
+        // cursor still in view.
+        const page = findChild(view, "page") as Flickable;
+        const scroll = Math.round(page.contentY) + 50;
+        page.contentY = scroll;
+        view.destroy();
+        wait(0);
+
+        view = createTemporaryObject(viewComponent, testCase, { folder: folder }) as ProjectView;
+        compare(view.session.currentId, id);
+        const again = findChild(view, "editor") as TextEdit;
+        tryCompare(again, "cursorPosition", 2000);
+        tryCompare(findChild(view, "page") as Flickable, "contentY", scroll);
+    }
+
     function test_inspectorSavesAField() {
         const view = makeView();
         const model = view.session.binder;

@@ -46,15 +46,21 @@ Item {
             session.currentId = state.item;
         else
             session.currentId = session.items().find(item => item.kind === "scene")?.id ?? "";
-        // The writer starts on the page, not in the binder.
-        if (session.document.file !== "")
+        // The writer starts on the page, not in the binder, at the place of
+        // the last session. The text lays out first.
+        if (session.document.file !== "") {
             editor.focusText();
+            if (state.item === session.currentId && state.cursor > 0)
+                Qt.callLater(editor.restorePlace, state.cursor, state.scroll ?? 0);
+        }
     }
 
     function saveState() {
         stateTimer.stop();
         session.saveViewState({
             "item": session.currentId,
+            "cursor": editor.cursorPosition,
+            "scroll": Math.round(editor.scroll),
             "binder": binderOpen,
             "binder-width": Math.round(binderPane.T.SplitView.preferredWidth),
             "inspector": inspectorOpen,

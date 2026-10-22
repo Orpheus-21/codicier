@@ -156,6 +156,8 @@ Item {
     }
     // The place of the cursor in the text, for a split.
     readonly property int cursorPosition: textEdit.cursorPosition
+    // The scroll place of the page, kept across a restart.
+    readonly property real scroll: page.contentY
     // The selection on the page, for a comment.
     readonly property int selectionStart: textEdit.selectionStart
     readonly property string selectedText: textEdit.selectedText
@@ -424,6 +426,13 @@ Item {
     // Puts the keyboard focus on the page.
     function focusText() {
         textEdit.forceActiveFocus();
+    }
+
+    // Puts the cursor and the scroll back where the author left them.
+    function restorePlace(cursor: int, scroll: real) {
+        textEdit.cursorPosition = Math.max(0, Math.min(cursor, textEdit.length));
+        // The page follows the cursor first, so the scroll comes after.
+        Qt.callLater(() => page.contentY = Math.max(0, scroll));
     }
 
     // Selects length characters from start and puts the focus on the page.
