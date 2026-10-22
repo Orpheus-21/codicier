@@ -102,6 +102,7 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+I | Make the selection, or the word at the cursor, italic. Press again to undo the italic. |
 | Ctrl+F | Find in the open scene. Enter goes to the next match, and Shift+Enter to the match before. |
 | Ctrl+R | Find and replace in the open scene. |
+| Ctrl+Shift+R | Track and review the changes of the open text. |
 | Ctrl+Shift+H | Highlight the selection, or the word at the cursor, with `==` marks. Press again to take the highlight away. |
 | Ctrl+= | Make the text of the page larger. |
 | Ctrl+- | Make the text of the page smaller. |
@@ -164,6 +165,10 @@ On the page, the names and aliases of the codex have a quiet underline. A pause 
 The corkboard shows the cards in a grid or free. On the free board, drag a card anywhere; a card dropped on another one forms a stack. The board keeps the place of each card.
 
 "New idea canvas" in the add menu of the binder makes a canvas with the notes. Double-click the canvas for a note, add cards of the texts of the manuscript, and drag from the dot on the right of a node to another node to draw a line. Click a node and press Delete to remove it. The canvas saves to a file in `canvases/`.
+
+Ctrl+Shift+R opens the changes panel. "Track changes" keeps the open text as it is now. From then on, the page underlines each insert and marks each deletion, and the panel lists every change with the removed words struck through. "Accept" keeps a change, and "Reject" puts the old words back. "Accept all and stop" ends the tracking.
+
+The insights also list the phrases of three to six words that come back in other scenes, the names of the codex by their mentions, and the words per sentence of each chapter. For an English project they give the Flesch reading ease too.
 
 The project menu turns on numbers for the chapters and the scenes in the binder and the outliner. The titles do not change.
 
