@@ -170,6 +170,8 @@ Ctrl+Shift+R opens the changes panel. "Track changes" keeps the open text as it 
 
 The insights also list the phrases of three to six words that come back in other scenes, the names of the codex by their mentions, and the words per sentence of each chapter. For an English project they give the Flesch reading ease too.
 
+Goals and progress (Ctrl+Shift+G) set a word goal for each day. The status bar then shows the words of today against it, and the days in a row. The dialog also shows the minutes of writing today, a history grid with month and weekday labels, and a chart of the words of the last 30 sessions. A session ends when a project closes. When a sprint ends, the window asks for attention.
+
 The project menu turns on numbers for the chapters and the scenes in the binder and the outliner. The titles do not change.
 
 Right-click a misspelled word on the page to see spelling suggestions. Right-click a correct word to see its synonyms from the thesaurus. Click a word in the list to put it in place of the word on the page.
@@ -287,6 +289,7 @@ Click the settings button on the workspace screen to change these settings. Each
 | Line spacing | Normal | Close, Normal, or Wide: 1.3, 1.5, or 1.8 lines. |
 | Space between paragraphs | One line | Half a line, one line, or none with a first-line indent, as in a printed book. The file does not change. |
 | Focus mode dims | Other paragraphs | Nothing, other paragraphs, or other sentences. |
+| Daily reminder to write | Off | A time such as 09:30. Once a day at that time, while the app runs, a desktop notification reminds you to write. |
 | Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
 | First-run hints | On | The hints show once. "Show them again" shows them on the next project that opens. |
