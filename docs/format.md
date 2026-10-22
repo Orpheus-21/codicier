@@ -180,6 +180,7 @@ An item at the top level has a `section` and no `parent`. An item below the top 
 | `lore` | history, a custom, or a rule of the world | yes, in `codex/` | `codex` |
 | `term` | a word of the story, for the glossary | yes, in `codex/` | `codex` |
 | `map` | the image of a map: PNG, JPEG, WebP, GIF, or BMP | yes, in `maps/` | `codex` |
+| `canvas` | an idea canvas: notes, cards of texts, and lines between them | yes, in `canvases/`, as TOML | `notes` |
 
 The kinds `character`, `place`, `item`, `faction`, `lore`, and `term` are the entities of the codex. The file of an entity holds its description as prose. Its data, such as `aliases`, `tags`, and `notes`, is in `binder.toml`, as for a scene.
 
@@ -290,3 +291,15 @@ The author can delete `.codicier/` at any time. The app then builds the index ag
 ## Versions of the format
 
 The `format` key in `project.toml` and `binder.toml` gives the version. If the version is newer than the version that the app knows, the app opens the project as read only and tells the author.
+
+## Idea canvas files
+
+A file in `canvases/` holds one idea canvas. It has `format = 1`, then a `[[node]]` table for each note or card, then an `[[edge]]` table for each line.
+
+| Key | Type | In | Meaning |
+|---|---|---|---|
+| `id` | string | node | The id of the node in the canvas. |
+| `x`, `y` | integer | node | The place of the node, in pixels from the top left. |
+| `text` | string | node | The text of a note. |
+| `item` | string | node | The id of the text that a card shows. A node with an item is a card. |
+| `from`, `to` | string | edge | The ids of the two nodes of a line. |
