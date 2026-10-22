@@ -45,7 +45,9 @@ T.Dialog {
         }
         // Commands come before items at the same rank. Array.sort is stable.
         list.sort((a, b) => a.rank - b.rank || a.order - b.order);
-        shown = list.slice(0, 50).map(match => match.entry);
+        // The list draws only the rows in view, so a long list costs little.
+        // The cap keeps a project of thousands of items quick to filter.
+        shown = list.slice(0, 200).map(match => match.entry);
         results.currentIndex = shown.length > 0 ? 0 : -1;
     }
 
