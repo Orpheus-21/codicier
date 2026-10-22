@@ -145,6 +145,9 @@ Do not say so yet."""
 | `plotlines` | array of strings | scenes | The ids of the plotlines of the scene. |
 | `beat` | string | scenes | The id of the beat of the framework that the scene is on. |
 | `synopsis` | string | text items | A short summary. |
+| `goal` | string | scenes | What the point of view character wants in the scene. |
+| `conflict` | string | scenes | What stands in the way of the goal. |
+| `outcome` | string | scenes | How the scene ends for the goal, such as "yes, but" or "no, and". |
 | `aliases` | array of strings | entities | Other names of the entity, such as a nickname or a title. |
 | `fields` | table of strings | entities | The values of the fields of the entity type, by field name, such as `Captain = "Ahab"`. The app writes the table under the item as `[item.fields]`. |
 | `tags` | array of strings | text items | Tags. |
