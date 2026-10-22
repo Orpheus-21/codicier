@@ -271,6 +271,38 @@ bool canHold(const QString &parentKind, const QString &kind)
     return false;
 }
 
+// A word of prose: letters, with an apostrophe inside.
+const QRegularExpression &wordPattern()
+{
+    static const QRegularExpression pattern(QStringLiteral("\\p{L}+(?:['’]\\p{L}+)*"),
+                                            QRegularExpression::UseUnicodePropertiesOption);
+    return pattern;
+}
+
+// The common English words, which the counts of words leave out.
+const QSet<QString> &stopWords()
+{
+    static const QSet<QString> words {
+        "the",     "and",    "for",        "are",   "but",    "not",    "you",    "all",
+        "any",     "can",    "her",        "was",   "one",    "our",    "out",    "his",
+        "has",     "had",    "him",        "she",   "they",   "them",   "their",  "there",
+        "then",    "than",   "that",       "this",  "these",  "those",  "with",   "from",
+        "have",    "were",   "what",       "when",  "where",  "which",  "who",    "whom",
+        "why",     "how",    "will",       "would", "could",  "should", "into",   "onto",
+        "over",    "under",  "again",      "about", "after",  "before", "just",   "only",
+        "very",    "more",   "most",       "some",  "such",   "said",   "says",   "say",
+        "its",     "it's",   "i'm",        "don't", "didn't", "did",    "does",   "doing",
+        "done",    "been",   "being",      "your",  "yours",  "mine",   "myself", "himself",
+        "herself", "itself", "themselves", "here",  "now",    "also",   "too",    "off",
+        "own",     "same",   "each",       "other", "both",   "few",    "nor",    "yet",
+        "upon",    "back",   "down",       "like",  "know",   "knew",   "came",   "come",
+        "went",    "get",    "got",        "let",   "may",    "might",  "must",   "shall",
+        "still",   "even",   "ever",       "never", "much",   "many",   "well",   "way",
+        "because", "while",  "though",
+    };
+    return words;
+}
+
 QString homeSection(const QString &kind)
 {
     if (kind == QLatin1String("page"))
@@ -539,6 +571,73 @@ QList<ProjectSession::ChapterGroup> ProjectSession::chapterGroups() const
     return groups;
 }
 
+QVariantList ProjectSession::repeatedPhrases()
+{
+    saveAll();
+    QList<int> scenes;
+    for (const ChapterGroup &group : chapterGroups())
+        scenes.append(group.scenes);
+    // The scenes of each phrase, once for each time it comes.
+    QHash<QString, QList<int>> where;
+    for (qsizetype at = 0; at < scenes.size(); ++at) {
+        QStringList words;
+        QRegularExpressionMatchIterator it = wordPattern().globalMatch(textOf(scenes.at(at)));
+        while (it.hasNext())
+            words.append(it.next().captured().toLower());
+        for (qsizetype length = 3; length <= 6; ++length) {
+            for (qsizetype start = 0; start + length <= words.size(); ++start) {
+                const QStringList part = words.mid(start, length);
+                if (std::ranges::none_of(part, [](const QString &word) {
+                        return word.size() > 3 && !stopWords().contains(word);
+                    }))
+                    continue;
+                where[part.join(u' ')].append(static_cast<int>(at));
+            }
+        }
+    }
+    QList<std::pair<QString, QList<int>>> kept;
+    for (auto it = where.cbegin(); it != where.cend(); ++it) {
+        // The scenes come in rising order, so a repeat is next to its first.
+        QList<int> distinct = it.value();
+        distinct.erase(std::unique(distinct.begin(), distinct.end()), distinct.end());
+        if (distinct.size() >= 2)
+            kept.append({ it.key(), it.value() });
+    }
+    // The most first, then the longest, then in word order.
+    std::ranges::sort(kept, [](const auto &a, const auto &b) {
+        if (a.second.size() != b.second.size())
+            return a.second.size() > b.second.size();
+        if (a.first.size() != b.first.size())
+            return a.first.size() > b.first.size();
+        return a.first < b.first;
+    });
+    QVariantList list;
+    QStringList shown;
+    for (const auto &[phrase, places] : std::as_const(kept)) {
+        if (list.size() >= 30)
+            break;
+        // A part of a longer phrase that comes as often adds nothing.
+        const QString padded = u' ' + phrase + u' ';
+        if (std::ranges::any_of(shown, [&](const QString &longer) {
+                return (u' ' + longer + u' ').contains(padded)
+                    && where.value(longer).size() >= places.size();
+            }))
+            continue;
+        QList<int> distinct = places;
+        distinct.erase(std::unique(distinct.begin(), distinct.end()), distinct.end());
+        QVariantList at;
+        for (const int scene : std::as_const(distinct))
+            at.append(QVariantMap {
+                { QStringLiteral("id"), project.items.at(scenes.at(scene)).id },
+                { QStringLiteral("title"), project.items.at(scenes.at(scene)).title } });
+        list.append(QVariantMap { { QStringLiteral("phrase"), phrase },
+                                  { QStringLiteral("count"), static_cast<int>(places.size()) },
+                                  { QStringLiteral("places"), at } });
+        shown.append(phrase);
+    }
+    return list;
+}
+
 QVariantMap ProjectSession::insights()
 {
     // The figures read the files, so the latest typing goes to disk first.
@@ -547,27 +646,6 @@ QVariantMap ProjectSession::insights()
     // Dialogue is text between straight or curly double quotes.
     static const QRegularExpression quoted(QStringLiteral("\"[^\"\\n]*\"|“[^”\\n]*”"));
     QHash<QString, int> povTotals;
-    // The words of the manuscript, with the common English words left out.
-    static const QRegularExpression wordPattern(QStringLiteral("\\p{L}+(?:['’]\\p{L}+)*"),
-                                                QRegularExpression::UseUnicodePropertiesOption);
-    static const QSet<QString> stopWords {
-        "the",     "and",    "for",        "are",   "but",    "not",    "you",    "all",
-        "any",     "can",    "her",        "was",   "one",    "our",    "out",    "his",
-        "has",     "had",    "him",        "she",   "they",   "them",   "their",  "there",
-        "then",    "than",   "that",       "this",  "these",  "those",  "with",   "from",
-        "have",    "were",   "what",       "when",  "where",  "which",  "who",    "whom",
-        "why",     "how",    "will",       "would", "could",  "should", "into",   "onto",
-        "over",    "under",  "again",      "about", "after",  "before", "just",   "only",
-        "very",    "more",   "most",       "some",  "such",   "said",   "says",   "say",
-        "its",     "it's",   "i'm",        "don't", "didn't", "did",    "does",   "doing",
-        "done",    "been",   "being",      "your",  "yours",  "mine",   "myself", "himself",
-        "herself", "itself", "themselves", "here",  "now",    "also",   "too",    "off",
-        "own",     "same",   "each",       "other", "both",   "few",    "nor",    "yet",
-        "upon",    "back",   "down",       "like",  "know",   "knew",   "came",   "come",
-        "went",    "get",    "got",        "let",   "may",    "might",  "must",   "shall",
-        "still",   "even",   "ever",       "never", "much",   "many",   "well",   "way",
-        "because", "while",  "though",
-    };
     QHash<QString, int> frequency;
     // The characters, each with a pattern of its title and aliases as whole
     // words, as for the mentions.
@@ -651,10 +729,10 @@ QVariantMap ProjectSession::insights()
                         ++named[entity.id];
                     }
                 }
-                QRegularExpressionMatchIterator words = wordPattern.globalMatch(body);
+                QRegularExpressionMatchIterator words = wordPattern().globalMatch(body);
                 while (words.hasNext()) {
                     const QString word = words.next().captured().toLower();
-                    if (word.size() > 2 && !stopWords.contains(word) && !nameWords.contains(word))
+                    if (word.size() > 2 && !stopWords().contains(word) && !nameWords.contains(word))
                         ++frequency[word];
                 }
             }

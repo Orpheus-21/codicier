@@ -15,6 +15,8 @@ Item {
     signal opened(id: string)
 
     property var figures: ({ chapters: [], povNames: [] })
+    // The phrases that come back in two or more scenes.
+    property var phrases: []
     // The POV names with a color: the five with the most words. The rest
     // share the gray of "Other".
     readonly property var named: figures.povNames.slice(0, 5)
@@ -48,6 +50,7 @@ Item {
 
     function refresh() {
         figures = session.insights();
+        phrases = session.repeatedPhrases();
     }
 
     function number(n: int): string {
@@ -342,6 +345,75 @@ Item {
                     value: modelData.count
                     maximum: insights.figures.words[0].count
                     itemId: ""
+                }
+            }
+
+            Heading {
+                text: "Repeated phrases"
+            }
+
+            Text {
+                visible: insights.phrases.length === 0
+                text: "No phrase of three words or more comes back in another scene."
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.inkMuted
+            }
+
+            Repeater {
+                model: insights.phrases
+
+                Column {
+                    id: phrase
+
+                    required property var modelData
+
+                    objectName: "repeatedPhrase"
+                    width: parent.width
+                    bottomPadding: Theme.space.s
+
+                    Text {
+                        width: parent.width
+                        text: "\u201C" + phrase.modelData.phrase + "\u201D, " + phrase.modelData.count + " times"
+                        wrapMode: Text.Wrap
+                        font.family: Theme.type.reading
+                        font.pixelSize: Theme.type.body + 1
+                        color: Theme.color.ink
+                    }
+
+                    Flow {
+                        width: parent.width
+                        spacing: Theme.space.m
+
+                        Repeater {
+                            model: phrase.modelData.places
+
+                            Text {
+                                id: place
+
+                                required property var modelData
+
+                                text: modelData.title
+                                font.family: Theme.type.ui
+                                font.pixelSize: Theme.type.small
+                                font.underline: placeHover.hovered
+                                color: Theme.color.accent
+                                Accessible.role: Accessible.Link
+                                Accessible.name: "Open " + modelData.title
+                                Accessible.onPressAction: insights.opened(place.modelData.id)
+
+                                HoverHandler {
+                                    id: placeHover
+
+                                    cursorShape: Qt.PointingHandCursor
+                                }
+
+                                TapHandler {
+                                    onTapped: insights.opened(place.modelData.id)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

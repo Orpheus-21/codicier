@@ -1587,6 +1587,28 @@ private slots:
         QCOMPARE(first.value("count").toInt(), 2);
     }
 
+    void repeatedPhrasesAcrossScenes()
+    {
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText("Her heart beat like a drum. She was in the room.");
+        session->setCurrentId("t6v4h9r2mz");
+        editor.setPlainText("Again her heart beat like a drum, slow. She was in the hall.");
+        const QVariantList phrases = session->repeatedPhrases();
+        QVERIFY(!phrases.isEmpty());
+        const QVariantMap first = phrases.first().toMap();
+        // The longest form wins over its parts, as it comes as often.
+        QCOMPARE(first.value("phrase").toString(), QStringLiteral("her heart beat like a drum"));
+        QCOMPARE(first.value("count").toInt(), 2);
+        QCOMPARE(first.value("places").toList().size(), 2);
+        QCOMPARE(first.value("places").toList().first().toMap().value("id").toString(),
+                 QStringLiteral("m1n2p3q4r5"));
+        // Common words alone do not count: "she was in the".
+        for (const QVariant &each : phrases)
+            QVERIFY(each.toMap().value("phrase").toString() != "she was in the");
+    }
+
     void insightsGiveTheMostUsedWords()
     {
         session->setCurrentId("m1n2p3q4r5");

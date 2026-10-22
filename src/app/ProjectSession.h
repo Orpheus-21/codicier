@@ -152,6 +152,10 @@ public:
     // characters of the codex (id and title), in the order of the presence
     // list of each chapter, which counts the mentions of each.
     Q_INVOKABLE QVariantMap insights();
+    // The phrases of 3 to 6 words that come back in two or more scenes, most
+    // first, up to 30: the phrase, the count, and the scenes (id and title)
+    // in manuscript order. A phrase of common words only does not count.
+    Q_INVOKABLE QVariantList repeatedPhrases();
     // Copies a local image into maps/ and adds it as a map in the codex.
     // Returns the new id, or "" with the reason in lastError.
     Q_INVOKABLE QString addMap(const QUrl &image);
