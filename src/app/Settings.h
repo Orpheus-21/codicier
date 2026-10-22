@@ -47,6 +47,10 @@ class Settings : public QObject
     // The colour of the cards on the corkboard: "label" for the colour
     // label of each item, or "pov" for its point of view character.
     Q_PROPERTY(QString cardColour READ cardColour WRITE setCardColour NOTIFY changed)
+    // The time of the daily reminder to write, as "HH:mm", or "" for none.
+    Q_PROPERTY(QString reminderTime READ reminderTime WRITE setReminderTime NOTIFY changed)
+    // The day of the last reminder, as yyyy-MM-dd, so it shows once a day.
+    Q_PROPERTY(QString reminderShown READ reminderShown WRITE setReminderShown NOTIFY changed)
     // True hides the Markdown marks outside the paragraph with the cursor.
     Q_PROPERTY(bool hideMarks READ hideMarks WRITE setHideMarks NOTIFY changed)
     // True after the author saw the first-run hints of a project.
@@ -105,6 +109,10 @@ public:
     }
     int focusScope() const { return scope; }
     void setFocusScope(int value) { change(scope, std::clamp(value, 0, 2), "view/focusScope"); }
+    QString reminderTime() const { return reminderAt; }
+    void setReminderTime(const QString &value);
+    QString reminderShown() const { return shownOn; }
+    void setReminderShown(const QString &value) { change(shownOn, value, "goals/reminderShown"); }
     QString cardColour() const { return cards; }
     bool freeBoard() const { return free; }
     void setFreeBoard(bool value) { change(free, value, "view/freeBoard"); }
@@ -156,6 +164,8 @@ private:
     bool seen = false;
     bool marksHidden = true;
     QString cards = QStringLiteral("label");
+    QString reminderAt;
+    QString shownOn;
     bool free = false;
     int scope = 1;
     int spacing = 150;

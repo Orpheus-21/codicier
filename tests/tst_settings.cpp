@@ -1,5 +1,6 @@
 #include "Document.h"
 #include "KeyMap.h"
+#include "Reminder.h"
 #include "Settings.h"
 #include "Workspaces.h"
 
@@ -135,6 +136,33 @@ private slots:
         QCOMPARE(result.value("warnings").toStringList(),
                  QStringList {
                      "Ctrl+N is the key of New scene and Focus mode. Only New scene uses it." });
+    }
+
+    void reminderIsDueOnceADay()
+    {
+        const QDateTime morning(QDate(2026, 10, 22), QTime(9, 15));
+        QVERIFY(Reminder::isDue("09:00", "", morning));
+        QVERIFY(!Reminder::isDue("09:00", "2026-10-22", morning));
+        QVERIFY(Reminder::isDue("09:00", "2026-10-21", morning));
+        QVERIFY(!Reminder::isDue("10:00", "", morning));
+        QVERIFY(!Reminder::isDue("", "", morning));
+        // With no notification service, notify fails quietly, so the window
+        // alerts in its place. The test points D-Bus at nothing, so no real
+        // notification shows.
+        qputenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/nonexistent/codicier-test-bus");
+        QVERIFY(!Reminder::notify("Time to write", "A test"));
+        {
+            Settings settings;
+            settings.setReminderTime("25:00");
+            QCOMPARE(settings.reminderTime(), QString());
+            settings.setReminderTime("07:45");
+            settings.setReminderShown("2026-10-22");
+        }
+        Settings again;
+        QCOMPARE(again.reminderTime(), QStringLiteral("07:45"));
+        QCOMPARE(again.reminderShown(), QStringLiteral("2026-10-22"));
+        again.setReminderTime("");
+        again.setReminderShown("");
     }
 
     void buttonLabelsSurviveARestart()

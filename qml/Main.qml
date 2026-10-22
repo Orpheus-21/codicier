@@ -20,6 +20,25 @@ Window {
     title: projectTitle !== "" ? projectTitle : "Codicier"
     color: Theme.color.paper
 
+    // The daily reminder to write. It checks the time twice a minute.
+    Reminder {
+        id: reminder
+    }
+
+    Timer {
+        interval: 30000
+        repeat: true
+        triggeredOnStart: true
+        running: Settings.reminderTime !== ""
+        onTriggered: {
+            if (!reminder.isDue(Settings.reminderTime, Settings.reminderShown, new Date()))
+                return;
+            Settings.reminderShown = Qt.formatDate(new Date(), "yyyy-MM-dd");
+            if (!reminder.notify("Time to write", "Your writing time in Codicier has come."))
+                window.alert(0);
+        }
+    }
+
     SettingsDialog {
         id: settingsDialog
 

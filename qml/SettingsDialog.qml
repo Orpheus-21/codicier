@@ -369,6 +369,22 @@ T.Popup {
                 }
 
                 Setting {
+                    label: "Daily reminder to write"
+
+                    TextField {
+                        objectName: "reminderTime"
+                        width: 220
+                        Accessible.name: "Time of the daily reminder"
+                        placeholderText: "Off, or a time such as 09:30"
+                        text: Settings.reminderTime
+                        validator: RegularExpressionValidator {
+                            regularExpression: /^$|^([01][0-9]|2[0-3]):[0-5][0-9]$/
+                        }
+                        onEditingFinished: Settings.reminderTime = text
+                    }
+                }
+
+                Setting {
                     label: "Animations"
 
                     Choice {

@@ -11,6 +11,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # on purpose (see src/model/Backup.cpp), so the notice about it is off.
 set(QT_NO_PRIVATE_MODULE_WARNING ON)
 find_package(Qt6 6.12 REQUIRED COMPONENTS Gui Qml Quick Sql CorePrivate)
+# The reminder sends a desktop notification over D-Bus where the system has
+# it. D-Bus is part of Qt Base; macOS and Windows go without.
+find_package(Qt6 6.12 QUIET COMPONENTS DBus)
 # Hunspell checks the spelling, offline, with the dictionaries of the system.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(HUNSPELL REQUIRED IMPORTED_TARGET hunspell)
@@ -42,6 +45,9 @@ set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
 qt_add_library(codicier_ui STATIC)
 target_include_directories(codicier_ui PUBLIC src/app)
 target_link_libraries(codicier_ui PUBLIC codicier_core Qt6::Gui Qt6::Quick PRIVATE PkgConfig::HUNSPELL)
+if(TARGET Qt6::DBus)
+    target_link_libraries(codicier_ui PRIVATE Qt6::DBus)
+endif()
 target_compile_options(codicier_ui PRIVATE -Wall -Wextra)
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
@@ -63,6 +69,7 @@ qt_add_qml_module(codicier_ui
         src/app/KeyMap.cpp src/app/KeyMap.h src/app/SpellChecker.cpp src/app/SpellChecker.h
         src/app/Thesaurus.cpp src/app/Thesaurus.h
         src/app/NameGenerator.cpp src/app/NameGenerator.h
+        src/app/Reminder.cpp src/app/Reminder.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

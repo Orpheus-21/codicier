@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QTime>
 #include <QUrl>
 
 #include <algorithm>
@@ -25,6 +26,13 @@ bool isTheme(const QString &name)
 }
 
 } // namespace
+
+void Settings::setReminderTime(const QString &value)
+{
+    const QString time = value.trimmed();
+    if (time.isEmpty() || QTime::fromString(time, QStringLiteral("HH:mm")).isValid())
+        change(reminderAt, time, "goals/reminderTime");
+}
 
 QStringList Settings::dictionaries()
 {
@@ -49,6 +57,10 @@ Settings::Settings(QObject *parent) : QObject(parent)
     seen = settings.value("view/hintsSeen", false).toBool();
     marksHidden = settings.value("view/hideMarks", true).toBool();
     free = settings.value("view/freeBoard", false).toBool();
+    reminderAt = settings.value("goals/reminderTime").toString();
+    if (!QTime::fromString(reminderAt, QStringLiteral("HH:mm")).isValid())
+        reminderAt.clear();
+    shownOn = settings.value("goals/reminderShown").toString();
     cards = settings.value("view/cardColour", cards).toString() == QLatin1String("pov")
         ? QStringLiteral("pov")
         : QStringLiteral("label");
