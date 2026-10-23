@@ -1365,18 +1365,19 @@ Item {
             Count {
                 objectName: "selectionCount"
                 visible: editor.selectedText !== ""
-                text: "Selection " + statusBar.number(view.session.document.wordsIn(editor.selectedText))
+                text: "Selection " + statusBar.number(view.session.document.wordsIn(editor.selectedText)) + " words"
             }
 
             Count {
                 visible: view.session.chapterWords >= 0
-                text: "Chapter " + statusBar.number(view.session.chapterWords)
+                text: "Chapter " + statusBar.number(view.session.chapterWords) + " words"
             }
 
             Count {
                 visible: view.session.error === ""
                 text: "Book " + statusBar.number(view.session.manuscriptWords)
                       + (view.session.goalWords > 0 ? " of " + statusBar.number(view.session.goalWords) : "")
+                      + " words"
             }
 
             // The session words, against the session target if there is one.
@@ -1389,6 +1390,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Session " + statusBar.number(view.session.sessionWords)
                           + (Settings.sessionTarget > 0 ? " of " + statusBar.number(Settings.sessionTarget) : "")
+                          + " words"
                 }
 
                 Rectangle {
@@ -1413,7 +1415,7 @@ Item {
                 objectName: "todayCount"
                 visible: view.session.dailyGoal > 0
                 text: "Today " + statusBar.number(view.session.todayWords) + " of "
-                      + statusBar.number(view.session.dailyGoal)
+                      + statusBar.number(view.session.dailyGoal) + " words"
                       + (view.session.streak > 1 ? ", " + view.session.streak + " days in a row" : "")
                 color: view.session.todayWords >= view.session.dailyGoal ? Theme.color.accent : Theme.color.inkMuted
             }

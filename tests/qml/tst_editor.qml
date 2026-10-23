@@ -252,7 +252,7 @@ TestCase {
         // "gull cried. The tide " holds four words.
         text.select(4, 25);
         verify(count.visible);
-        compare(count.text, "Selection 4");
+        compare(count.text, "Selection 4 words");
     }
 
     function test_statusBarShowsTheSaveState() {
