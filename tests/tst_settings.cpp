@@ -90,6 +90,26 @@ private slots:
         QFile::remove(keys.file());
     }
 
+    void oldDefaultKeyMovesToNoKey()
+    {
+        const KeyMap keys;
+        {
+            QSettings file(keys.file(), QSettings::IniFormat);
+            file.setValue("keys/versions.list", "Ctrl+Alt+H");
+            file.setValue("keys/timeline", "F9");
+        }
+        const QVariantList commands {
+            QVariantMap {
+                { "id", "versions.list" }, { "sequence", "" }, { "former", "Ctrl+Alt+H" } },
+            QVariantMap { { "id", "timeline" }, { "sequence", "" }, { "former", "Ctrl+Alt+T" } },
+        };
+        const QVariantMap sequences = keys.resolve(commands).value("sequences").toMap();
+        QCOMPARE(sequences.value("versions.list").toString(), QString());
+        // A key that the author chose stays.
+        QCOMPARE(sequences.value("timeline").toString(), QStringLiteral("F9"));
+        QFile::remove(keys.file());
+    }
+
     void keyMapWritesDefaultsAndReadsChanges()
     {
         const auto command = [](const char *id, const char *name, const char *sequence) {

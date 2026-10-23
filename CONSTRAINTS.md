@@ -63,6 +63,7 @@ No rule is planned now.
 | E5 | assertion-removed | tests/tst_projectlist.cpp | The project list gets an author role, so the role count goes from 11 to 12. | Orpheus-21 | 2026-10-28 |
 | E6 | assertion-removed | tests/qml/tst_theme.qml | Three new themes (night, mist, contrast), so the list of theme names grows from three to six. | Orpheus-21 | 2026-10-29 |
 | E7 | assertion-removed | tests/tst_scrivener.cpp | The import adds the note "Imported from Scrivener" before the research notes, so the indices of the research items in the test move up by one. | Orpheus-21 | 2026-10-30 |
+| E8 | assertion-removed | tests/qml/tst_editor.qml | Rarely used commands have no default key now (the keys clashed with input methods and desktops), so "every command has a key" is no longer the rule; a new test checks that no key clashes. | Orpheus-21 | 2026-11-06 |
 
 An exception lasts 90 days at most.
 

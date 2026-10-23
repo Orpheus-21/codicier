@@ -119,7 +119,7 @@ T.Dialog {
                                 width: group.width
                                 height: 28
                                 Accessible.role: Accessible.ListItem
-                                Accessible.name: modelData.name + ", " + modelData.sequence
+                                Accessible.name: modelData.name + ", " + (modelData.sequence || "no key")
 
                                 Text {
                                     anchors.left: parent.left
@@ -138,7 +138,8 @@ T.Dialog {
 
                                     anchors.right: parent.right
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: row.modelData.sequence
+                                    // A command with no key runs from the palette.
+                                    text: row.modelData.sequence || "Palette"
                                     font.family: Theme.type.ui
                                     font.pixelSize: Theme.type.small
                                     color: Theme.color.inkMuted

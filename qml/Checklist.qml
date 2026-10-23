@@ -56,7 +56,7 @@ Item {
     Text {
         visible: checklist.passes.length === 0
         anchors.centerIn: parent
-        text: "Start a draft pass with Ctrl+Alt+D to give it a checklist."
+        text: "Start a draft pass (\"Draft passes\" in the command palette, Ctrl+Shift+P) to give it a checklist."
         font.family: Theme.type.ui
         font.pixelSize: Theme.type.body
         color: Theme.color.inkMuted

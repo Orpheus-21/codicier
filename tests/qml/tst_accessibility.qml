@@ -344,7 +344,7 @@ TestCase {
         view.session.currentId = "";
 
         view.forceActiveFocus();
-        keyClick(Qt.Key_E, Qt.ControlModifier | Qt.ShiftModifier);
+        keyClick(Qt.Key_C, Qt.ControlModifier | Qt.ShiftModifier);
         verify(view.codexOpen);
         const list = findChild(view, "codexList") as ListView;
         // Characters come first, then places; each type in title order.
@@ -723,7 +723,7 @@ TestCase {
         const view = makeView();
         verify(!view.session.versionsOn);
         view.forceActiveFocus();
-        keyClick(Qt.Key_V, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "versions.on").run();
         verify(view.session.versionsOn);
         const message = findChild(view, "versionsMessage") as Text;
         compare(message.text, "Versions are on. The first version is saved.");
@@ -757,7 +757,7 @@ TestCase {
     function test_versionsPanelListsTheVersions() {
         const view = makeView();
         view.forceActiveFocus();
-        keyClick(Qt.Key_H, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "versions.list").run();
         verify(view.versionsOpen);
         const list = findChild(view, "versionList") as ListView;
         compare(list.count, 0);
@@ -785,7 +785,7 @@ TestCase {
         const view = makeView();
         view.session.setFramework("kishotenketsu");
         view.forceActiveFocus();
-        keyClick(Qt.Key_B, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "beats").run();
         compare(view.viewMode, "beats");
         const list = findChild(view, "beatColumns") as ListView;
         tryCompare(list, "count", 5);
@@ -832,7 +832,7 @@ TestCase {
         const b = view.session.addPlotline("B");
         const scene = view.session.plotGrid()[0].id;
         view.forceActiveFocus();
-        keyClick(Qt.Key_G, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "grid").run();
         compare(view.viewMode, "grid");
         waitForRendering(view);
         const gridView = findChild(view, "plotGridView") as Item;
@@ -861,7 +861,7 @@ TestCase {
         view.session.rename(old, "Old Vell");
         view.session.setField(old, "date", "1801-06-12");
         view.forceActiveFocus();
-        keyClick(Qt.Key_T, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "timeline").run();
         compare(view.viewMode, "timeline");
         const timelineView = findChild(view, "timelineView") as Timeline;
         compare(timelineView.tracks.length, 2);
@@ -901,7 +901,7 @@ TestCase {
             view.session.setField(scenes[i].id, "pov", "Elin");
         }
         view.forceActiveFocus();
-        keyClick(Qt.Key_T, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "timeline").run();
         const timelineView = findChild(view, "timelineView") as Timeline;
         compare(timelineView.tracks.length, 1);
         waitForRendering(view);
@@ -931,7 +931,7 @@ TestCase {
     function test_calendarDialogSetsTheMonths() {
         const view = makeView();
         view.forceActiveFocus();
-        keyClick(Qt.Key_C, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "calendar").run();
         const overlay = view.T.Overlay.overlay;
         const field = findChild(overlay, "calendarMonths") as TextArea;
         tryVerify(() => field && field.visible);
@@ -943,7 +943,7 @@ TestCase {
         mouseClick(findChild(overlay, "saveCalendar") as Item);
         compare(view.session.calendarMonths().length, 2);
         compare(view.session.calendarMonths()[0].name, "Frostmonth");
-        keyClick(Qt.Key_C, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "calendar").run();
         tryVerify(() => field.visible);
         compare(field.text, "Frostmonth 40\nThaw 30");
         mouseClick(findChild(overlay, "gregorian") as Item);
@@ -987,7 +987,7 @@ TestCase {
         const lone = view.session.add("place");
         view.session.addRelation(mara, port, "lives in", false);
         view.forceActiveFocus();
-        keyClick(Qt.Key_R, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "relations").run();
         compare(view.viewMode, "relations");
         const graphView = findChild(view, "relationGraph") as RelationGraph;
         // The character, and the place with a relation, but not the lone place.
@@ -1008,7 +1008,7 @@ TestCase {
         view.session.rename(mara, "Mara");
         view.session.addRelation(ilse, mara, "", true);
         view.forceActiveFocus();
-        keyClick(Qt.Key_F, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "family").run();
         compare(view.viewMode, "family");
         const treeView = findChild(view, "familyTree") as FamilyTree;
         compare(treeView.generations.length, 2);
@@ -1066,7 +1066,7 @@ TestCase {
         // The live count arrives a moment after the edit.
         tryCompare(view.session, "sceneWords", 6);
         view.forceActiveFocus();
-        keyClick(Qt.Key_I, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "insights").run();
         compare(view.viewMode, "insights");
         const insightsView = findChild(view, "insightsView") as Insights;
         verify(insightsView.figures.chapters.length > 0);
@@ -1094,7 +1094,7 @@ TestCase {
     function test_passDialogStartsAPass() {
         const view = makeView();
         view.forceActiveFocus();
-        keyClick(Qt.Key_D, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "passes").run();
         const overlay = view.T.Overlay.overlay;
         const field = findChild(overlay, "passName") as TextField;
         tryVerify(() => field && field.activeFocus);
@@ -1144,7 +1144,7 @@ TestCase {
         const view = makeView();
         view.session.startPass("Structure");
         view.forceActiveFocus();
-        keyClick(Qt.Key_L, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "checklist").run();
         compare(view.viewMode, "checklist");
         const listView = findChild(view, "checklistView") as Item;
         const field = findChild(listView, "newCheck") as TextField;

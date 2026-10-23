@@ -761,7 +761,7 @@ TestCase {
     function test_nameDialogAddsACharacter() {
         const view = makeView();
         view.forceActiveFocus();
-        keyClick(Qt.Key_A, Qt.ControlModifier | Qt.AltModifier);
+        view.commands.find(command => command.id === "names").run();
         const dialog = findChild(view, "nameDialog") as NameDialog;
         tryVerify(() => dialog.opened);
         compare(dialog.names.length, 12);
@@ -1110,11 +1110,29 @@ TestCase {
         tryVerify(() => !field.visible);
     }
 
+    function test_defaultKeysLeaveInputMethodsAlone() {
+        const view = makeView();
+        // The default keys of fcitx5 (global, keyboard engine, unicode) and
+        // IBus (unicode, emoji) reach the input method first, so the app
+        // never gets them while a text field has the focus.
+        const taken = ["Ctrl+Space", "Ctrl+Alt+P", "Ctrl+Alt+H", "Ctrl+Alt+J", "Ctrl+Shift+U",
+                       "Ctrl+Shift+Alt+U", "Ctrl+Shift+E", "Ctrl+.", "Meta+Space"];
+        for (const command of view.commands)
+            verify(!taken.includes(command.sequence), command.id + " uses " + command.sequence);
+        // The writing commands keep their keys.
+        for (const id of ["format.bold", "format.italic", "scene.new", "chapter.new", "find", "palette",
+                          "comment", "note.new", "versions.save", "codex", "focus", "help"])
+            verify(view.commands.find(command => command.id === id).sequence !== "", id);
+        compare(view.commands.find(command => command.id === "codex").sequence, "Ctrl+Shift+C");
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};
         for (const command of view.commands) {
-            verify(command.sequence !== "", command.id);
+            // Rarely used commands have no default key; the palette runs them.
+            if (command.sequence === "")
+                continue;
             verify(!seen[command.sequence], command.sequence);
             seen[command.sequence] = true;
         }
