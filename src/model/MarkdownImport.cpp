@@ -2,7 +2,6 @@
 
 #include "Naming.h"
 
-#include <QCollator>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -13,15 +12,45 @@
 
 namespace {
 
+// Natural order: runs of digits compare as numbers, so "2" comes before
+// "10", and letters compare without case. QCollator does this only with
+// the locale data of ICU, which some systems lack.
+bool naturalLess(const QString &a, const QString &b)
+{
+    qsizetype i = 0;
+    qsizetype j = 0;
+    while (i < a.size() && j < b.size()) {
+        if (a.at(i).isDigit() && b.at(j).isDigit()) {
+            qsizetype endA = i;
+            qsizetype endB = j;
+            while (endA < a.size() && a.at(endA).isDigit())
+                ++endA;
+            while (endB < b.size() && b.at(endB).isDigit())
+                ++endB;
+            const qulonglong x = a.mid(i, endA - i).toULongLong();
+            const qulonglong y = b.mid(j, endB - j).toULongLong();
+            if (x != y)
+                return x < y;
+            i = endA;
+            j = endB;
+            continue;
+        }
+        const QChar x = a.at(i).toCaseFolded();
+        const QChar y = b.at(j).toCaseFolded();
+        if (x != y)
+            return x < y;
+        ++i;
+        ++j;
+    }
+    return a.size() - i < b.size() - j;
+}
+
 // The entries of a folder in natural order, as a person reads them.
 QFileInfoList sorted(const QDir &dir, QDir::Filters filters, const QStringList &names = { })
 {
     QFileInfoList list = dir.entryInfoList(names, filters | QDir::NoDotAndDotDot);
-    QCollator collator;
-    collator.setNumericMode(true);
-    collator.setCaseSensitivity(Qt::CaseInsensitive);
-    std::ranges::sort(list, [&collator](const QFileInfo &a, const QFileInfo &b) {
-        return collator.compare(a.fileName(), b.fileName()) < 0;
+    std::ranges::sort(list, [](const QFileInfo &a, const QFileInfo &b) {
+        return naturalLess(a.fileName(), b.fileName());
     });
     return list;
 }
