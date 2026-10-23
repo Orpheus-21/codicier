@@ -29,7 +29,7 @@ T.Dialog {
             return "Find";
         if (["calendar", "codex", "names", "sprint", "progress", "passes", "inbox", "changes", "sources", "quotes", "submissions"].includes(id))
             return "Plan and track";
-        if (["help", "close", "print", "export"].includes(id))
+        if (["help", "close", "print", "export", "settings"].includes(id))
             return "App";
         return "Views and panes";
     }

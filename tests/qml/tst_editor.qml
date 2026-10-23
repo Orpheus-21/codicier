@@ -1126,6 +1126,17 @@ TestCase {
         compare(view.commands.find(command => command.id === "codex").sequence, "Ctrl+Shift+C");
     }
 
+    function test_settingsOpenFromAProject() {
+        const view = makeView();
+        let asked = 0;
+        view.settingsRequested.connect(() => ++asked);
+        view.forceActiveFocus();
+        keyClick(Qt.Key_Comma, Qt.ControlModifier);
+        compare(asked, 1);
+        view.commands.find(command => command.id === "settings").run();
+        compare(asked, 2);
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};

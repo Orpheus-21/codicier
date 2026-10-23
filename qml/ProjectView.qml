@@ -26,6 +26,8 @@ Item {
 
     // The author asked to go back to the workspace home.
     signal closeRequested
+    // The author asks for the settings, which the window holds.
+    signal settingsRequested
 
     // The binder pane on the left and the inspector pane on the right.
     property bool binderOpen: true
@@ -452,6 +454,7 @@ Item {
         { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
         { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
         { id: "export", name: "Export the manuscript", sequence: "Ctrl+E", run: () => exportDialog.open() },
+        { id: "settings", name: "Settings", sequence: "Ctrl+,", run: () => view.settingsRequested() },
         { id: "print", name: "Print a chapter or the manuscript", sequence: "Ctrl+P", run: () => printDialog.open() },
         { id: "submissions", name: "Track the submissions", sequence: "", former: "Ctrl+Alt+U", run: () => submissionsDialog.open() },
         { id: "quotes", name: "Show the quote bank", sequence: "", former: "Ctrl+Alt+Q", run: () => view.openQuotes() },

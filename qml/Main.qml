@@ -73,6 +73,7 @@ Window {
             folder: window.projectFolder
             workspaceName: Workspaces.currentName
             onCloseRequested: window.projectFolder = ""
+            onSettingsRequested: settingsDialog.open()
             Component.onCompleted: window.projectTitle = Qt.binding(() => session.title)
             Component.onDestruction: window.projectTitle = ""
         }
