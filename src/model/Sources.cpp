@@ -7,22 +7,21 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QUuid>
 
 #include <array>
 #include <utility>
 
 namespace {
 
-QString pathOf(const QString &folder)
-{
-    return QDir(folder).filePath(QStringLiteral("sources.json"));
-}
+constexpr const char *sourcesFile = "sources.json";
+constexpr const char *quotesFile = "quotes.json";
 
-// Reads the array. A missing file is an empty array; a broken file is an
-// error, so a save never writes over it.
-bool read(const QString &folder, QJsonArray &array, QString *error)
+// Reads the array of a file of the project. A missing file is an empty
+// array; a broken file is an error, so a save never writes over it.
+bool read(const QString &folder, QJsonArray &array, QString *error, const char *name = sourcesFile)
 {
-    QFile file(pathOf(folder));
+    QFile file(QDir(folder).filePath(QString::fromLatin1(name)));
     if (!file.exists())
         return true;
     if (!file.open(QIODevice::ReadOnly)) {
@@ -34,16 +33,16 @@ bool read(const QString &folder, QJsonArray &array, QString *error)
     const QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &parse);
     if (parse.error != QJsonParseError::NoError || !document.isArray()) {
         if (error != nullptr)
-            *error = QStringLiteral("sources.json is not a CSL-JSON array");
+            *error = QStringLiteral("%1 is not a JSON array").arg(name);
         return false;
     }
     array = document.array();
     return true;
 }
 
-QString write(const QString &folder, const QJsonArray &array)
+QString write(const QString &folder, const QJsonArray &array, const char *name = sourcesFile)
 {
-    QSaveFile out(pathOf(folder));
+    QSaveFile out(QDir(folder).filePath(QString::fromLatin1(name)));
     if (!out.open(QIODevice::WriteOnly))
         return out.errorString();
     out.write(QJsonDocument(array).toJson(QJsonDocument::Indented));
@@ -222,6 +221,63 @@ QString save(const QString &folder, const QVariantMap &form, QString *id)
     if (id != nullptr)
         *id = made;
     return write(folder, array);
+}
+
+QVariantList quotes(const QString &folder, QString *error)
+{
+    QJsonArray array;
+    QVariantList list;
+    if (!read(folder, array, error, quotesFile))
+        return list;
+    for (const QJsonValue each : std::as_const(array))
+        list.append(each.toObject().toVariantMap());
+    return list;
+}
+
+QString saveQuote(const QString &folder, const QVariantMap &quote, QString *id)
+{
+    QJsonArray array;
+    QString error;
+    if (!read(folder, array, &error, quotesFile))
+        return error;
+    QJsonObject item;
+    for (const char *key : { "text", "source", "page" }) {
+        const QString value = quote.value(QString::fromLatin1(key)).toString().trimmed();
+        if (!value.isEmpty())
+            item.insert(QLatin1String(key), value);
+    }
+    if (!item.contains(QStringLiteral("text")))
+        return QStringLiteral("a quote needs its words");
+    QString key = quote.value(QStringLiteral("id")).toString();
+    if (key.isEmpty())
+        key = QStringLiteral("q") + QUuid::createUuid().toString(QUuid::Id128).left(8);
+    item.insert(QStringLiteral("id"), key);
+    qsizetype at = 0;
+    while (at < array.size()
+           && array.at(at).toObject().value(QStringLiteral("id")).toString() != key)
+        ++at;
+    if (at < array.size())
+        array.replace(at, item);
+    else
+        array.append(item);
+    if (id != nullptr)
+        *id = std::move(key);
+    return write(folder, array, quotesFile);
+}
+
+QString removeQuote(const QString &folder, const QString &id)
+{
+    QJsonArray array;
+    QString error;
+    if (!read(folder, array, &error, quotesFile))
+        return error;
+    for (qsizetype i = 0; i < array.size(); ++i) {
+        if (array.at(i).toObject().value(QStringLiteral("id")).toString() == id) {
+            array.removeAt(i);
+            return write(folder, array, quotesFile);
+        }
+    }
+    return QStringLiteral("no quote has the id %1").arg(id);
 }
 
 QString remove(const QString &folder, const QString &id)

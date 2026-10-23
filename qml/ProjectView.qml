@@ -260,9 +260,11 @@ Item {
     property bool versionsOpen: false
     property bool inboxOpen: false
     property bool changesOpen: false
+    property bool quotesOpen: false
 
     function openChanges() {
         setFocusMode(false);
+        quotesOpen = false;
         searchOpen = false;
         codexOpen = false;
         versionsOpen = false;
@@ -273,6 +275,7 @@ Item {
 
     function openInbox() {
         setFocusMode(false);
+        quotesOpen = false;
         changesOpen = false;
         searchOpen = false;
         codexOpen = false;
@@ -291,6 +294,7 @@ Item {
 
     function openVersions() {
         setFocusMode(false);
+        quotesOpen = false;
         changesOpen = false;
         searchOpen = false;
         codexOpen = false;
@@ -301,6 +305,7 @@ Item {
 
     function openCodex() {
         setFocusMode(false);
+        quotesOpen = false;
         changesOpen = false;
         searchOpen = false;
         versionsOpen = false;
@@ -309,9 +314,21 @@ Item {
         codex.start();
     }
 
+    function openQuotes() {
+        setFocusMode(false);
+        changesOpen = false;
+        searchOpen = false;
+        codexOpen = false;
+        versionsOpen = false;
+        inboxOpen = false;
+        quotesOpen = true;
+        quotes.start();
+    }
+
     // Opens the search panel, or with replace the replace mode of it.
     function openSearch(replace: bool) {
         setFocusMode(false);
+        quotesOpen = false;
         changesOpen = false;
         codexOpen = false;
         versionsOpen = false;
@@ -409,6 +426,7 @@ Item {
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
         { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
         { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
+        { id: "quotes", name: "Show the quote bank", sequence: "Ctrl+Alt+Q", run: () => view.openQuotes() },
         { id: "sources", name: "Edit the sources", sequence: "Ctrl+Alt+J", run: () => sourcesDialog.open() },
         { id: "argument", name: "Show or hide the argument map", sequence: "Ctrl+Alt+E", run: () => view.toggleViewMode("argument") },
         { id: "checklist", name: "Show or hide the revision checklist", sequence: "Ctrl+Alt+L", run: () => view.toggleViewMode("checklist") },
@@ -799,6 +817,23 @@ Item {
                 onPlaced: (at, length) => editor.selectRange(at, length)
             }
 
+            QuotesPanel {
+                id: quotes
+
+                objectName: "quotesPanel"
+                visible: view.quotesOpen
+                anchors.top: projectButton.bottom
+                anchors.topMargin: Theme.space.s
+                anchors.bottom: parent.bottom
+                width: parent.width
+                session: view.session
+                onCloseRequested: {
+                    view.quotesOpen = false;
+                    binder.forceActiveFocus();
+                }
+                onInserted: text => editor.insertAtCursor(text)
+            }
+
             InboxPanel {
                 id: inbox
 
@@ -841,7 +876,7 @@ Item {
 
                 objectName: "binder"
 
-                visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen && !view.inboxOpen
+                visible: !view.searchOpen && !view.codexOpen && !view.versionsOpen && !view.inboxOpen && !view.quotesOpen
                          && !view.changesOpen
                 // Enter on a text item moves the focus to the page.
                 onActivated: editor.focusText()

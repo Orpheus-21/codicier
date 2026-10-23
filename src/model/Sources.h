@@ -27,4 +27,15 @@ QString save(const QString &folder, const QVariantMap &form, QString *id = nullp
 // Removes the source with the key id. Returns an error text, or "".
 QString remove(const QString &folder, const QString &id);
 
+// The quote bank: quotes.json, an array of quotes with the keys id, text,
+// source (the key of a source), and page. A missing file gives none.
+QVariantList quotes(const QString &folder, QString *error = nullptr);
+
+// Adds a quote, or with the id of an existing quote, changes it. A quote
+// needs its text. Sets id. Returns an error text, or "".
+QString saveQuote(const QString &folder, const QVariantMap &quote, QString *id = nullptr);
+
+// Removes the quote with id. Returns an error text, or "".
+QString removeQuote(const QString &folder, const QString &id);
+
 } // namespace Sources

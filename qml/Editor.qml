@@ -348,6 +348,18 @@ Item {
                 event.accepted = true;
             }
 
+            // A quote dragged from the quote bank lands where it drops.
+            DropArea {
+                anchors.fill: parent
+                enabled: !textEdit.readOnly
+                onDropped: drop => {
+                    if (!drop.hasText)
+                        return;
+                    textEdit.insert(textEdit.positionAt(drop.x, drop.y), drop.text);
+                    drop.acceptProposedAction();
+                }
+            }
+
             TapHandler {
                 acceptedButtons: Qt.RightButton
                 onTapped: eventPoint => editorArea.suggestAt(
@@ -477,6 +489,16 @@ Item {
 
     // Puts the keyboard focus on the page.
     function focusText() {
+        textEdit.forceActiveFocus();
+    }
+
+    // Puts text at the cursor, in place of a selection, and puts the focus
+    // on the page.
+    function insertAtCursor(text: string) {
+        if (textEdit.readOnly)
+            return;
+        textEdit.remove(textEdit.selectionStart, textEdit.selectionEnd);
+        textEdit.insert(textEdit.cursorPosition, text);
         textEdit.forceActiveFocus();
     }
 

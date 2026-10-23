@@ -289,6 +289,12 @@ public:
     // lastError.
     Q_INVOKABLE QString saveSource(const QVariantMap &form);
     Q_INVOKABLE bool removeSource(const QString &id);
+    // The quote bank, with the label of each source (see Sources.h).
+    Q_INVOKABLE QVariantList quotes() const;
+    // Adds or changes a quote. Returns its id, or "" with the reason in
+    // lastError.
+    Q_INVOKABLE QString saveQuote(const QVariantMap &quote);
+    Q_INVOKABLE bool removeQuote(const QString &id);
     // The state of the view in .codicier/state.toml, such as the open item
     // and the sizes of the panes. Values are text, true or false, or whole
     // numbers. A missing or bad file gives an empty map.

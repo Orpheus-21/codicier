@@ -174,11 +174,11 @@ TestCase {
         view.session.currentId = scene;
         waitForRendering(view);
         const ids = ["board", "outline", "beats", "grid", "timeline", "insights", "family", "relations",
-                     "calendar", "progress", "codex", "inbox", "checklist", "argument", "sources", "changes", "passes",
+                     "calendar", "progress", "codex", "inbox", "checklist", "argument", "sources", "quotes", "changes", "passes",
                      "versions.list", "help", "names", "palette", "search"];
         const panes = { "board": "corkboardView", "outline": "outlinerView", "beats": "beatBoard",
                         "grid": "plotGridView", "timeline": "timelineView", "insights": "insightsView",
-                        "family": "familyTree", "relations": "relationGraph", "checklist": "checklistView", "argument": "argumentMap",
+                        "family": "familyTree", "relations": "relationGraph", "checklist": "checklistView", "argument": "argumentMap", "quotes": "quotesPanel",
                         "codex": "codexPanel", "inbox": "inboxPanel", "changes": "changesPanel",
                         "versions.list": "versionsPanel", "search": "searchPanel" };
         let all = [];

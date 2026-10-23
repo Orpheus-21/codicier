@@ -3070,6 +3070,51 @@ bool ProjectSession::removeSource(const QString &id)
     return editError.isEmpty();
 }
 
+QVariantList ProjectSession::quotes() const
+{
+    if (project.folder.isEmpty())
+        return { };
+    QHash<QString, QString> labels;
+    for (const QVariant &source : Sources::list(project.folder)) {
+        const QVariantMap form = source.toMap();
+        labels.insert(form.value(QStringLiteral("id")).toString(),
+                      form.value(QStringLiteral("label")).toString());
+    }
+    QVariantList list = Sources::quotes(project.folder);
+    for (QVariant &each : list) {
+        QVariantMap quote = each.toMap();
+        quote.insert(QStringLiteral("label"),
+                     labels.value(quote.value(QStringLiteral("source")).toString()));
+        each = quote;
+    }
+    return list;
+}
+
+QString ProjectSession::saveQuote(const QVariantMap &quote)
+{
+    if (project.readOnly || project.folder.isEmpty())
+        return { };
+    QString id;
+    editError = Sources::saveQuote(project.folder, quote, &id);
+    if (!editError.isEmpty())
+        id.clear();
+    else
+        changedSinceBackup = true;
+    emit edited();
+    return id;
+}
+
+bool ProjectSession::removeQuote(const QString &id)
+{
+    if (project.readOnly || project.folder.isEmpty())
+        return false;
+    editError = Sources::removeQuote(project.folder, id);
+    if (editError.isEmpty())
+        changedSinceBackup = true;
+    emit edited();
+    return editError.isEmpty();
+}
+
 QVariantMap ProjectSession::argumentMap() const
 {
     QVariantList thesis;

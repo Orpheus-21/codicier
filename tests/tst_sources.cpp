@@ -116,6 +116,33 @@ private slots:
         QCOMPARE(file.readAll(), QByteArray("{ not json"));
     }
 
+    void quotesKeepTheirSourceAndPage()
+    {
+        QTemporaryDir dir;
+        QVERIFY(Sources::quotes(dir.path()).isEmpty());
+        QVERIFY(!Sources::saveQuote(dir.path(), { { "text", "  " } }).isEmpty());
+        QString id;
+        QCOMPARE(Sources::saveQuote(
+                     dir.path(),
+                     { { "text", "Salt is so common." }, { "source", "k1" }, { "page", "12" } },
+                     &id),
+                 QString());
+        QVERIFY(!id.isEmpty());
+        QVariantMap quote = Sources::quotes(dir.path()).at(0).toMap();
+        QCOMPARE(quote.value("source").toString(), QStringLiteral("k1"));
+        QCOMPARE(quote.value("page").toString(), QStringLiteral("12"));
+
+        // A change keeps the id; a removal takes the quote.
+        QCOMPARE(Sources::saveQuote(dir.path(), { { "id", id }, { "text", "Salt." } }), QString());
+        QCOMPARE(Sources::quotes(dir.path()).size(), 1);
+        quote = Sources::quotes(dir.path()).at(0).toMap();
+        QCOMPARE(quote.value("text").toString(), QStringLiteral("Salt."));
+        QVERIFY(!quote.contains("page"));
+        QCOMPARE(Sources::removeQuote(dir.path(), id), QString());
+        QVERIFY(Sources::quotes(dir.path()).isEmpty());
+        QVERIFY(!Sources::removeQuote(dir.path(), id).isEmpty());
+    }
+
     void removeTakesOneSource()
     {
         QTemporaryDir dir;

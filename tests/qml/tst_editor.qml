@@ -534,6 +534,37 @@ TestCase {
         compare((findChild(card, "entitySummary") as Text).text, "Kurlansky, Mark. Walker");
     }
 
+    function test_quoteBankInsertsAQuoteWithItsCitation() {
+        const view = makeView();
+        view.session.saveSource({ title: "Salt", authors: "Kurlansky, Mark", year: "2002" });
+        const scene = view.session.items().find(item => item.kind === "scene").id;
+        view.session.currentId = scene;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "As he says, ";
+        view.commands.find(command => command.id === "quotes").run();
+        const panel = findChild(view, "quotesPanel") as QuotesPanel;
+        verify(panel.visible);
+        (findChild(panel, "quoteWords") as TextArea).text = "Salt is so common.";
+        panel.source = "kurlansky2002";
+        (findChild(panel, "quotePage") as TextField).text = "12";
+        waitForRendering(view);
+        mouseClick(findChild(panel, "addQuote") as Item);
+        compare(view.session.quotes().length, 1);
+        compare(view.session.quotes()[0].label, "Kurlansky 2002, Salt");
+
+        text.cursorPosition = text.text.length;
+        waitForRendering(view);
+        mouseClick(findChild(panel, "insertQuote") as Item);
+        compare(text.text, "As he says, “Salt is so common.” [@kurlansky2002, p. 12]");
+        verify(text.activeFocus);
+
+        // Return on the list puts it in too.
+        const list = findChild(panel, "quoteList") as ListView;
+        list.forceActiveFocus();
+        keyClick(Qt.Key_Return);
+        verify(text.text.endsWith("]“Salt is so common.” [@kurlansky2002, p. 12]"));
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
