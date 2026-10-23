@@ -384,6 +384,29 @@ private:
                 }
             }
         }
+        // The submissions of the work: [[submission]] with venue, item (none
+        // for the whole project), sent (a date), and result.
+        if (checkType(*table, "submission", toml::node_type::array, file)) {
+            if (const toml::array *submissions = table->get_as<toml::array>("submission")) {
+                for (const toml::node &each : *submissions) {
+                    const toml::table *submission = each.as_table();
+                    if (submission == nullptr) {
+                        error(file, lineOf(each),
+                              QStringLiteral("`submission` must be a list of tables"));
+                        continue;
+                    }
+                    string(*submission, "venue", file, lineOf(each), true);
+                    for (const char *key : { "item", "sent" })
+                        string(*submission, key, file, lineOf(each), false);
+                    if (const auto result
+                        = string(*submission, "result", file, lineOf(each), false);
+                        result && *result != "accepted" && *result != "rejected"
+                        && *result != "withdrawn")
+                        error(file, lineOf(each),
+                              QStringLiteral("`result` must be accepted, rejected, or withdrawn"));
+                }
+            }
+        }
         // The pins of the maps: [[pin]] with map, place, and x and y from 0 to 1.
         if (checkType(*table, "pin", toml::node_type::array, file)) {
             if (const toml::array *pins = table->get_as<toml::array>("pin")) {

@@ -294,6 +294,15 @@ public:
     // lastError.
     Q_INVOKABLE QString saveSource(const QVariantMap &form);
     Q_INVOKABLE bool removeSource(const QString &id);
+    // The submissions of the work, in file order: index, item, title, venue,
+    // sent (yyyy-MM-dd), and result ("" while open).
+    Q_INVOKABLE QVariantList submissions() const;
+    // Records that item ("" for the whole project) went to venue on sent,
+    // a yyyy-MM-dd date, or today for "".
+    Q_INVOKABLE bool addSubmission(const QString &item, const QString &venue, const QString &sent);
+    // Sets the result: accepted, rejected, withdrawn, or "" for open.
+    Q_INVOKABLE bool setSubmissionResult(int index, const QString &result);
+    Q_INVOKABLE bool removeSubmission(int index);
     // The research files whose texts key names the item id, as id and title.
     Q_INVOKABLE QVariantList researchOf(const QString &id) const;
     // The quote bank, with the label of each source (see Sources.h).

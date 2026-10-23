@@ -599,6 +599,28 @@ TestCase {
         compare(view.session.currentId, file);
     }
 
+    function test_submissionsListTheOpenOnes() {
+        const view = makeView();
+        view.commands.find(command => command.id === "submissions").run();
+        const overlay = view.T.Overlay.overlay;
+        const venue = findChild(overlay, "submissionVenue") as TextField;
+        tryVerify(() => venue.activeFocus);
+        venue.text = "The Review";
+        keyClick(Qt.Key_Return);
+        compare(view.session.submissions().length, 1);
+        compare(view.session.submissions()[0].item, view.session.currentId);
+        waitForRendering(view);
+        const row = findChild(overlay, "submission-0") as Item;
+        verify(row && row.visible);
+        // A result closes the submission, so the open list hides it.
+        mouseClick(findChild(row, "result-rejected") as Item);
+        compare(view.session.submissions()[0].result, "rejected");
+        tryVerify(() => findChild(overlay, "submission-0") === null);
+        mouseClick(findChild(overlay, "allSubmissions") as Item);
+        tryVerify(() => findChild(overlay, "submission-0") !== null);
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

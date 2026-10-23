@@ -204,6 +204,10 @@ private slots:
         QTest::newRow("bad argument")
             << projectText() << goodBinder() + "argument = \"opinion\"\n"
             << "binder.toml:21: `argument` must be thesis, claim, evidence, counter, or conclusion";
+        QTest::newRow("bad result")
+            << projectText()
+            << goodBinder() + "\n[[submission]]\nvenue = \"The Review\"\nresult = \"lost\"\n"
+            << "`result` must be accepted, rejected, or withdrawn";
         QTest::newRow("bad tags") << projectText() << goodBinder() + "tags = [\"a\", 2]\n"
                                   << "binder.toml:21: `tags` must hold only strings";
         QTest::newRow("bad target") << projectText() << goodBinder() + "target = \"many\"\n"

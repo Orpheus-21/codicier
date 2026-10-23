@@ -3090,6 +3090,80 @@ bool ProjectSession::removeSource(const QString &id)
     return editError.isEmpty();
 }
 
+QVariantList ProjectSession::submissions() const
+{
+    QVariantList list;
+    const toml::array *submissions = project.binderData.get_as<toml::array>("submission");
+    if (submissions == nullptr)
+        return list;
+    for (std::size_t i = 0; i < submissions->size(); ++i) {
+        const toml::table *submission = (*submissions)[i].as_table();
+        if (submission == nullptr)
+            continue;
+        const auto value = [submission](const char *key) {
+            return QString::fromStdString((*submission)[key].value_or(std::string()));
+        };
+        const QString item = value("item");
+        const int at = indexOf(item);
+        list.append(QVariantMap { { QStringLiteral("index"), static_cast<int>(i) },
+                                  { QStringLiteral("item"), item },
+                                  { QStringLiteral("title"),
+                                    item.isEmpty() ? project.title
+                                        : at >= 0  ? project.items.at(at).title
+                                                   : item },
+                                  { QStringLiteral("venue"), value("venue") },
+                                  { QStringLiteral("sent"), value("sent") },
+                                  { QStringLiteral("result"), value("result") } });
+    }
+    return list;
+}
+
+bool ProjectSession::addSubmission(const QString &item, const QString &venue, const QString &sent)
+{
+    const QDate date = sent.trimmed().isEmpty() ? QDate::currentDate()
+                                                : QDate::fromString(sent.trimmed(), Qt::ISODate);
+    if (project.readOnly || venue.trimmed().isEmpty() || !date.isValid()
+        || (!item.isEmpty() && indexOf(item) < 0))
+        return false;
+    if (project.binderData.get_as<toml::array>("submission") == nullptr)
+        project.binderData.insert_or_assign("submission", toml::array { });
+    toml::table submission { { "venue", venue.trimmed().toStdString() },
+                             { "sent", date.toString(Qt::ISODate).toStdString() } };
+    if (!item.isEmpty())
+        submission.insert("item", item.toStdString());
+    project.binderData.get_as<toml::array>("submission")->push_back(std::move(submission));
+    return commit({ });
+}
+
+bool ProjectSession::setSubmissionResult(int index, const QString &result)
+{
+    toml::array *submissions = project.binderData.get_as<toml::array>("submission");
+    if (project.readOnly || submissions == nullptr || index < 0
+        || index >= static_cast<int>(submissions->size())
+        || !QStringList { "", "accepted", "rejected", "withdrawn" }.contains(result))
+        return false;
+    toml::table *submission = (*submissions)[static_cast<std::size_t>(index)].as_table();
+    if (submission == nullptr)
+        return false;
+    if (result.isEmpty())
+        submission->erase("result");
+    else
+        submission->insert_or_assign("result", result.toStdString());
+    return commit({ });
+}
+
+bool ProjectSession::removeSubmission(int index)
+{
+    toml::array *submissions = project.binderData.get_as<toml::array>("submission");
+    if (project.readOnly || submissions == nullptr || index < 0
+        || index >= static_cast<int>(submissions->size()))
+        return false;
+    submissions->erase(submissions->begin() + index);
+    if (submissions->empty())
+        project.binderData.erase("submission");
+    return commit({ });
+}
+
 QVariantList ProjectSession::researchOf(const QString &id) const
 {
     QVariantList list;

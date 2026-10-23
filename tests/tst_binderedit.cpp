@@ -1404,6 +1404,35 @@ private slots:
         QVERIFY(session->researchOf("m1n2p3q4r5").isEmpty());
     }
 
+    void submissionsRecordWhereAPieceWent()
+    {
+        QVERIFY(session->submissions().isEmpty());
+        QVERIFY(!session->addSubmission("m1n2p3q4r5", "  ", "2026-10-01"));
+        QVERIFY(!session->addSubmission("m1n2p3q4r5", "The Review", "1 October"));
+        QVERIFY(!session->addSubmission("nothing", "The Review", ""));
+        QVERIFY(session->addSubmission("m1n2p3q4r5", "The Review", "2026-10-01"));
+        QVERIFY(session->addSubmission("", "A Press", ""));
+        QVERIFY(readFile("binder.toml").contains("[[submission]]"));
+        QVariantList list = session->submissions();
+        QCOMPARE(list.size(), 2);
+        QCOMPARE(list[0].toMap().value("venue").toString(), QStringLiteral("The Review"));
+        QCOMPARE(list[0].toMap().value("sent").toString(), QStringLiteral("2026-10-01"));
+        QCOMPARE(list[1].toMap().value("title").toString(), session->title());
+        QCOMPARE(list[1].toMap().value("sent").toString(),
+                 QDate::currentDate().toString(Qt::ISODate));
+
+        QVERIFY(session->setSubmissionResult(0, "accepted"));
+        QVERIFY(!session->setSubmissionResult(0, "lost"));
+        QCOMPARE(session->submissions()[0].toMap().value("result").toString(),
+                 QStringLiteral("accepted"));
+        QVERIFY(session->setSubmissionResult(0, ""));
+        QVERIFY(session->submissions()[0].toMap().value("result").toString().isEmpty());
+        QVERIFY(session->removeSubmission(0));
+        QVERIFY(session->removeSubmission(0));
+        QVERIFY(!readFile("binder.toml").contains("submission"));
+        QVERIFY(!session->removeSubmission(0));
+    }
+
     void numbersFollowTheBinder()
     {
         QVERIFY(!session->numbered());
