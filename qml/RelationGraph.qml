@@ -19,7 +19,10 @@ Item {
 
     property var nodes: []
     property var links: []
-    readonly property real radius: Math.max(80, Math.min(width, height) / 2 - 90)
+    // The circle grows with the nodes, up to the size of the view, so a few
+    // nodes stay close together.
+    readonly property real radius: Math.min(Math.max(80, Math.min(width, height) / 2 - 90),
+                                            60 + 30 * nodes.length)
     readonly property point centre: Qt.point(width / 2, height / 2)
 
     function refresh() {
@@ -56,9 +59,13 @@ Item {
     }
 
     Text {
-        visible: graph.nodes.length === 0
-        anchors.centerIn: parent
-        text: "Add characters to the codex, and link them in the inspector."
+        objectName: "graphHint"
+        visible: text !== ""
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: graph.nodes.length === 0 ? (parent.height - height) / 2 : Theme.space.xl
+        text: graph.nodes.length === 0 ? "Add characters to the codex, and link them in the inspector."
+            : graph.links.length === 0 ? "No relations yet. Open a character, and under Relations in the inspector, link it to another."
+            : ""
         font.family: Theme.type.ui
         font.pixelSize: Theme.type.body
         color: Theme.color.inkMuted

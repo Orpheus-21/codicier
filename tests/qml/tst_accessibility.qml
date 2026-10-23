@@ -1101,6 +1101,23 @@ TestCase {
         compare(view.session.relations(mara).length, 0);
     }
 
+    function test_relationGraphHintsWithNoRelation() {
+        const view = makeView();
+        view.session.rename(view.session.add("character"), "Mara");
+        view.session.rename(view.session.add("character"), "Abel");
+        view.commands.find(command => command.id === "relations").run();
+        const graphView = findChild(view, "relationGraph") as RelationGraph;
+        waitForRendering(view);
+        const hint = findChild(graphView, "graphHint") as Text;
+        verify(hint.visible);
+        verify(hint.text.startsWith("No relations yet."));
+        // Two nodes stay close: the circle is small.
+        verify(graphView.radius <= 120, "radius " + graphView.radius);
+        const ids = graphView.nodes.map(node => node.id);
+        view.session.addRelation(ids[0], ids[1], "knows", false);
+        tryVerify(() => !hint.visible);
+    }
+
     function test_relationGraphShowsEntities() {
         const view = makeView();
         const mara = view.session.add("character");
