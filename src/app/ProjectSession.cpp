@@ -2782,6 +2782,7 @@ QVariantMap ProjectSession::fields(const QString &id) const
     map.insert(QStringLiteral("aliases"), aliases);
     map.insert(QStringLiteral("plotlines"), strings(item.data.get("plotlines")));
     map.insert(QStringLiteral("supports"), strings(item.data.get("supports")));
+    map.insert(QStringLiteral("texts"), strings(item.data.get("texts")));
     // The values of the fields of the entity type, by field name.
     QVariantMap values;
     if (const toml::table *fields = item.data.get_as<toml::table>("fields")) {
@@ -2808,7 +2809,8 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
     toml::table &data = project.items[index].data;
     const std::string name = key.toStdString();
     if (key == QLatin1String("tags") || key == QLatin1String("aliases")
-        || key == QLatin1String("plotlines") || key == QLatin1String("supports")) {
+        || key == QLatin1String("plotlines") || key == QLatin1String("supports")
+        || key == QLatin1String("texts")) {
         // A list of names: trimmed, no empty names, no copies, in the order given.
         QStringList tags;
         for (const QString &tag : value.toStringList()) {
@@ -3086,6 +3088,18 @@ bool ProjectSession::removeSource(const QString &id)
         changedSinceBackup = true;
     emit edited();
     return editError.isEmpty();
+}
+
+QVariantList ProjectSession::researchOf(const QString &id) const
+{
+    QVariantList list;
+    for (const ProjectItem &item : std::as_const(project.items)) {
+        if (item.kind == QLatin1String("file") && !binderModel.isInTrash(item.id)
+            && strings(item.data.get("texts")).contains(id))
+            list.append(QVariantMap { { QStringLiteral("id"), item.id },
+                                      { QStringLiteral("title"), item.title } });
+    }
+    return list;
 }
 
 QVariantList ProjectSession::quotes() const

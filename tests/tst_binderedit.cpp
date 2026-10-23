@@ -1389,6 +1389,21 @@ private slots:
         QVERIFY(!session->lastError().isEmpty());
     }
 
+    void researchLinksShowOnBothSides()
+    {
+        const QString file = session->addResearch(
+            QUrl::fromLocalFile(QStringLiteral(FIXTURE_DIR "/research/salt.pdf")));
+        QVERIFY(session->researchOf("m1n2p3q4r5").isEmpty());
+        QVERIFY(session->setField(file, "texts", QStringList { "m1n2p3q4r5" }));
+        QCOMPARE(session->fields(file).value("texts").toStringList(), QStringList { "m1n2p3q4r5" });
+        const QVariantList research = session->researchOf("m1n2p3q4r5");
+        QCOMPARE(research.size(), 1);
+        QCOMPARE(research.first().toMap().value("id").toString(), file);
+        // A research file in the trash shows no link.
+        QVERIFY(session->moveToTrash(file));
+        QVERIFY(session->researchOf("m1n2p3q4r5").isEmpty());
+    }
+
     void numbersFollowTheBinder()
     {
         QVERIFY(!session->numbered());

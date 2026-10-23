@@ -32,6 +32,7 @@ Pane {
         inspector.mentions = inspector.entityType ? session.mentionsOf(session.currentId) : [];
         inspector.plotlines = session.plotlines();
         inspector.claims = inspector.argued ? session.argumentMap().claims : [];
+        inspector.research = session.researchOf(session.currentId);
         inspector.relations = inspector.entityType ? session.relations(session.currentId) : [];
     }
 
@@ -40,6 +41,15 @@ Pane {
 
     // The plotlines of the project, read again after each change.
     property var plotlines: []
+
+    // The research files linked to the open text.
+    property var research: []
+
+    // Links the open research file to a text, or ends the link.
+    function toggleLink(id: string) {
+        const now = inspector.fields.texts ?? [];
+        save("texts", now.includes(id) ? now.filter(each => each !== id) : now.concat([id]));
+    }
 
     // The claims of the argument, for an evidence item to support.
     property var claims: []
@@ -293,6 +303,102 @@ Pane {
                         label: "Left out"
                         chosen: !(inspector.fields.include ?? true)
                         onClicked: inspector.save("include", false)
+                    }
+                }
+            }
+
+            // The texts that a research file belongs to.
+            Column {
+                visible: inspector.fields.kind === "file"
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Linked texts"
+                }
+
+                Repeater {
+                    model: inspector.fields.texts ?? []
+
+                    Row {
+                        id: linked
+
+                        required property string modelData
+
+                        spacing: Theme.space.xs
+
+                        Button {
+                            text: inspector.session.fields(linked.modelData).title ?? linked.modelData
+                            Accessible.name: "Open " + text
+                            onClicked: inspector.session.currentId = linked.modelData
+                        }
+
+                        IconButton {
+                            iconName: "x"
+                            label: "Unlink " + (inspector.session.fields(linked.modelData).title ?? "")
+                            onClicked: inspector.toggleLink(linked.modelData)
+                        }
+                    }
+                }
+
+                Button {
+                    id: linkTextButton
+
+                    objectName: "linkText"
+                    text: "Link a text"
+                    iconName: "chevron-down"
+                    iconAfterText: true
+                    onClicked: linkTextMenu.popup(linkTextButton, 0, linkTextButton.height)
+                }
+
+                Menu {
+                    id: linkTextMenu
+
+                    Instantiator {
+                        model: inspector.fields.kind === "file"
+                               ? inspector.session.items().filter(item => ["scene", "note", "page"].includes(item.kind)
+                                   && !(inspector.fields.texts ?? []).includes(item.id)) : []
+
+                        delegate: T.Action {
+                            required property var modelData
+
+                            text: modelData.title
+                            onTriggered: inspector.toggleLink(modelData.id)
+                        }
+
+                        onObjectAdded: (index, action) => linkTextMenu.insertAction(index, action as T.Action)
+                        onObjectRemoved: (index, action) => linkTextMenu.removeAction(action as T.Action)
+                    }
+                }
+            }
+
+            // The research files of a text, from the other side of the links.
+            Column {
+                objectName: "researchLinks"
+                visible: inspector.research.length > 0
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Research"
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: Theme.space.xs
+
+                    Repeater {
+                        model: inspector.research
+
+                        Button {
+                            required property var modelData
+
+                            objectName: "research-" + modelData.id
+                            text: modelData.title
+                            iconName: "bookmark"
+                            Accessible.name: "Open " + modelData.title
+                            onClicked: inspector.session.currentId = modelData.id
+                        }
                     }
                 }
             }

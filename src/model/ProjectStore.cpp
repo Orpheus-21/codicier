@@ -488,6 +488,7 @@ private:
         checkStrings(entry, "aliases", file);
         checkStrings(entry, "plotlines", file);
         checkStrings(entry, "supports", file);
+        checkStrings(entry, "texts", file);
         // The values of the fields of an entity type: text only.
         const toml::table *fields = entry.get_as<toml::table>("fields");
         if (checkType(entry, "fields", toml::node_type::table, file) && fields != nullptr) {
@@ -610,11 +611,11 @@ constexpr std::array<std::string_view, 10> projectOrder { "format",  "title",   
                                                           "numbered" };
 constexpr std::array<std::string_view, 3> goalsOrder { "words", "daily", "deadline" };
 constexpr std::array<std::string_view, 1> binderOrder { "format" };
-constexpr std::array<std::string_view, 30> itemOrder {
-    "id",       "kind",    "section",  "parent",   "title",   "file",      "status",   "label",
-    "include",  "pov",     "place",    "time",     "date",    "beat",      "synopsis", "goal",
-    "conflict", "outcome", "argument", "supports", "aliases", "plotlines", "tags",     "target",
-    "query",    "regex",   "restore",  "board-x",  "board-y", "notes"
+constexpr std::array<std::string_view, 31> itemOrder {
+    "id",       "kind",    "section",  "parent",   "title",   "file",    "status",    "label",
+    "include",  "pov",     "place",    "time",     "date",    "beat",    "synopsis",  "goal",
+    "conflict", "outcome", "argument", "supports", "texts",   "aliases", "plotlines", "tags",
+    "target",   "query",   "regex",    "restore",  "board-x", "board-y", "notes"
 };
 
 TomlWriter::Order orderFor(std::string_view path)

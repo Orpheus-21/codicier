@@ -585,6 +585,20 @@ TestCase {
         tryVerify(() => (paper.children[0] as PdfPage).ready, 5000);
     }
 
+    function test_researchLinkShowsOnTheText() {
+        const view = makeView();
+        const scene = view.session.items().find(item => item.kind === "scene").id;
+        const file = view.session.addResearch(Qt.resolvedUrl("../fixtures/research/salt.pdf"));
+        verify(view.session.setField(file, "texts", [scene]));
+        view.inspectorOpen = true;
+        view.session.currentId = scene;
+        waitForRendering(view);
+        const button = findChild(view, "research-" + file) as Item;
+        verify(button && button.visible);
+        mouseClick(button);
+        compare(view.session.currentId, file);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

@@ -294,6 +294,8 @@ public:
     // lastError.
     Q_INVOKABLE QString saveSource(const QVariantMap &form);
     Q_INVOKABLE bool removeSource(const QString &id);
+    // The research files whose texts key names the item id, as id and title.
+    Q_INVOKABLE QVariantList researchOf(const QString &id) const;
     // The quote bank, with the label of each source (see Sources.h).
     Q_INVOKABLE QVariantList quotes() const;
     // Adds or changes a quote. Returns its id, or "" with the reason in
