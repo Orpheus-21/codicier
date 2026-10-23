@@ -3090,6 +3090,26 @@ bool ProjectSession::removeSource(const QString &id)
     return editError.isEmpty();
 }
 
+QVariantList ProjectSession::printChapters(const QString &id)
+{
+    saveAll();
+    const int at = indexOf(id);
+    QVariantList list;
+    for (const ChapterGroup &group : chapterGroups()) {
+        if (!id.isEmpty() && group.id != id && (at < 0 || !group.scenes.contains(at)))
+            continue;
+        QStringList texts;
+        for (const int scene : group.scenes) {
+            if (project.items.at(scene).data["include"].value_or(true))
+                texts.append(textOf(scene));
+        }
+        if (!texts.isEmpty())
+            list.append(QVariantMap { { QStringLiteral("title"), group.title },
+                                      { QStringLiteral("texts"), texts } });
+    }
+    return list;
+}
+
 QVariantList ProjectSession::submissions() const
 {
     QVariantList list;

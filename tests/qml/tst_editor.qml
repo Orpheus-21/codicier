@@ -621,6 +621,34 @@ TestCase {
         keyClick(Qt.Key_Escape);
     }
 
+    function test_printPutsEachChapterOnItsOwnPage() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.create("Lamp", "novella", ""), "");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
+        const session = view.session;
+        const first = session.items().find(item => item.kind === "chapter").id;
+        session.currentId = session.items().find(item => item.kind === "scene").id;
+        (findChild(view, "editor") as TextEdit).text = "The lamp had not gone out.";
+        session.currentId = first;
+        const second = session.add("chapter");
+        verify(second !== "");
+        session.currentId = second;
+        const scene = session.add("scene");
+        session.currentId = scene;
+        (findChild(view, "editor") as TextEdit).text = "Morning came grey.";
+
+        const chapters = session.printChapters("");
+        compare(chapters.length, 2);
+        compare(session.printChapters(scene).length, 1);
+        const pdf = workspace.folder + "/lamp.pdf";
+        compare(Printer.print(chapters, Theme.type.reading, Settings.readingSize, session.sceneBreak, "",
+                              "file://" + pdf), "");
+        if (Pdf.available)
+            compare(Pdf.pageCount("file://" + pdf), 2);
+        compare(Printer.pageCount(chapters, Theme.type.reading, Settings.readingSize, session.sceneBreak), 2);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

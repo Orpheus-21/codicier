@@ -294,6 +294,10 @@ public:
     // lastError.
     Q_INVOKABLE QString saveSource(const QVariantMap &form);
     Q_INVOKABLE bool removeSource(const QString &id);
+    // The chapters to print, as title and texts (the Markdown of each scene
+    // in order). id "" gives the whole manuscript; the id of a chapter or of
+    // a scene gives that chapter. Scenes left out of the manuscript stay out.
+    Q_INVOKABLE QVariantList printChapters(const QString &id);
     // The submissions of the work, in file order: index, item, title, venue,
     // sent (yyyy-MM-dd), and result ("" while open).
     Q_INVOKABLE QVariantList submissions() const;

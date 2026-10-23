@@ -1433,6 +1433,23 @@ private slots:
         QVERIFY(!session->removeSubmission(0));
     }
 
+    void printChaptersLeavesOutTheLeftOutScenes()
+    {
+        const QVariantList all = session->printChapters(QString());
+        QVERIFY(!all.isEmpty());
+        int scenes = 0;
+        for (const QVariant &chapter : all)
+            scenes += static_cast<int>(chapter.toMap().value("texts").toStringList().size());
+        // One chapter for a scene id; a scene left out is not in it.
+        const QVariantList one = session->printChapters("m1n2p3q4r5");
+        QCOMPARE(one.size(), 1);
+        QVERIFY(session->setField("m1n2p3q4r5", "include", false));
+        int after = 0;
+        for (const QVariant &chapter : session->printChapters(QString()))
+            after += static_cast<int>(chapter.toMap().value("texts").toStringList().size());
+        QCOMPARE(after, scenes - 1);
+    }
+
     void numbersFollowTheBinder()
     {
         QVERIFY(!session->numbered());

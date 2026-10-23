@@ -174,7 +174,7 @@ TestCase {
         view.session.currentId = scene;
         waitForRendering(view);
         const ids = ["board", "outline", "beats", "grid", "timeline", "insights", "family", "relations",
-                     "calendar", "progress", "codex", "inbox", "checklist", "argument", "sources", "quotes", "submissions", "changes", "passes",
+                     "calendar", "progress", "codex", "inbox", "checklist", "argument", "sources", "quotes", "submissions", "print", "changes", "passes",
                      "versions.list", "help", "names", "palette", "search"];
         const panes = { "board": "corkboardView", "outline": "outlinerView", "beats": "beatBoard",
                         "grid": "plotGridView", "timeline": "timelineView", "insights": "insightsView",
