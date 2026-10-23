@@ -2,7 +2,8 @@
 
 #include <QList>
 #include <QRegularExpression>
-#include <QStringDecoder>
+
+#include <array>
 
 namespace {
 
@@ -22,6 +23,18 @@ struct State
     // The number of fallback characters after \uN.
     int unicodeSkip = 1;
 };
+
+// Code page 1252 is Latin-1 but for the bytes 0x80 to 0x9f. Qt builds with
+// no ICU, as on macOS, have no decoder for it, so the table is here.
+QChar fromCp1252(unsigned char byte)
+{
+    static constexpr std::array<char16_t, 32> high {
+        0x20ac, 0x81,   0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160,
+        0x2039, 0x0152, 0x8d,   0x017d, 0x8f,   0x90,   0x2018, 0x2019, 0x201c, 0x201d, 0x2022,
+        0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x9d,   0x017e, 0x0178
+    };
+    return byte >= 0x80 && byte <= 0x9f ? QChar(high.at(byte - 0x80)) : QChar(byte);
+}
 
 // RTF control words are ASCII letters and numbers, whatever the locale.
 bool isLetter(char c)
@@ -103,7 +116,6 @@ namespace Rtf {
 
 QString toMarkdown(const QByteArray &rtf)
 {
-    QStringDecoder cp1252("windows-1252");
     QList<State> stack { State() };
     QList<QString> paragraphs;
     QList<Run> runs;
@@ -141,7 +153,7 @@ QString toMarkdown(const QByteArray &rtf)
                 continue;
             }
             // The text bytes are code page 1252 in Scrivener files.
-            add(cp1252.decode(QByteArray(1, c)));
+            add(QString(fromCp1252(static_cast<unsigned char>(c))));
             continue;
         }
         // A control symbol: \ and one character that is not a letter.
@@ -157,7 +169,7 @@ QString toMarkdown(const QByteArray &rtf)
                     --fallback;
                     continue;
                 }
-                add(cp1252.decode(QByteArray(1, static_cast<char>(hex.toInt(nullptr, 16)))));
+                add(QString(fromCp1252(static_cast<unsigned char>(hex.toInt(nullptr, 16)))));
             } else if (next == '\n' || next == '\r') {
                 // Cocoa writes a paragraph end as a backslash at the end of a line.
                 endParagraph();
