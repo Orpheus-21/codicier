@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ScrivenerProject Template="NO" Version="2.0" Identifier="ABCDEF01-2345-4678-9ABC-DEF012345678" Creator="SCRMAC-3.3.6-17605" Device="Studio" Author="A. Writer" Modified="2026-01-03 11:00:00 +0000" ModID="11111111-2222-4333-8444-555555555555">
+<Binder>
+<BinderItem UUID="00000001-0000-4000-8000-000000000001" Type="DraftFolder" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Manuscript</Title>
+<MetaData><IncludeInCompile>Yes</IncludeInCompile></MetaData>
+<Children>
+<BinderItem UUID="00000002-0000-4000-8000-000000000002" Type="Folder" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Part One</Title>
+<MetaData><IncludeInCompile>Yes</IncludeInCompile></MetaData>
+<Children>
+<BinderItem UUID="00000003-0000-4000-8000-000000000003" Type="Folder" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Dusk</Title>
+<MetaData><IncludeInCompile>Yes</IncludeInCompile><LabelID>1</LabelID><StatusID>2</StatusID></MetaData>
+<Children>
+<BinderItem UUID="00000004-0000-4000-8000-000000000004" Type="Text" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>The stairs</Title>
+<MetaData><IncludeInCompile>Yes</IncludeInCompile><LabelID>2</LabelID><StatusID>3</StatusID></MetaData>
+</BinderItem>
+<BinderItem UUID="00000005-0000-4000-8000-000000000005" Type="Text" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>A cut scene</Title>
+<MetaData><IncludeInCompile>No</IncludeInCompile></MetaData>
+</BinderItem>
+</Children>
+</BinderItem>
+<BinderItem UUID="00000006-0000-4000-8000-000000000006" Type="Text" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Morning</Title>
+<MetaData><IncludeInCompile>Yes</IncludeInCompile><StatusID>5</StatusID></MetaData>
+<Children>
+<BinderItem UUID="00000007-0000-4000-8000-000000000007" Type="Text" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>The log</Title>
+<MetaData><IncludeInCompile>Yes</IncludeInCompile><StatusID>4</StatusID></MetaData>
+</BinderItem>
+</Children>
+</BinderItem>
+</Children>
+</BinderItem>
+</Children>
+</BinderItem>
+<BinderItem UUID="00000008-0000-4000-8000-000000000008" Type="ResearchFolder" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Research</Title>
+<Children>
+<BinderItem UUID="00000009-0000-4000-8000-000000000009" Type="Text" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Lighthouse facts</Title>
+</BinderItem>
+<BinderItem UUID="0000000A-0000-4000-8000-00000000000A" Type="Image" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Old map</Title>
+<MetaData><FileExtension>png</FileExtension></MetaData>
+</BinderItem>
+</Children>
+</BinderItem>
+<BinderItem UUID="0000000B-0000-4000-8000-00000000000B" Type="Folder" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Characters</Title>
+<Children>
+<BinderItem UUID="0000000C-0000-4000-8000-00000000000C" Type="Text" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Elin</Title>
+</BinderItem>
+</Children>
+</BinderItem>
+<BinderItem UUID="0000000D-0000-4000-8000-00000000000D" Type="TrashFolder" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Trash</Title>
+<Children>
+<BinderItem UUID="0000000E-0000-4000-8000-00000000000E" Type="Text" Created="2026-01-02 10:00:00 +0000" Modified="2026-01-03 11:00:00 +0000">
+<Title>Old opening</Title>
+</BinderItem>
+</Children>
+</BinderItem>
+</Binder>
+<Collections>
+<Collection ID="1" Type="Binder" Color="0.5 0.5 0.5"><Title>Binder</Title></Collection>
+</Collections>
+<LabelSettings>
+<Title>Label</Title>
+<DefaultLabelID>-1</DefaultLabelID>
+<Labels>
+<Label ID="-1">No Label</Label>
+<Label ID="1" Color="0.141176 0.415686 0.882353">Plot</Label>
+<Label ID="2" Color="0.952941 0.494118 0.090196">Subplot</Label>
+</Labels>
+</LabelSettings>
+<StatusSettings>
+<Title>Status</Title>
+<DefaultStatusID>-1</DefaultStatusID>
+<StatusItems>
+<Status ID="-1">No Status</Status>
+<Status ID="1">To Do</Status>
+<Status ID="2">First Draft</Status>
+<Status ID="3">Revised Draft</Status>
+<Status ID="4">Final Draft</Status>
+<Status ID="5">Done</Status>
+</StatusItems>
+</StatusSettings>
+</ScrivenerProject>

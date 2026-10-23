@@ -200,3 +200,10 @@ target_compile_options(tst_exporter PRIVATE -Wall -Wextra)
 target_link_libraries(tst_exporter PRIVATE codicier_ui Qt6::Test Qt6::CorePrivate)
 add_test(NAME tst_exporter COMMAND tst_exporter)
 set_tests_properties(tst_exporter PROPERTIES ENVIRONMENT "${TEST_ENV}")
+
+qt_add_executable(tst_scrivener tst_scrivener.cpp)
+target_compile_options(tst_scrivener PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_scrivener PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_scrivener PRIVATE codicier_core Qt6::Test)
+add_test(NAME tst_scrivener COMMAND tst_scrivener)
