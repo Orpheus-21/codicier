@@ -192,11 +192,20 @@ Window {
                 spacing: Theme.space.xs
 
                 Button {
-                    objectName: "importScrivener"
+                    id: importButton
+
+                    objectName: "importButton"
                     iconName: "download"
                     text: "Import"
-                    Accessible.name: "Import a Scrivener project"
-                    onClicked: workspaceHome.importScrivener()
+                    Accessible.name: "Import a project"
+                    onClicked: importMenu.popup(importButton, 0, importButton.height)
+                }
+
+                Menu {
+                    id: importMenu
+
+                    T.Action { text: "A Scrivener project…"; onTriggered: workspaceHome.importScrivener() }
+                    T.Action { text: "A folder of Markdown files…"; onTriggered: workspaceHome.importMarkdown() }
                 }
 
                 Button {

@@ -76,6 +76,9 @@ public:
     // (.scriv), named after it, and opens it. The .scriv folder stays as it
     // is. Returns an error text, or "".
     Q_INVOKABLE QString importScrivener(const QUrl &scriv);
+    // Makes a new project from a folder of Markdown files, named after the
+    // folder, and opens it. Returns an error text, or "".
+    Q_INVOKABLE QString importMarkdown(const QUrl &folder);
     // The binder of a new project of the kind: title, kind, section, and
     // depth for each item, in binder order.
     Q_INVOKABLE static QVariantList templateOutline(const QString &kind);
@@ -103,6 +106,12 @@ signals:
     void created(const QString &folder);
 
 private:
+    // A new folder in the workspace for a project with the title, with a
+    // readable name that no entry has.
+    QString newFolderFor(const QString &title) const;
+    // Runs an import into a new folder for title, then opens the project.
+    // A failed import leaves no folder behind.
+    template <typename Import> QString importInto(const QString &title, Import import);
     QString workspace;
     QList<Entry> entries;
     QFileSystemWatcher watcher;

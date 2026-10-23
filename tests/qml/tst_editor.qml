@@ -688,6 +688,19 @@ TestCase {
         compare(workspace.count, 2);
     }
 
+    function test_importAFolderOfMarkdown() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        verify(workspace.importMarkdown(Qt.resolvedUrl("../fixtures/research/salt.pdf")).startsWith("Choose a folder"));
+        verify(workspace.importMarkdown(Qt.resolvedUrl("../fixtures/research")).includes("no Markdown files"));
+        compare(workspace.count, 0);
+        compare(workspace.importMarkdown(Qt.resolvedUrl("../../data/sample/manuscript")), "");
+        compare(workspace.count, 1);
+        compare(workspace.get(0).title, "manuscript");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.get(0).folder }) as ProjectView;
+        compare(view.session.items().filter(item => item.kind === "scene").length, 4);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

@@ -27,6 +27,19 @@ Item {
         scrivDialog.open();
     }
 
+    // Asks for a folder of Markdown files and makes a new project from it.
+    function importMarkdown() {
+        importError = "";
+        markdownDialog.open();
+    }
+
+    FolderDialog {
+        id: markdownDialog
+
+        title: "Choose a folder of Markdown files"
+        onAccepted: home.importError = projectList.importMarkdown(selectedFolder)
+    }
+
     FolderDialog {
         id: scrivDialog
 

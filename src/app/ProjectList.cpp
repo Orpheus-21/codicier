@@ -2,6 +2,7 @@
 
 #include "Backup.h"
 #include "Index.h"
+#include "MarkdownImport.h"
 #include "Naming.h"
 #include "ProjectStore.h"
 #include "Scrivener.h"
@@ -251,15 +252,39 @@ QString ProjectList::importScrivener(const QUrl &scriv)
     QString title = source.fileName();
     if (title.endsWith(QLatin1String(".scriv"), Qt::CaseInsensitive))
         title.chop(6);
+    return importInto(title, [&source, &title](const QString &target) {
+        return Scrivener::importProject(source.absoluteFilePath(), target, title);
+    });
+}
+
+QString ProjectList::importMarkdown(const QUrl &folder)
+{
+    if (workspace.isEmpty())
+        return QStringLiteral("Choose a workspace first.");
+    const QFileInfo source(folder.isLocalFile() ? folder.toLocalFile() : folder.toString());
+    if (!source.isDir())
+        return QStringLiteral("Choose a folder of Markdown files.");
+    const QString title = source.fileName();
+    return importInto(title, [&source, &title](const QString &target) {
+        return MarkdownImport::importFolder(source.absoluteFilePath(), target, title);
+    });
+}
+
+QString ProjectList::newFolderFor(const QString &title) const
+{
     const QDir dir(workspace);
     QSet<QString> taken;
     for (const QString &entry : dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot))
         taken.insert(entry + QStringLiteral(".md"));
     QString folderName = Naming::fileNameFor(title, taken);
     folderName.chop(3);
-    const QString target = dir.filePath(folderName);
-    const QList<LoadError> errors
-        = Scrivener::importProject(source.absoluteFilePath(), target, title);
+    return dir.filePath(folderName);
+}
+
+template <typename Import> QString ProjectList::importInto(const QString &title, Import import)
+{
+    const QString target = newFolderFor(title);
+    const QList<LoadError> errors = import(target);
     if (!errors.isEmpty()) {
         // The folder is new and holds only what the failed import wrote.
         QDir(target).removeRecursively();
