@@ -8,6 +8,8 @@
 #include <QUuid>
 #include <private/qzipwriter_p.h>
 
+#include <cstdint>
+
 namespace {
 
 // A stretch of text with one style.
@@ -22,7 +24,7 @@ struct Run
 // chapter.
 struct Paragraph
 {
-    enum Kind { Body, Subheading, Break };
+    enum Kind : std::uint8_t { Body, Subheading, Break };
     Kind kind = Body;
     QList<Run> runs;
 };
