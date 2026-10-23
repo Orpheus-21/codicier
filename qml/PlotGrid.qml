@@ -134,16 +134,28 @@ Item {
                     required property int index
 
                     objectName: "plotRow"
+                    // Each plotline has a series colour of the theme, in fixed order.
+                    readonly property color lineColor: Theme.color.series[index % Theme.color.series.length]
 
                     Rectangle {
                         width: grid.nameWidth
                         height: grid.cellHeight
                         color: grid.dropRow === lineRow.index ? Theme.color.selection : "transparent"
 
-                        Text {
+                        Rectangle {
+                            objectName: "lineSwatch"
                             anchors.verticalCenter: parent.verticalCenter
                             x: Theme.space.s
-                            width: parent.width - 2 * Theme.space.s
+                            width: 10
+                            height: 10
+                            radius: 3
+                            color: lineRow.lineColor
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: Theme.space.s + 10 + Theme.space.s
+                            width: parent.width - 3 * Theme.space.s - 10
                             text: lineRow.modelData.name
                             elide: Text.ElideRight
                             font.family: Theme.type.reading
@@ -178,7 +190,7 @@ Item {
                                 width: parent.width - 2 * Theme.space.s
                                 height: 14
                                 radius: 7
-                                color: Theme.color.accent
+                                color: lineRow.lineColor
                                 opacity: grid.dragScene === cell.modelData.id && grid.dragLine === lineRow.modelData.id ? 0.4 : 1
                             }
 

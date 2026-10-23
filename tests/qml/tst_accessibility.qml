@@ -837,6 +837,17 @@ TestCase {
         waitForRendering(view);
         const gridView = findChild(view, "plotGridView") as Item;
         compare(faults(gridView), []);
+        // Each plotline has its own colour.
+        const rows = [];
+        const collect = item => {
+            if (item.objectName === "plotRow")
+                rows.push(item);
+            for (const child of item.children)
+                collect(child);
+        };
+        collect(gridView);
+        compare(rows.length, 2);
+        verify(!Qt.colorEqual(rows[0].lineColor, rows[1].lineColor));
         // The first cell of the first row: scene one on plotline A.
         const cell = findChild(findChild(gridView, "plotRow") as Item, "plotCell") as Item;
         mouseClick(cell);
