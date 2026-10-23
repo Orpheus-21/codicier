@@ -19,7 +19,7 @@ The app also does these things:
 - For essays and non-fiction, it maps each claim to its evidence, keeps a bibliography of sources with citations, keeps a bank of quotes, shows research images and PDF files, and tracks where each piece was submitted.
 - It prints a chapter or the whole manuscript, or saves it as a PDF file.
 - It exports the manuscript to DOCX, EPUB, Markdown, or PDF.
-- It imports a Scrivener 3 project.
+- It imports a Scrivener 3 project, a folder of Markdown files, or a Word file (DOCX).
 - It has a command palette that finds every command and every item by name.
 - It keeps the layout of the panes for each project. A key map file sets the key of each command.
 
@@ -307,9 +307,19 @@ Press Ctrl+E, choose a format, and click "Export". The file holds every chapter 
 
 The app writes DOCX and EPUB itself, so the export needs no other program.
 
+### Import
+
+On the home screen, click "Import" and choose what to import. The app makes a new project in the workspace with the name of the source and opens it. An import only reads the source and never changes it.
+
+| Source | What you get |
+|---|---|
+| A Scrivener project | See "Import from Scrivener" below. |
+| A folder of Markdown files | Each `.md` file becomes a scene, in the natural order of the file names, so `2` comes before `10`. Each subfolder with `.md` files becomes a chapter. A first line `# Title` becomes the title of the scene; else the file name does. |
+| A Word file (DOCX) | The headings of the highest level start the chapters. A paragraph of `***`, `* * *`, or `#` starts a new scene. Bold, italic, and line breaks carry over, and the title page stays out. |
+
 ### Import from Scrivener
 
-On the home screen, click "Import" and choose the folder of a Scrivener 3 project, such as `My Novel.scriv`. The app makes a new project in the workspace with the same name and opens it. The import only reads the Scrivener project and never changes it.
+Choose "A Scrivener project" and choose the folder of a Scrivener 3 project, such as `My Novel.scriv`.
 
 | In Scrivener | In Codicier |
 |---|---|
