@@ -19,10 +19,11 @@ The app also does these things:
 - For essays and non-fiction, it maps each claim to its evidence, keeps a bibliography of sources with citations, keeps a bank of quotes, shows research images and PDF files, and tracks where each piece was submitted.
 - It prints a chapter or the whole manuscript, or saves it as a PDF file.
 - It exports the manuscript to DOCX, EPUB, Markdown, or PDF.
+- It imports a Scrivener 3 project.
 - It has a command palette that finds every command and every item by name.
 - It keeps the layout of the panes for each project. A key map file sets the key of each command.
 
-The app runs as a native window. It does not use a web view. It works offline: it sends no telemetry and needs no network connection. Import and typesetting beyond a plain print are not part of the app.
+The app runs as a native window. It does not use a web view. It works offline: it sends no telemetry and needs no network connection. Typesetting beyond a plain print is not part of the app.
 
 The project is in development. Not all features are complete.
 
@@ -305,6 +306,23 @@ Press Ctrl+E, choose a format, and click "Export". The file holds every chapter 
 | Markdown | One file: the title, then each chapter as a `##` heading with its scenes. |
 
 The app writes DOCX and EPUB itself, so the export needs no other program.
+
+### Import from Scrivener
+
+On the home screen, click "Import" and choose the folder of a Scrivener 3 project, such as `My Novel.scriv`. The app makes a new project in the workspace with the same name and opens it. The import only reads the Scrivener project and never changes it.
+
+| In Scrivener | In Codicier |
+|---|---|
+| The Draft | The manuscript. A folder of folders becomes a part, a folder of texts becomes a chapter, and a text becomes a scene. A text with sub-documents becomes a chapter, and its own text becomes the first scene. |
+| The Research folder and other top folders | Folders of notes. Images, PDF files, and other media go to the research section. |
+| The Trash | Not imported. |
+| The text | Markdown, with bold, italic, and line breaks. Fonts and colours are not imported. |
+| Synopsis and document notes | The synopsis and the notes of the item. |
+| "Include in Compile" off | "Left out" of the manuscript. |
+| Label | The nearest label colour. The label name goes into the tags, as `label: Plot`. |
+| Status | Draft, revised, or final, from the status name. The status name goes into the tags, as `status: First Draft`. |
+
+The note "Imported from Scrivener" lists what did not come over, with counts: items in the Trash, snapshots, linked comments and footnotes, collections, the custom metadata, the compile settings, and the project targets. Inline annotations stay in the text as plain words.
 
 ### Search and replace
 
