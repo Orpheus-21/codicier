@@ -426,6 +426,7 @@ Item {
         { id: "sprint", name: "Start or stop a sprint", sequence: "Ctrl+Shift+T", run: () => view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60) },
         { id: "comment", name: "Comment on the selected words", sequence: "Ctrl+Alt+K", run: () => view.commentOnSelection() },
         { id: "inbox", name: "Show the open comments", sequence: "Ctrl+Alt+O", run: () => view.openInbox() },
+        { id: "export", name: "Export the manuscript", sequence: "Ctrl+E", run: () => exportDialog.open() },
         { id: "print", name: "Print a chapter or the manuscript", sequence: "Ctrl+P", run: () => printDialog.open() },
         { id: "submissions", name: "Track the submissions", sequence: "Ctrl+Alt+U", run: () => submissionsDialog.open() },
         { id: "quotes", name: "Show the quote bank", sequence: "Ctrl+Alt+Q", run: () => view.openQuotes() },
@@ -492,6 +493,14 @@ Item {
 
         title: "Choose a file for the research"
         onAccepted: view.session.addResearch(selectedFile)
+    }
+
+    ExportDialog {
+        id: exportDialog
+
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        session: view.session
     }
 
     PrintDialog {

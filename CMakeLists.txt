@@ -49,7 +49,7 @@ set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
 qt_add_library(codicier_ui STATIC)
 target_include_directories(codicier_ui PUBLIC src/app)
 target_link_libraries(codicier_ui PUBLIC codicier_core Qt6::Gui Qt6::Quick PRIVATE PkgConfig::HUNSPELL
-    Qt6::PrintSupport)
+    Qt6::PrintSupport Qt6::CorePrivate)
 if(TARGET Qt6::DBus)
     target_link_libraries(codicier_ui PRIVATE Qt6::DBus)
 endif()
@@ -62,7 +62,7 @@ set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
     QML_FILES qml/Main.qml qml/Theme.qml qml/Icon.qml qml/IconPaths.js qml/Reading.js
-        qml/FocusRing.qml qml/Activator.qml qml/ArgumentMap.qml qml/SourcesDialog.qml qml/QuotesPanel.qml qml/ResearchView.qml qml/SubmissionsDialog.qml qml/PrintDialog.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
+        qml/FocusRing.qml qml/Activator.qml qml/ArgumentMap.qml qml/SourcesDialog.qml qml/QuotesPanel.qml qml/ResearchView.qml qml/SubmissionsDialog.qml qml/PrintDialog.qml qml/ExportDialog.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
         qml/ListItem.qml qml/Pane.qml qml/Splitter.qml qml/Menu.qml
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
         qml/Binder.qml qml/BinderRow.qml qml/Editor.qml qml/TextArea.qml qml/Inspector.qml
@@ -81,6 +81,7 @@ qt_add_qml_module(codicier_ui
         src/app/Reminder.cpp src/app/Reminder.h
         src/app/Pdf.cpp src/app/Pdf.h
         src/app/Printer.cpp src/app/Printer.h
+        src/app/Exporter.cpp src/app/Exporter.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

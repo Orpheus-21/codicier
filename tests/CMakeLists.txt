@@ -194,3 +194,8 @@ if(CLANG_FORMAT)
     add_test(NAME check_format
         COMMAND ${CLANG_FORMAT} --dry-run --Werror ${FORMAT_FILES})
 endif()
+
+qt_add_executable(tst_exporter tst_exporter.cpp)
+target_compile_options(tst_exporter PRIVATE -Wall -Wextra)
+target_link_libraries(tst_exporter PRIVATE codicier_ui Qt6::Test Qt6::CorePrivate)
+add_test(NAME tst_exporter COMMAND tst_exporter)

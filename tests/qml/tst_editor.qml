@@ -649,6 +649,29 @@ TestCase {
         compare(Printer.pageCount(chapters, Theme.type.reading, Settings.readingSize, session.sceneBreak), 2);
     }
 
+    function test_exportWritesEachFormat() {
+        const view = makeView();
+        const session = view.session;
+        session.currentId = session.items().find(item => item.kind === "scene").id;
+        (findChild(view, "editor") as TextEdit).text = "The gull *cried* twice.";
+        const chapters = session.printChapters("");
+        const book = session.bookInfo();
+        compare(book.title, "Harbour");
+        compare(book.language, "en-US");
+        const base = "file://" + workspace.folder + "/harbour-export.";
+        for (const format of [["markdown", "md"], ["docx", "docx"], ["epub", "epub"]])
+            compare(Exporter.write(format[0], chapters, book, base + format[1]), "");
+        compare(Exporter.write("odt", chapters, book, base + "odt"), "Unknown format: odt");
+        compare(Exporter.write("docx", [], book, base + "docx"), "Nothing to export: no scene is in the manuscript.");
+        // The export dialog offers the four formats and Ctrl+E opens it.
+        view.forceActiveFocus();
+        keyClick(Qt.Key_E, Qt.ControlModifier);
+        const overlay = view.T.Overlay.overlay;
+        tryVerify(() => (findChild(overlay, "format-epub") as Item)?.visible ?? false);
+        verify(findChild(overlay, "format-pdf") !== null);
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

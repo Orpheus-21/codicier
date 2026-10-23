@@ -298,6 +298,9 @@ public:
     // in order). id "" gives the whole manuscript; the id of a chapter or of
     // a scene gives that chapter. Scenes left out of the manuscript stay out.
     Q_INVOKABLE QVariantList printChapters(const QString &id);
+    // The data of the book for an export: title, author, language (a BCP 47
+    // tag, such as en-US), and sceneBreak.
+    Q_INVOKABLE QVariantMap bookInfo() const;
     // The submissions of the work, in file order: index, item, title, venue,
     // sent (yyyy-MM-dd), and result ("" while open).
     Q_INVOKABLE QVariantList submissions() const;

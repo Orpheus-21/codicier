@@ -3110,6 +3110,18 @@ QVariantList ProjectSession::printChapters(const QString &id)
     return list;
 }
 
+QVariantMap ProjectSession::bookInfo() const
+{
+    QString language
+        = QString::fromStdString(project.data["language"].value_or(std::string("en_US")));
+    language.replace(u'_', u'-');
+    return { { QStringLiteral("title"), project.title },
+             { QStringLiteral("author"),
+               QString::fromStdString(project.data["author"].value_or(std::string())) },
+             { QStringLiteral("language"), language },
+             { QStringLiteral("sceneBreak"), sceneBreak() } };
+}
+
 QVariantList ProjectSession::submissions() const
 {
     QVariantList list;
