@@ -28,7 +28,7 @@ qt_standard_project_setup(REQUIRES 6.12)
 # The project model: plain C++ and Qt Core, with no UI.
 add_library(codicier_core STATIC src/model/ProjectStore.cpp src/model/TomlWriter.cpp
     src/model/Naming.cpp src/model/Templates.cpp src/model/Watcher.cpp src/model/Snapshots.cpp
-    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp src/model/Frameworks.cpp src/model/Calendar.cpp src/model/Canvas.cpp src/model/Sources.cpp src/model/Scrivener.cpp
+    src/model/Diff.cpp src/model/Backup.cpp src/model/History.cpp src/model/Versions.cpp src/model/Frameworks.cpp src/model/Calendar.cpp src/model/Canvas.cpp src/model/Sources.cpp src/model/Scrivener.cpp src/model/Rtf.cpp
     src/index/Index.cpp)
 target_include_directories(codicier_core PUBLIC src/model src/index)
 # The plot frameworks of the beat board.
