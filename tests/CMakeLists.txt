@@ -219,3 +219,10 @@ qt_add_executable(tst_markdownimport tst_markdownimport.cpp)
 target_compile_options(tst_markdownimport PRIVATE -Wall -Wextra)
 target_link_libraries(tst_markdownimport PRIVATE codicier_core Qt6::Test)
 add_test(NAME tst_markdownimport COMMAND tst_markdownimport)
+
+qt_add_executable(tst_docximport tst_docximport.cpp)
+target_compile_options(tst_docximport PRIVATE -Wall -Wextra)
+target_compile_definitions(tst_docximport PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+target_link_libraries(tst_docximport PRIVATE codicier_core Qt6::Test Qt6::CorePrivate)
+add_test(NAME tst_docximport COMMAND tst_docximport)

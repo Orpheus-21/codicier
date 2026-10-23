@@ -206,6 +206,7 @@ Window {
 
                     T.Action { text: "A Scrivener project…"; onTriggered: workspaceHome.importScrivener() }
                     T.Action { text: "A folder of Markdown files…"; onTriggered: workspaceHome.importMarkdown() }
+                    T.Action { text: "A Word file (DOCX)…"; onTriggered: workspaceHome.importDocx() }
                 }
 
                 Button {

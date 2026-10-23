@@ -1,6 +1,7 @@
 #include "ProjectList.h"
 
 #include "Backup.h"
+#include "DocxImport.h"
 #include "Index.h"
 #include "MarkdownImport.h"
 #include "Naming.h"
@@ -267,6 +268,19 @@ QString ProjectList::importMarkdown(const QUrl &folder)
     const QString title = source.fileName();
     return importInto(title, [&source, &title](const QString &target) {
         return MarkdownImport::importFolder(source.absoluteFilePath(), target, title);
+    });
+}
+
+QString ProjectList::importDocx(const QUrl &file)
+{
+    if (workspace.isEmpty())
+        return QStringLiteral("Choose a workspace first.");
+    const QFileInfo source(file.isLocalFile() ? file.toLocalFile() : file.toString());
+    if (!source.isFile())
+        return QStringLiteral("Choose a Word file (.docx).");
+    const QString title = source.completeBaseName();
+    return importInto(title, [&source, &title](const QString &target) {
+        return DocxImport::importFile(source.absoluteFilePath(), target, title);
     });
 }
 

@@ -701,6 +701,18 @@ TestCase {
         compare(view.session.items().filter(item => item.kind === "scene").length, 4);
     }
 
+    function test_importADocxFile() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        verify(workspace.importDocx(Qt.resolvedUrl("../fixtures/docx")).startsWith("Choose a Word file"));
+        verify(workspace.importDocx(Qt.resolvedUrl("../fixtures/research/salt.pdf")).includes("not a DOCX"));
+        compare(workspace.count, 0);
+        compare(workspace.importDocx(Qt.resolvedUrl("../fixtures/docx/lighthouse.docx")), "");
+        compare(workspace.get(0).title, "lighthouse");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.get(0).folder }) as ProjectView;
+        compare(view.session.items().filter(item => item.kind === "chapter").length, 2);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

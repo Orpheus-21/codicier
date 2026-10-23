@@ -33,6 +33,20 @@ Item {
         markdownDialog.open();
     }
 
+    // Asks for a DOCX file and makes a new project from it.
+    function importDocx() {
+        importError = "";
+        docxDialog.open();
+    }
+
+    FileDialog {
+        id: docxDialog
+
+        title: "Choose a Word file"
+        nameFilters: ["Word files (*.docx)"]
+        onAccepted: home.importError = projectList.importDocx(selectedFile)
+    }
+
     FolderDialog {
         id: markdownDialog
 
