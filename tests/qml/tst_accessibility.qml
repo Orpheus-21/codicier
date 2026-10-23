@@ -418,6 +418,28 @@ TestCase {
         compare(view.session.fields(id).values.Captain, "Ahab");
     }
 
+    function test_linkListStaysInsideTheEditor() {
+        const view = makeView();
+        view.session.rename(view.session.add("character"), "Mara Vell");
+        view.session.rename(view.session.add("character"), "Abel Crane");
+        view.session.rename(view.session.add("character"), "Mabel Moss");
+        view.session.currentId = view.session.items().find(item => item.kind === "scene").id;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = Array(60).fill("A line of the scene.").join("\n\n");
+        text.forceActiveFocus();
+        text.cursorPosition = text.length;
+        waitForRendering(view);
+        for (const c of " [[a")
+            keyClick(c);
+        const list = findChild(view, "linkList") as Item;
+        verify(list.visible);
+        waitForRendering(view);
+        const area = list.parent;
+        verify(list.y >= 0, "top " + list.y);
+        verify(list.y + list.height <= area.height, "bottom " + (list.y + list.height) + " of " + area.height);
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_linksCompleteAndOpen() {
         const view = makeView();
         const mara = view.session.add("character");

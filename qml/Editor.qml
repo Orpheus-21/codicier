@@ -536,7 +536,10 @@ Item {
         objectName: "linkList"
         visible: editorArea.linkStart >= 0
         x: Math.min(place.x, editorArea.width - width - Theme.space.s)
-        y: place.y + Theme.space.xs
+        // Below the line, or above it when the list does not fit below.
+        y: place.y + Theme.space.xs + height <= editorArea.height - Theme.space.s
+           ? place.y + Theme.space.xs
+           : place.y - textEdit.cursorRectangle.height - Theme.space.xs - height
         z: 3
         width: 260
         height: links.height + 2 * Theme.space.xs
