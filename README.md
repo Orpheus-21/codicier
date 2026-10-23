@@ -16,6 +16,7 @@ The app also does these things:
 - It shows the work as index cards, an outline table, a beat board, a plot grid, and a timeline in story time.
 - It tracks a word target for each session, a goal and a deadline for the project, a history of the words of each day, and writing sprints.
 - It has a codex of the characters, places, items, factions, lore, and terms of the story, with links from the text and a list of mentions.
+- For essays and non-fiction, it maps each claim to its evidence, keeps a bibliography of sources with citations, keeps a bank of quotes, shows research images and PDF files, and tracks where each piece was submitted.
 - It has a command palette that finds every command and every item by name.
 - It keeps the layout of the panes for each project. A key map file sets the key of each command.
 
@@ -33,6 +34,7 @@ The project is in development. Not all features are complete.
 - git, for the versions of a project.
 - Hunspell and pkg-config. For the spell check, also a Hunspell dictionary, such as `hunspell-en_us` or `hunspell-en_gb`.
 - Optional: a MyThes thesaurus, for synonyms, such as the `mythes-en` package. The app reads the `th_*.dat` files in `/usr/share/mythes`.
+- Optional: poppler-qt6, to show the PDF files of the research inside the app. The build uses it when pkg-config finds it. Without it, a PDF opens in the PDF app of the system.
 
 On Arch Linux, install the requirements with this command:
 
@@ -135,6 +137,10 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Alt+L | Show or hide the revision checklist. |
 | Ctrl+Alt+K | Comment on the selected words. |
 | Ctrl+Alt+O | Show the open comments. |
+| Ctrl+Alt+E | Show or hide the argument map. |
+| Ctrl+Alt+J | Edit the sources. |
+| Ctrl+Alt+Q | Show the quote bank. |
+| Ctrl+Alt+U | Track the submissions. |
 | Ctrl+Shift+G | Open goals and progress. |
 | Ctrl+Shift+T | Start or stop a sprint. |
 | Ctrl+Shift+F | Search the project. |
@@ -267,6 +273,18 @@ Press Ctrl+Alt+L for the revision checklist. Choose a pass, add checks such as "
 
 Select words on the page and press Ctrl+Alt+K to add a comment. A dotted line marks the commented words. Press Ctrl+Alt+O to see every open comment. Click a comment to open its text with the words selected, and click "Resolve" when it is done. The comments are in `binder.toml`, so the Markdown files stay prose only.
 
+### Essays and research
+
+A new essay starts with the parts of an argument: a thesis, two claims, the counter-arguments, a conclusion, and an evidence note. In an essay, an essay collection, or a non-fiction project, the inspector sets the part of the argument of each text. For an evidence item, the inspector also chooses the claims that it supports. Press Ctrl+Alt+E for the argument map. It shows the thesis, each claim with its evidence, the counter-arguments, and the conclusion, and it marks each claim with no evidence.
+
+Press Ctrl+Alt+J to add, change, or remove the sources of the project. The app gives each source a key, such as `kurlansky2002`. Type `[@` on the page to choose a source, and press Enter to insert its key as `[@kurlansky2002]`. Type `; @` inside the brackets to add a second source. A pause on a key shows the source.
+
+Press Ctrl+Alt+Q for the quote bank. Add the words of a quote, choose its source, and type its page. Drag a quote onto the page, or press Return or click "Insert", to put it at the cursor with its citation, such as `“…” [@kurlansky2002, p. 12]`.
+
+To add a research file, click the add button of the binder and choose "Add a research file". The app copies the file into `research/`. An image shows fit to the page, and a PDF shows its pages. Another kind of file opens in its own app. The inspector of a research file links it to texts, and the inspector of a text lists its research files.
+
+Press Ctrl+Alt+U to record a submission: the piece, where it went, and the date. The list shows the open submissions first. Choose Accepted, Rejected, or Withdrawn to close one, or click "All" to see every submission.
+
 ### Search and replace
 
 Press Ctrl+Shift+F and type. The results show the title of each item and the text near the match. The search ignores case and accents. Click a result to open it with the match selected.
@@ -328,7 +346,7 @@ The code has three parts:
 - `src/index` keeps the search index. It is an SQLite database with full text search in `.codicier/index.db` in the project folder.
 - `src/app` and `qml` make the window. The C++ classes in `src/app` give the project, the settings, and the key map to the QML views.
 
-A project folder holds `project.toml`, `binder.toml`, and the Markdown files. `binder.toml` holds the structure of the binder and the data of each item. A Markdown file holds only the prose. The app writes each file through a temporary file, so a crash cannot leave half a file. The app can delete the `.codicier` folder and build it again at any time. `docs/format.md` describes the format in full.
+A project folder holds `project.toml`, `binder.toml`, and the Markdown files. The sources are in `sources.json` as CSL-JSON, which Zotero and pandoc read, and the quote bank is in `quotes.json`. `binder.toml` holds the structure of the binder and the data of each item. A Markdown file holds only the prose. The app writes each file through a temporary file, so a crash cannot leave half a file. The app can delete the `.codicier` folder and build it again at any time. `docs/format.md` describes the format in full.
 
 When another program changes a file of an open project, the app loads the new text. If the text in the app has changes that are not saved, a bar above the text asks which text to keep: "Keep mine" or "Load theirs". "Load theirs" first keeps a copy of the text of the app in `.codicier/recovered/`.
 

@@ -29,6 +29,8 @@ the-salt-ledger/
     canvases/           one TOML file for each idea canvas
     history.toml        the words and the minutes of writing of each day
     dictionary.txt      the words of the project for the spell check, one on each line
+    sources.json        the sources of the project, as CSL-JSON
+    quotes.json         the quote bank: quotes with a source and a page
     .codicier/          app data that the app can build again or lose with no harm
 ```
 
@@ -149,6 +151,9 @@ Do not say so yet."""
 | `goal` | string | scenes | What the point of view character wants in the scene. |
 | `conflict` | string | scenes | What stands in the way of the goal. |
 | `outcome` | string | scenes | How the scene ends for the goal, such as "yes, but" or "no, and". |
+| `argument` | string | text items | The part of the argument: `thesis`, `claim`, `evidence`, `counter`, or `conclusion`. |
+| `supports` | array of strings | evidence items | The ids of the claims that the evidence supports. |
+| `texts` | array of strings | research files | The ids of the texts that the research file belongs to. |
 | `aliases` | array of strings | entities | Other names of the entity, such as a nickname or a title. |
 | `fields` | table of strings | entities | The values of the fields of the entity type, by field name, such as `Captain = "Ahab"`. The app writes the table under the item as `[item.fields]`. |
 | `tags` | array of strings | text items | Tags. |
@@ -201,6 +206,7 @@ A move to the trash changes only `binder.toml`. The item goes to the top level w
 | `[[comment]]` | `item`, `quote`, `start`, `text`, and `resolved` | A comment on the words `quote` of a text, which were at the character `start` when the author wrote the comment. The app finds the quote at the place nearest `start`. The app writes `resolved` only when it is true. |
 | `[[tick]]` | `pass`, `check`, and `item` | A tick of the revision checklist: the check of the pass with that number is done for that chapter. |
 | `[[pin]]` | `map`, `place`, `x`, and `y` | An entity pinned to a map. `x` and `y` are parts of the width and the height of the image, from 0 to 1. |
+| `[[submission]]` | `venue`, `item`, `sent`, and `result` | A piece sent to a venue, such as a magazine. `item` is the id of the piece; no `item` means the whole project. `sent` is the date, written year-month-day. `result` is `accepted`, `rejected`, or `withdrawn`; no `result` means the submission is open. |
 
 ### Keys that the app does not know
 
@@ -308,3 +314,9 @@ A file in `canvases/` holds one idea canvas. It has `format = 1`, then a `[[node
 ## history.toml
 
 The history has a `[days]` table with the net words that the author added to the manuscript on each day, a `[minutes]` table with the minutes of writing on each day, and a `[sessions]` table with the words of each session. A minute with an edit counts. The keys of days and minutes are dates, such as `2026-10-22`. The keys of sessions are the start times, such as `"2026-10-22T14:05:00"`, and the history keeps the last 100.
+
+## Sources and quotes
+
+`sources.json` is an array of CSL-JSON items, the format that Zotero and pandoc read. The app edits the fields `id`, `type`, `title`, `author`, `issued`, `publisher`, `container-title`, `page`, `URL`, and `DOI`, and keeps every other field of an item as it is. The `id` is the citation key, such as `kurlansky2002`. The app never writes over a `sources.json` that is not a JSON array.
+
+`quotes.json` is an array of quotes. Each quote has the keys `id`, `text`, `source` (the key of a source), and `page`.
