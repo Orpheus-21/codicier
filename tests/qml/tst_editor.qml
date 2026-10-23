@@ -1188,6 +1188,22 @@ TestCase {
         verify(view.wholeBook);
     }
 
+    function test_findBarLeavesTheTextVisible() {
+        const view = makeView();
+        view.session.currentId = view.session.items().find(item => item.kind === "scene").id;
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "Harbour lights at the top.";
+        text.forceActiveFocus();
+        keyClick(Qt.Key_F, Qt.ControlModifier);
+        const bar = findChild(view, "findBar") as Item;
+        tryVerify(() => bar.visible);
+        waitForRendering(view);
+        // The first line of the text is below the bar.
+        const first = text.mapToItem(bar.parent, 0, text.positionToRectangle(0).y);
+        verify(first.y >= bar.y + bar.height, "text at " + first.y + ", bar ends at " + (bar.y + bar.height));
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};

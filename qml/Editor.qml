@@ -265,6 +265,8 @@ Item {
         objectName: "page"
 
         anchors.top: conflictBar.bottom
+        // The find bar sits above the text, not on it.
+        anchors.topMargin: findBar.visible ? findBar.height + Theme.space.s : 0
         anchors.bottom: parent.bottom
         width: parent.width
         contentWidth: width
@@ -586,7 +588,7 @@ Item {
         id: findBar
 
         objectName: "findBar"
-        anchors.top: page.top
+        anchors.top: conflictBar.bottom
         anchors.right: parent.right
         anchors.topMargin: Theme.space.s
         anchors.rightMargin: Theme.space.l
