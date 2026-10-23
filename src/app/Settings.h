@@ -40,6 +40,10 @@ class Settings : public QObject
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
     // Focus mode hides the top bar and the status bar. Off keeps them.
     Q_PROPERTY(bool calmFocus READ calmFocus WRITE setCalmFocus NOTIFY changed)
+    // The tools for essays (argument map, sources, quotes) in every project,
+    // not only in essays and non-fiction.
+    Q_PROPERTY(bool essayToolsEverywhere READ essayToolsEverywhere WRITE setEssayToolsEverywhere
+                   NOTIFY changed)
     // The line height of the page in percent of the text size: 130, 150, or
     // 180.
     Q_PROPERTY(int lineSpacing READ lineSpacing WRITE setLineSpacing NOTIFY changed)
@@ -110,6 +114,8 @@ public:
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
     bool calmFocus() const { return calm; }
     void setCalmFocus(bool value) { change(calm, value, "view/calmFocus"); }
+    bool essayToolsEverywhere() const { return essayTools; }
+    void setEssayToolsEverywhere(bool value) { change(essayTools, value, "view/essayTools"); }
     int lineSpacing() const { return spacing; }
     void setLineSpacing(int value)
     {
@@ -176,6 +182,7 @@ private:
     int delay = 1000;
     bool lessMotion = false;
     bool calm = true;
+    bool essayTools = false;
     bool labels = false;
     bool seen = false;
     bool marksHidden = true;

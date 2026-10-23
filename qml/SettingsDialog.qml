@@ -457,6 +457,24 @@ T.Dialog {
                     }
                 }
 
+                Setting {
+                    label: "Tools for essays"
+
+                    Choice {
+                        objectName: "essayToolsOwn"
+                        label: "In essays and non-fiction"
+                        chosen: !Settings.essayToolsEverywhere
+                        onClicked: Settings.essayToolsEverywhere = false
+                    }
+
+                    Choice {
+                        objectName: "essayToolsAll"
+                        label: "In every project"
+                        chosen: Settings.essayToolsEverywhere
+                        onClicked: Settings.essayToolsEverywhere = true
+                    }
+                }
+
                 Heading {
                     text: "Writing"
                 }

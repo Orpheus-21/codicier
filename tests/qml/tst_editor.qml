@@ -38,6 +38,7 @@ TestCase {
 
     function cleanup() {
         Settings.theme = "system";
+        Settings.essayToolsEverywhere = false;
     }
 
     function test_newNovelOpensOnItsFirstScene() {
@@ -1066,6 +1067,8 @@ TestCase {
     }
 
     function test_paletteRunsCommandsAndOpensItems() {
+        // Every command shows, also the tools for essays.
+        Settings.essayToolsEverywhere = true;
         const view = makeView();
         const model = view.session.binder;
         const first = model.data(model.index(1, 0), BinderModel.IdRole);
@@ -1108,6 +1111,7 @@ TestCase {
         keyClick(Qt.Key_Return);
         keyClick(Qt.Key_Escape);
         tryVerify(() => !field.visible);
+        Settings.essayToolsEverywhere = false;
     }
 
     function test_defaultKeysLeaveInputMethodsAlone() {
@@ -1222,6 +1226,18 @@ TestCase {
         }
         verify(!hint.visible);
         verify(Settings.hintsSeen);
+    }
+
+    function test_essayToolsOnlyWhereTheyFit() {
+        const view = makeView();
+        compare(view.session.kind, "short-story");
+        const hidden = id => view.commands.find(command => command.id === id).hidden === true;
+        for (const id of ["argument", "sources", "quotes"])
+            verify(hidden(id), id);
+        Settings.essayToolsEverywhere = true;
+        for (const id of ["argument", "sources", "quotes"])
+            verify(!hidden(id), id);
+        Settings.essayToolsEverywhere = false;
     }
 
     function test_everyCommandHasAKey() {

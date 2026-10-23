@@ -29,6 +29,11 @@ Item {
     // The author asks for the settings, which the window holds.
     signal settingsRequested
 
+    // Essays and non-fiction have the tools for an argument; other projects
+    // have them when the author turns them on.
+    readonly property bool essayTools: ["essay", "essay-collection", "non-fiction"].includes(session.kind)
+                                       || Settings.essayToolsEverywhere
+
     // The corkboard and the outliner show the whole book, not one chapter.
     property bool wholeBook: false
     onWholeBookChanged: stateTimer.restart()
@@ -464,9 +469,9 @@ Item {
         { id: "settings", name: "Settings", sequence: "Ctrl+,", run: () => view.settingsRequested() },
         { id: "print", name: "Print a chapter or the manuscript", sequence: "Ctrl+P", run: () => printDialog.open() },
         { id: "submissions", name: "Track the submissions", sequence: "", former: "Ctrl+Alt+U", run: () => submissionsDialog.open() },
-        { id: "quotes", name: "Show the quote bank", sequence: "", former: "Ctrl+Alt+Q", run: () => view.openQuotes() },
-        { id: "sources", name: "Edit the sources", sequence: "", former: "Ctrl+Alt+J", run: () => sourcesDialog.open() },
-        { id: "argument", name: "Show or hide the argument map", sequence: "", former: "Ctrl+Alt+E", run: () => view.toggleViewMode("argument") },
+        { id: "quotes", name: "Show the quote bank", sequence: "", former: "Ctrl+Alt+Q", run: () => view.openQuotes(), hidden: !view.essayTools },
+        { id: "sources", name: "Edit the sources", sequence: "", former: "Ctrl+Alt+J", run: () => sourcesDialog.open(), hidden: !view.essayTools },
+        { id: "argument", name: "Show or hide the argument map", sequence: "", former: "Ctrl+Alt+E", run: () => view.toggleViewMode("argument"), hidden: !view.essayTools },
         { id: "checklist", name: "Show or hide the revision checklist", sequence: "", former: "Ctrl+Alt+L", run: () => view.toggleViewMode("checklist") },
         { id: "changes", name: "Track and review changes", sequence: "Ctrl+Shift+R", run: () => view.openChanges() },
         { id: "passes", name: "Draft passes", sequence: "", former: "Ctrl+Alt+D", run: () => passDialog.open() },

@@ -55,6 +55,7 @@ Pane {
     property var claims: []
     // Essays and non-fiction have the parts of an argument.
     readonly property bool argued: ["essay", "essay-collection", "non-fiction"].includes(session.kind)
+                                   || Settings.essayToolsEverywhere
 
     // Lets the open evidence support a claim, or stops it.
     function toggleSupport(id: string) {

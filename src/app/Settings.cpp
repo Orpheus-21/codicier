@@ -61,6 +61,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     delay = std::clamp(settings.value("edit/autosaveDelay", delay).toInt(), 250, 10000);
     lessMotion = settings.value("view/reducedMotion", false).toBool();
     calm = settings.value("view/calmFocus", true).toBool();
+    essayTools = settings.value("view/essayTools", false).toBool();
     labels = settings.value("view/buttonLabels", false).toBool();
     seen = settings.value("view/hintsSeen", false).toBool();
     marksHidden = settings.value("view/hideMarks", true).toBool();
