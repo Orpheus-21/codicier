@@ -1240,6 +1240,19 @@ TestCase {
         Settings.essayToolsEverywhere = false;
     }
 
+    function test_goalsDialogCountsWordsInWords() {
+        const view = makeView();
+        const dialog = findChild(view, "progressDialog") as ProgressDialog;
+        compare(dialog.words(1), "1 word");
+        compare(dialog.words(0), "0 words");
+        compare(dialog.words(1200), "1,200 words");
+        view.commands.find(command => command.id === "progress").run();
+        const deadline = findChild(view.T.Overlay.overlay, "deadline") as TextField;
+        tryVerify(() => deadline.visible);
+        compare(deadline.placeholderText, "yyyy-mm-dd");
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};

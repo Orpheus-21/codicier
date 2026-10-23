@@ -630,6 +630,7 @@ Item {
     ProgressDialog {
         id: progressDialog
 
+        objectName: "progressDialog"
         sprintRunning: view.sprintEnd > 0
         onSprintRequested: view.sprintEnd > 0 ? view.stopSprint() : view.startSprint(Settings.sprintMinutes * 60)
         parent: T.Overlay.overlay

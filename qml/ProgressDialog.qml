@@ -22,6 +22,11 @@ T.Dialog {
                   : "Write the deadline as a date such as 2027-03-01.";
     }
 
+    // A count of words in words: "1 word", "1,200 words".
+    function words(count: int): string {
+        return count.toLocaleString(Qt.locale("en_GB"), "f", 0) + (count === 1 ? " word" : " words");
+    }
+
     function longDate(iso: string): string {
         return Date.fromLocaleDateString(Qt.locale("en_GB"), iso, "yyyy-MM-dd")
             .toLocaleDateString(Qt.locale("en_GB"), "d MMMM yyyy");
@@ -93,8 +98,8 @@ T.Dialog {
             }
 
             Note {
-                text: "You added " + dialog.session.sessionWords.toLocaleString(Qt.locale("en_GB"), "f", 0)
-                      + " words to the manuscript since the project opened."
+                text: "You added " + dialog.words(dialog.session.sessionWords)
+                      + " to the manuscript since the project opened."
             }
 
             Column {
@@ -125,10 +130,11 @@ T.Dialog {
 
             Note {
                 objectName: "today"
-                text: "You wrote " + dialog.session.todayWords.toLocaleString(Qt.locale("en_GB"), "f", 0)
-                      + (dialog.session.dailyGoal > 0
-                         ? " of " + dialog.session.dailyGoal.toLocaleString(Qt.locale("en_GB"), "f", 0) : "")
-                      + " words today"
+                text: "You wrote " + (dialog.session.dailyGoal > 0
+                         ? dialog.session.todayWords.toLocaleString(Qt.locale("en_GB"), "f", 0) + " of "
+                           + dialog.words(dialog.session.dailyGoal)
+                         : dialog.words(dialog.session.todayWords))
+                      + " today"
                       + (dialog.session.todayMinutes > 0
                          ? " in " + dialog.session.todayMinutes + (dialog.session.todayMinutes === 1 ? " minute" : " minutes")
                          : "")
@@ -201,7 +207,7 @@ T.Dialog {
                         objectName: "deadline"
                         width: 160
                         Accessible.name: "Deadline of the project"
-                        placeholderText: "2027-03-01"
+                        placeholderText: "yyyy-mm-dd"
                         text: dialog.session.deadline
                         onEditingFinished: dialog.saveGoal()
                     }
@@ -212,9 +218,9 @@ T.Dialog {
                 objectName: "dailyNeeded"
                 text: dialog.goalError !== "" ? dialog.goalError
                     : dialog.session.dailyNeeded >= 0
-                      ? "To reach " + dialog.session.goalWords.toLocaleString(Qt.locale("en_GB"), "f", 0)
-                        + " words by " + dialog.longDate(dialog.session.deadline) + ", write "
-                        + dialog.session.dailyNeeded.toLocaleString(Qt.locale("en_GB"), "f", 0) + " words each day."
+                      ? "To reach " + dialog.words(dialog.session.goalWords) + " by "
+                        + dialog.longDate(dialog.session.deadline) + ", write "
+                        + dialog.words(dialog.session.dailyNeeded) + " each day."
                     : "Set a word goal and a deadline to see the words to write each day."
                 color: dialog.goalError !== "" ? Theme.color.accent : Theme.color.inkMuted
             }
@@ -389,7 +395,7 @@ T.Dialog {
                 function label(each: var): string {
                     return Date.fromLocaleString(Qt.locale("en_GB"), each.start, "yyyy-MM-ddTHH:mm:ss")
                                .toLocaleDateString(Qt.locale("en_GB"), "d MMM") + ", "
-                        + Number(each.words).toLocaleString(Qt.locale("en_GB"), "f", 0) + " words";
+                        + dialog.words(Number(each.words));
                 }
 
                 objectName: "sessionChart"
@@ -398,7 +404,7 @@ T.Dialog {
                 height: 130
 
                 Text {
-                    text: Number(sessionChart.best).toLocaleString(Qt.locale("en_GB"), "f", 0) + " words"
+                    text: dialog.words(Number(sessionChart.best))
                     font.family: Theme.type.ui
                     font.pixelSize: Theme.type.small
                     color: Theme.color.inkMuted
@@ -485,7 +491,7 @@ T.Dialog {
                 objectName: "streak"
                 text: (dialog.session.streak === 1 ? "1 day in a row" : dialog.session.streak + " days in a row")
                       + " with words."
-                      + (heatMap.best > 0 ? "  Best day: " + heatMap.best.toLocaleString(Qt.locale("en_GB"), "f", 0) + " words." : "")
+                      + (heatMap.best > 0 ? "  Best day: " + dialog.words(heatMap.best) + "." : "")
             }
 
             Item {
