@@ -1148,6 +1148,20 @@ TestCase {
         keyClick(Qt.Key_Escape);
     }
 
+    function test_printDialogOpensBeforeThePrintersAnswer() {
+        const view = makeView();
+        const started = Date.now();
+        view.commands.find(command => command.id === "print").run();
+        const overlay = view.T.Overlay.overlay;
+        const pdf = findChild(overlay, "printPdf") as Item;
+        verify(pdf && pdf.visible);
+        // The printer question runs on a worker thread, so opening is quick.
+        verify(Date.now() - started < 500, "opened in " + (Date.now() - started) + " ms");
+        tryVerify(() => !Printer.searching, 10000);
+        verify(!(findChild(overlay, "findingPrinters") as Item).visible);
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};

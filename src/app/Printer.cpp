@@ -1,13 +1,16 @@
 #include "Printer.h"
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QLocale>
 #include <QPageLayout>
 #include <QPdfWriter>
+#include <QPointer>
 #include <QPrinter>
 #include <QPrinterInfo>
 #include <QTextCursor>
 #include <QTextDocument>
+#include <QThreadPool>
 
 #include <memory>
 
@@ -67,14 +70,26 @@ std::unique_ptr<QTextDocument> layOut(const QVariantList &chapters, const QStrin
 
 } // namespace
 
-QStringList Printer::printers() const
+void Printer::findPrinters()
 {
-    return QPrinterInfo::availablePrinterNames();
-}
-
-QString Printer::defaultPrinter() const
-{
-    return QPrinterInfo::defaultPrinterName();
+    if (busy)
+        return;
+    busy = true;
+    emit printersFound();
+    // The answer goes back to the GUI thread through the application, which
+    // lives until the end; the pointer to this singleton is checked there.
+    QThreadPool::globalInstance()->start([self = QPointer<Printer>(this)] {
+        const QStringList names = QPrinterInfo::availablePrinterNames();
+        const QString fallback = QPrinterInfo::defaultPrinterName();
+        QMetaObject::invokeMethod(qApp, [self, names, fallback] {
+            if (!self)
+                return;
+            self->foundPrinters = names;
+            self->foundDefault = fallback;
+            self->busy = false;
+            emit self->printersFound();
+        });
+    });
 }
 
 QString Printer::print(const QVariantList &chapters, const QString &family, int pixelSize,

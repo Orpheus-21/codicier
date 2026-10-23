@@ -16,7 +16,8 @@ T.Dialog {
     property string scope: "chapter"
     // The name of a printer, or "" to save a PDF file.
     property string printer: ""
-    property var printers: []
+    // The author clicked a destination, so the printer search keeps it.
+    property bool picked: false
     property var chapters: []
     // True when the open item is in a chapter with text to print.
     property bool inChapter: false
@@ -42,12 +43,23 @@ T.Dialog {
     onScopeChanged: refresh()
     onAboutToShow: {
         error = "";
-        printers = Printer.printers();
-        printer = Printer.defaultPrinter();
+        // The printers come a moment later; until then PDF is the choice.
+        printer = "";
+        picked = false;
+        Printer.findPrinters();
         // With no chapter open, the whole manuscript prints.
         inChapter = session.currentId !== "" && session.printChapters(session.currentId).length > 0;
         scope = inChapter ? "chapter" : "manuscript";
         refresh();
+    }
+
+    Connections {
+        target: Printer
+
+        function onPrintersFound() {
+            if (!dialog.picked && !Printer.searching)
+                dialog.printer = Printer.defaultPrinter;
+        }
     }
 
     T.Overlay.modal: Rectangle {
@@ -131,14 +143,17 @@ T.Dialog {
                 spacing: Theme.space.xs
 
                 Repeater {
-                    model: dialog.printers
+                    model: Printer.printers
 
                     Choice {
                         required property string modelData
 
                         label: modelData
                         chosen: dialog.printer === modelData
-                        onClicked: dialog.printer = modelData
+                        onClicked: {
+                            dialog.picked = true;
+                            dialog.printer = modelData;
+                        }
                     }
                 }
 
@@ -146,7 +161,21 @@ T.Dialog {
                     objectName: "printPdf"
                     label: "Save as PDF"
                     chosen: dialog.printer === ""
-                    onClicked: dialog.printer = ""
+                    onClicked: {
+                        dialog.picked = true;
+                        dialog.printer = "";
+                    }
+                }
+
+                Text {
+                    objectName: "findingPrinters"
+                    visible: Printer.searching
+                    height: 30
+                    verticalAlignment: Text.AlignVCenter
+                    text: "Looking for printers…"
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.small
+                    color: Theme.color.inkMuted
                 }
             }
         }
