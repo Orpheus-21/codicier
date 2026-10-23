@@ -83,6 +83,18 @@ private slots:
                  QStringLiteral("The letter said the fourth of March, snake_case stays."));
     }
 
+    void lastLineDropsLinksAndCitations()
+    {
+        QTemporaryDir dir;
+        QVERIFY(Templates::create(dir.filePath("p"), "blank", "E", "").isEmpty());
+        writeFile(dir.filePath("p/manuscript/untitled.md"),
+                  "It was [[Elin]], ==not== [[Tomas|the brother]] [@kurlansky2002, p. 3].\n");
+        ProjectList list;
+        list.setFolder(dir.path());
+        QCOMPARE(list.get(0).value("lastLine").toString(),
+                 QStringLiteral("It was Elin, not Tomas."));
+    }
+
     void brokenProjectStaysWithItsError()
     {
         QTemporaryDir dir;

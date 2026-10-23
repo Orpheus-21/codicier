@@ -38,6 +38,11 @@ QString lastLineOf(const QString &text)
         if (line.isEmpty() || line.startsWith(QLatin1String("[^")))
             continue;
         line.remove(QRegularExpression(QStringLiteral("\\[\\^[^\\]]*\\]")));
+        // Citations go; a codex link and a highlight keep their words.
+        line.remove(QRegularExpression(QStringLiteral("\\s*\\[@[^\\]]*\\]")));
+        line.replace(QRegularExpression(QStringLiteral("\\[\\[([^\\]|]*)(?:\\|[^\\]]*)?\\]\\]")),
+                     QStringLiteral("\\1"));
+        line.remove(QStringLiteral("=="));
         line.remove(QRegularExpression(QStringLiteral("^#+\\s*")));
         line.remove(u'*');
         line.remove(QRegularExpression(QStringLiteral("(?<!\\w)_|_(?!\\w)")));
