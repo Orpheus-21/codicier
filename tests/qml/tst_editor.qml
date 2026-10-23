@@ -1204,6 +1204,26 @@ TestCase {
         keyClick(Qt.Key_Escape);
     }
 
+    function test_firstRunHintsCoverNoControl() {
+        Settings.hintsSeen = false;
+        const view = makeView();
+        const hint = findChild(view, "firstRunHint") as Item;
+        const binder = findChild(view, "binderPane") as Item;
+        const text = findChild(view, "editor") as TextEdit;
+        text.forceActiveFocus();
+        tryVerify(() => hint.visible);
+        waitForRendering(view);
+        // The binder hint sits beside the binder, the others below the top bar.
+        verify(hint.x >= binder.width, "hint 1 at " + hint.x);
+        for (let step = 0; step < 3; ++step) {
+            verify(hint.y >= 48, "hint " + (step + 1) + " at y " + hint.y);
+            keyClick(Qt.Key_Escape);
+            verify(text.activeFocus, "focus after hint " + (step + 1));
+        }
+        verify(!hint.visible);
+        verify(Settings.hintsSeen);
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};

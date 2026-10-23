@@ -13,14 +13,15 @@ Rectangle {
     property real binderWidth: 0
     property int step: -1
     readonly property var steps: [
-        { text: "The binder holds the book. Click a scene to write in it.",
-          x: Theme.space.m, y: view.height - height - 3 * Theme.space.xl },
+        // Each hint sits beside its target, never on a control.
+        { text: "The binder, on the left, holds the book. Click a scene to write in it.",
+          x: binderWidth + Theme.space.l, y: view.height - height - 3 * Theme.space.xl },
         { text: "Write here. Codicier saves your text as you type.",
           x: binderWidth + (view.width - binderWidth - width) / 2,
           y: view.height - height - 3 * Theme.space.xl },
         { text: (view.keys.sequences["palette"] ?? "") + " finds any command or item. "
                 + (view.keys.sequences["help"] ?? "") + " shows all keys.",
-          x: view.width - width - Theme.space.l, y: 56 }
+          x: view.width - width - Theme.space.l, y: view.height - height - 3 * Theme.space.xl }
     ]
 
     function next() {
