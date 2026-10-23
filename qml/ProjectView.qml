@@ -262,7 +262,27 @@ Item {
     property bool changesOpen: false
     property bool quotesOpen: false
 
+    // The item that had the focus before a side panel opened, so closing
+    // the panel gives the focus back to it, such as the page.
+    property Item focusBeforePanel: null
+    readonly property bool panelOpen: searchOpen || codexOpen || versionsOpen || inboxOpen || changesOpen
+                                      || quotesOpen
+
+    // Keeps the focus item when the first panel opens; a switch from one
+    // panel to another keeps the first one.
+    function rememberFocus() {
+        if (!panelOpen)
+            focusBeforePanel = Window.window ? Window.window.activeFocusItem : null;
+    }
+
+    function returnFocus() {
+        const target = focusBeforePanel;
+        focusBeforePanel = null;
+        (target && target.visible ? target : binder).forceActiveFocus();
+    }
+
     function openChanges() {
+        rememberFocus();
         setFocusMode(false);
         quotesOpen = false;
         searchOpen = false;
@@ -274,6 +294,7 @@ Item {
     }
 
     function openInbox() {
+        rememberFocus();
         setFocusMode(false);
         quotesOpen = false;
         changesOpen = false;
@@ -293,6 +314,7 @@ Item {
     }
 
     function openVersions() {
+        rememberFocus();
         setFocusMode(false);
         quotesOpen = false;
         changesOpen = false;
@@ -304,6 +326,7 @@ Item {
     }
 
     function openCodex() {
+        rememberFocus();
         setFocusMode(false);
         quotesOpen = false;
         changesOpen = false;
@@ -315,6 +338,7 @@ Item {
     }
 
     function openQuotes() {
+        rememberFocus();
         setFocusMode(false);
         changesOpen = false;
         searchOpen = false;
@@ -327,6 +351,7 @@ Item {
 
     // Opens the search panel, or with replace the replace mode of it.
     function openSearch(replace: bool) {
+        rememberFocus();
         setFocusMode(false);
         quotesOpen = false;
         changesOpen = false;
@@ -801,7 +826,7 @@ Item {
                 session: view.session
                 onCloseRequested: {
                     view.searchOpen = false;
-                    binder.forceActiveFocus();
+                    view.returnFocus();
                 }
                 onOpened: (id, query, regex) => {
                     view.session.currentId = id;
@@ -822,7 +847,7 @@ Item {
                 session: view.session
                 onCloseRequested: {
                     view.codexOpen = false;
-                    binder.forceActiveFocus();
+                    view.returnFocus();
                 }
                 onOpened: id => {
                     view.session.currentId = id;
@@ -847,7 +872,7 @@ Item {
                 session: view.session
                 onCloseRequested: {
                     view.changesOpen = false;
-                    binder.forceActiveFocus();
+                    view.returnFocus();
                 }
                 onPlaced: (at, length) => editor.selectRange(at, length)
             }
@@ -864,7 +889,7 @@ Item {
                 session: view.session
                 onCloseRequested: {
                     view.quotesOpen = false;
-                    binder.forceActiveFocus();
+                    view.returnFocus();
                 }
                 onInserted: text => editor.insertAtCursor(text)
             }
@@ -881,7 +906,7 @@ Item {
                 session: view.session
                 onCloseRequested: {
                     view.inboxOpen = false;
-                    binder.forceActiveFocus();
+                    view.returnFocus();
                 }
                 onOpened: (id, start, length) => {
                     view.openText(id);
@@ -901,7 +926,7 @@ Item {
                 session: view.session
                 onCloseRequested: {
                     view.versionsOpen = false;
-                    binder.forceActiveFocus();
+                    view.returnFocus();
                 }
                 onRestored: message => view.versionsMessage = message
             }

@@ -713,6 +713,29 @@ TestCase {
         compare(view.session.items().filter(item => item.kind === "chapter").length, 2);
     }
 
+    function test_focusComesBackToThePageAfterAPopup() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.forceActiveFocus();
+        verify(text.activeFocus);
+        const overlay = view.T.Overlay.overlay;
+        for (const id of ["palette", "progress", "sources", "submissions", "export", "print", "help"]) {
+            view.commands.find(command => command.id === id).run();
+            tryVerify(() => overlay.children.some(child => child.visible && String(child).startsWith("QQuickPopupItem")), 2000, id);
+            keyClick(Qt.Key_Escape);
+            tryVerify(() => text.activeFocus, 2000, "focus after " + id);
+        }
+        // A side panel gives the focus back to the page too, also after a
+        // switch to another panel.
+        for (const id of ["search", "codex", "inbox", "quotes"]) {
+            view.commands.find(command => command.id === id).run();
+            tryVerify(() => !text.activeFocus, 2000, id);
+            view.commands.find(command => command.id === "codex").run();
+            keyClick(Qt.Key_Escape);
+            tryVerify(() => text.activeFocus, 2000, "focus after the panel " + id);
+        }
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
