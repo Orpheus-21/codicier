@@ -16,15 +16,16 @@ private slots:
     void readsTheBinderTree()
     {
         QString error;
-        const std::optional<Scrivener::Binder> binder = Scrivener::readBinder(fixture, &error);
-        QVERIFY2(binder, qPrintable(error));
-        QCOMPARE(binder->author, QStringLiteral("A. Writer"));
+        const std::optional<Scrivener::Binder> read = Scrivener::readBinder(fixture, &error);
+        QVERIFY2(read, qPrintable(error));
+        const Scrivener::Binder binder = read.value_or(Scrivener::Binder());
+        QCOMPARE(binder.author, QStringLiteral("A. Writer"));
         QStringList types;
-        for (const Scrivener::Item &root : binder->roots)
+        for (const Scrivener::Item &root : binder.roots)
             types.append(root.type);
         QCOMPARE(types, (QStringList { "DraftFolder", "ResearchFolder", "Folder", "TrashFolder" }));
 
-        const Scrivener::Item &part = binder->roots.at(0).children.at(0);
+        const Scrivener::Item &part = binder.roots.at(0).children.at(0);
         QCOMPARE(part.title, QStringLiteral("Part One"));
         const Scrivener::Item &dusk = part.children.at(0);
         QCOMPARE(dusk.label, 1);
@@ -37,18 +38,19 @@ private slots:
         const Scrivener::Item &morning = part.children.at(1);
         QCOMPARE(morning.type, QStringLiteral("Text"));
         QCOMPARE(morning.children.at(0).title, QStringLiteral("The log"));
-        QCOMPARE(binder->roots.at(1).children.at(1).extension, QStringLiteral("png"));
+        QCOMPARE(binder.roots.at(1).children.at(1).extension, QStringLiteral("png"));
     }
 
     void readsTheLabelsAndStatuses()
     {
-        const std::optional<Scrivener::Binder> binder = Scrivener::readBinder(fixture);
-        QVERIFY(binder);
-        QCOMPARE(binder->labels.value(1).name, QStringLiteral("Plot"));
-        QVERIFY(qAbs(binder->labels.value(2).red - 0.952941) < 1e-6);
-        QVERIFY(binder->labels.value(-1).red < 0);
-        QCOMPARE(binder->statuses.value(3), QStringLiteral("Revised Draft"));
-        QCOMPARE(binder->statuses.size(), 6);
+        const std::optional<Scrivener::Binder> read = Scrivener::readBinder(fixture);
+        QVERIFY(read);
+        const Scrivener::Binder binder = read.value_or(Scrivener::Binder());
+        QCOMPARE(binder.labels.value(1).name, QStringLiteral("Plot"));
+        QVERIFY(qAbs(binder.labels.value(2).red - 0.952941) < 1e-6);
+        QVERIFY(binder.labels.value(-1).red < 0);
+        QCOMPARE(binder.statuses.value(3), QStringLiteral("Revised Draft"));
+        QCOMPARE(binder.statuses.size(), 6);
     }
 
     void unknownTypesStay()
@@ -63,9 +65,10 @@ private slots:
             "</Children></BinderItem></Binder><Future><Thing ID=\"1\"/></Future>"
             "</ScrivenerProject>");
         file.close();
-        const std::optional<Scrivener::Binder> binder = Scrivener::readBinder(dir.path());
-        QVERIFY(binder);
-        QCOMPARE(binder->roots.at(0).children.at(0).type, QStringLiteral("WebArchive"));
+        const std::optional<Scrivener::Binder> read = Scrivener::readBinder(dir.path());
+        QVERIFY(read);
+        QCOMPARE(read.value_or(Scrivener::Binder()).roots.at(0).children.at(0).type,
+                 QStringLiteral("WebArchive"));
     }
 
     void importBuildsAProjectThatLoads()

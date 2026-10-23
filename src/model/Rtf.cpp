@@ -23,6 +23,17 @@ struct State
     int unicodeSkip = 1;
 };
 
+// RTF control words are ASCII letters and numbers, whatever the locale.
+bool isLetter(char c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+bool isDigit(char c)
+{
+    return c >= '0' && c <= '9';
+}
+
 // The groups that hold no text of the document.
 bool isDestination(const QByteArray &word)
 {
@@ -137,7 +148,7 @@ QString toMarkdown(const QByteArray &rtf)
         if (at + 1 >= size)
             break;
         const char next = rtf.at(at + 1);
-        if (!std::isalpha(static_cast<unsigned char>(next))) {
+        if (!isLetter(next)) {
             ++at;
             if (next == '\'' && at + 2 < size) {
                 const QByteArray hex = rtf.mid(at + 1, 2);
@@ -161,13 +172,13 @@ QString toMarkdown(const QByteArray &rtf)
         }
         // A control word: \ letters, an optional number, and an optional space.
         qsizetype end = at + 1;
-        while (end < size && std::isalpha(static_cast<unsigned char>(rtf.at(end))))
+        while (end < size && isLetter(rtf.at(end)))
             ++end;
         const QByteArray word = rtf.mid(at + 1, end - at - 1);
         qsizetype digits = end;
         if (digits < size && rtf.at(digits) == '-')
             ++digits;
-        while (digits < size && std::isdigit(static_cast<unsigned char>(rtf.at(digits))))
+        while (digits < size && isDigit(rtf.at(digits)))
             ++digits;
         const bool hasNumber = digits > end && !(digits == end + 1 && rtf.at(end) == '-');
         const int number = hasNumber ? rtf.mid(end, digits - end).toInt() : 1;
