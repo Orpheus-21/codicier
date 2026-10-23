@@ -939,6 +939,7 @@ Item {
                     view.returnFocus();
                 }
                 onRestored: message => view.versionsMessage = message
+                onTurnOnRequested: view.turnOnVersions()
             }
 
             Binder {

@@ -17,6 +17,8 @@ Item {
     signal closeRequested
     // A restore of the project ended: the message for the status bar.
     signal restored(message: string)
+    // The author asks to turn versions on from the empty panel.
+    signal turnOnRequested
 
     property var entries: []
 
@@ -53,18 +55,35 @@ Item {
         color: Theme.color.inkMuted
     }
 
-    Text {
+    Column {
         visible: panel.entries.length === 0
         anchors.top: heading.bottom
         anchors.topMargin: Theme.space.l
         width: parent.width
-        horizontalAlignment: Text.AlignHCenter
-        wrapMode: Text.Wrap
-        text: panel.session.versionsOn ? "No version is saved yet."
-                                       : "Versions are off. Turn them on in the menu of the project."
-        font.family: Theme.type.ui
-        font.pixelSize: Theme.type.body
-        color: Theme.color.inkMuted
+        spacing: Theme.space.m
+
+        Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.Wrap
+            text: panel.session.versionsOn ? "No version is saved yet."
+                                           : "Versions are off. A version keeps the whole project as it is now, so you can go back to it."
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.body
+            color: Theme.color.inkMuted
+        }
+
+        Button {
+            objectName: "turnOnVersions"
+            visible: !panel.session.versionsOn
+            anchors.horizontalCenter: parent.horizontalCenter
+            kind: "primary"
+            text: "Turn on versions"
+            onClicked: {
+                panel.turnOnRequested();
+                panel.refresh();
+            }
+        }
     }
 
     ListView {

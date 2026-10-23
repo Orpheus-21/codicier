@@ -764,6 +764,20 @@ TestCase {
         compare(text.text.slice(0, 10), "The letter");
     }
 
+    function test_versionsPanelTurnsVersionsOn() {
+        const view = makeView();
+        verify(!view.session.versionsOn);
+        view.commands.find(command => command.id === "versions.list").run();
+        const panel = findChild(view, "versionsPanel") as Item;
+        tryVerify(() => panel.visible);
+        const button = findChild(panel, "turnOnVersions") as Item;
+        verify(button.visible);
+        mouseClick(button);
+        tryVerify(() => view.session.versionsOn, 5000);
+        verify(!button.visible);
+        compare(view.session.versions("").length, 1);
+    }
+
     function test_turnOnVersions() {
         const view = makeView();
         verify(!view.session.versionsOn);
