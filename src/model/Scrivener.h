@@ -46,6 +46,8 @@ struct Binder
     QHash<int, Label> labels;
     QHash<int, QString> statuses;
     QString author;
+    // The collections of the project, without the binder itself.
+    int collections = 0;
 };
 
 // Reads the binder of the .scriv folder. Returns nothing and sets error

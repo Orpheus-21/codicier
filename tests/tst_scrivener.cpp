@@ -92,11 +92,12 @@ private slots:
         QCOMPARE(tree,
                  (QStringList { "part:Part One", "chapter:Dusk", "scene:The stairs",
                                 "scene:A cut scene", "chapter:Morning", "scene:Morning",
-                                "scene:The log", "folder:Research", "note:Lighthouse facts",
-                                "file:Old map", "folder:Characters", "note:Elin" }));
+                                "scene:The log", "note:Imported from Scrivener", "folder:Research",
+                                "note:Lighthouse facts", "file:Old map", "folder:Characters",
+                                "note:Elin" }));
         QCOMPARE(project.items.at(0).section, QStringLiteral("manuscript"));
-        QCOMPARE(project.items.at(7).section, QStringLiteral("notes"));
-        QCOMPARE(project.items.at(9).section, QStringLiteral("research"));
+        QCOMPARE(project.items.at(8).section, QStringLiteral("notes"));
+        QCOMPARE(project.items.at(10).section, QStringLiteral("research"));
 
         const ProjectItem &stairs = project.items.at(2);
         QFile text(QDir(target).filePath(stairs.file));
@@ -115,9 +116,20 @@ private slots:
         QVERIFY(tags != nullptr);
         QCOMPARE((*tags)[0].value_or(std::string()), std::string("label: Subplot"));
         QCOMPARE((*tags)[1].value_or(std::string()), std::string("status: Revised Draft"));
-        QVERIFY(QFileInfo(QDir(target).filePath(project.items.at(9).file)).size() > 0);
-        QVERIFY(project.items.at(9).file.endsWith(".png"));
+        QVERIFY(QFileInfo(QDir(target).filePath(project.items.at(10).file)).size() > 0);
+        QVERIFY(project.items.at(10).file.endsWith(".png"));
         QCOMPARE(skipped.trash, 1);
+
+        // The report lists what stayed out.
+        QFile report(QDir(target).filePath(project.items.at(7).file));
+        QVERIFY(report.open(QIODevice::ReadOnly));
+        const QString note = QString::fromUtf8(report.readAll());
+        QVERIFY2(note.contains("from Lighthouse.scriv"), qPrintable(note));
+        QVERIFY(note.contains("- 1 item in the Trash\n"));
+        QVERIFY(note.contains("- 1 snapshot\n"));
+        QVERIFY(note.contains("- 1 text with linked comments or footnotes\n"));
+        QVERIFY(note.contains("- 0 collections\n"));
+        QVERIFY(note.contains("custom metadata"));
     }
 
     void importLeavesTheScrivFolderAlone()

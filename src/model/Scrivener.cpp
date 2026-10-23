@@ -110,6 +110,12 @@ std::optional<Binder> readBinder(const QString &folder, QString *error)
                 else
                     xml.skipCurrentElement();
             }
+        } else if (name == QLatin1String("Collections")) {
+            while (xml.readNextStartElement()) {
+                if (xml.attributes().value(QLatin1String("Type")) != QLatin1String("Binder"))
+                    ++binder.collections;
+                xml.skipCurrentElement();
+            }
         } else if (name == QLatin1String("LabelSettings")
                    || name == QLatin1String("StatusSettings")) {
             readList(xml, binder, name == QLatin1String("LabelSettings"));
@@ -201,6 +207,41 @@ public:
             noteItem(item, at);
     }
 
+    // Adds the note "Imported from Scrivener" at the top of the notes.
+    void report()
+    {
+        Scrivener::Item note;
+        note.title = QStringLiteral("Imported from Scrivener");
+        note.uuid = QStringLiteral("-");
+        reportIndex = add(QStringLiteral("note"), note, -1, QStringLiteral("notes"));
+    }
+
+    // Writes the text of the report: what the import left out, with counts.
+    void writeReport(const QString &scrivName, int collections)
+    {
+        const auto line = [](int count, const char *one, const char *many) {
+            return QStringLiteral("- %1 %2\n")
+                .arg(count)
+                .arg(QString::fromLatin1(count == 1 ? one : many));
+        };
+        const QString text
+            = QStringLiteral("Codicier made this project from %1 on %2. The Scrivener project did "
+                             "not change.\n\nThese parts did not come over:\n\n")
+                  .arg(scrivName, QDate::currentDate().toString(Qt::ISODate))
+            + line(skipped.trash, "item in the Trash", "items in the Trash")
+            + line(skipped.snapshots, "snapshot", "snapshots")
+            + line(skipped.comments, "text with linked comments or footnotes",
+                   "texts with linked comments or footnotes")
+            + line(skipped.media, "media file that was missing or in the Draft",
+                   "media files that were missing or in the Draft")
+            + line(collections, "collection", "collections")
+            + QStringLiteral("- the custom metadata, the compile settings, and the project "
+                             "targets\n\nInline annotations stay in the text as plain words. "
+                             "The names of the labels and the statuses are in the tags of each "
+                             "item.\n");
+        giveFile(reportIndex, QStringLiteral("notes/"), text);
+    }
+
     void trash(const Scrivener::Item &item)
     {
         for (const Scrivener::Item &child : item.children) {
@@ -216,6 +257,7 @@ private:
     Scrivener::Skipped &skipped;
     QSet<QString> ids;
     QSet<QString> files;
+    int reportIndex = -1;
 
     QString folderOf(const Scrivener::Item &item) const { return QDir(data).filePath(item.uuid); }
 
@@ -399,12 +441,16 @@ QList<LoadError> importProject(const QString &scriv, const QString &target, cons
         if (root.type == QLatin1String("DraftFolder"))
             importer.manuscript(root);
     }
+    // The report of the import comes first in the notes; its text follows
+    // when the counts are known.
+    importer.report();
     for (const Item &root : binder->roots) {
         if (root.type == QLatin1String("TrashFolder"))
             importer.trash(root);
         else if (root.type != QLatin1String("DraftFolder"))
             importer.notes(root);
     }
+    importer.writeReport(QFileInfo(scriv).fileName(), binder->collections);
     for (const auto &[path, bytes] : std::as_const(importer.texts)) {
         QSaveFile file(dir.filePath(path));
         if (!dir.mkpath(path.section(u'/', 0, 0)) || !file.open(QIODevice::WriteOnly)
