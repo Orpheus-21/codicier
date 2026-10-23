@@ -120,30 +120,17 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Shift+N | Make a new chapter. |
 | Ctrl+Alt+N | Make a new part. |
 | Ctrl+Alt+M | Make a new note. |
-| Ctrl+Alt+P | Make a new page. |
 | F2 | Rename the item. |
 | Ctrl+K | Split the scene at the cursor. |
 | Ctrl+Shift+J | Merge the scene with the next scene. |
 | Ctrl+Shift+Del | Move the item to the trash. |
 | Ctrl+Shift+S | Take a snapshot of the open text. |
-| Ctrl+Shift+E | Open the codex. |
+| Ctrl+Shift+C | Open the codex. |
+| Ctrl+, | Open the settings. |
 | Ctrl+Shift+K | Show or hide the corkboard. |
 | Ctrl+Shift+O | Show or hide the outliner. |
-| Ctrl+Alt+B | Show or hide the beat board. |
-| Ctrl+Alt+G | Show or hide the plot grid. |
-| Ctrl+Alt+T | Show or hide the timeline. |
-| Ctrl+Alt+C | Edit the calendar of the story. |
-| Ctrl+Alt+R | Show or hide the relationship graph. |
-| Ctrl+Alt+F | Show or hide the family tree. |
-| Ctrl+Alt+I | Show or hide the insights. |
-| Ctrl+Alt+D | Draft passes. |
-| Ctrl+Alt+L | Show or hide the revision checklist. |
 | Ctrl+Alt+K | Comment on the selected words. |
 | Ctrl+Alt+O | Show the open comments. |
-| Ctrl+Alt+E | Show or hide the argument map. |
-| Ctrl+Alt+J | Edit the sources. |
-| Ctrl+Alt+Q | Show the quote bank. |
-| Ctrl+Alt+U | Track the submissions. |
 | Ctrl+Shift+G | Open goals and progress. |
 | Ctrl+Shift+T | Start or stop a sprint. |
 | Ctrl+Shift+F | Search the project. |
@@ -156,6 +143,8 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+E | Export the manuscript. |
 | Ctrl+W | Close the project and go back to the workspace. |
 | F1 | Show every command and its key. |
+
+The views and dialogs that you open less often, such as the timeline, the insights, the plot grid, and the sources, have no key. Run them from the command palette (Ctrl+Shift+P), or give them a key in the key map. The default keys leave alone the keys of input methods such as fcitx5 and IBus.
 
 Tab types a tab character on the page. Use F6 to move the keyboard focus to the page and away from the page.
 
@@ -171,7 +160,7 @@ The inspector shows the reading time of the open item, and the insights show the
 
 In the binder, Ctrl+click adds an item to the selection, and Shift+click selects the items from the open item to the clicked one. The binder menu then sets the status, adds a tag, or moves to the trash on all selected items, and a drag moves all of them. The binder menu also gives an item a colour label, which the binder, the outliner, and the cards show, and duplicates an item with everything below it.
 
-Ctrl+Alt+A makes names for characters: real names, or names invented in the style of a culture, for 14 cultures. Click a name to add it to the codex as a character. The name lists come from Wikidata, which is in the public domain (CC0).
+"Make names for characters" in the command palette makes names: real names, or names invented in the style of a culture, for 14 cultures. Click a name to add it to the codex as a character. The name lists come from Wikidata, which is in the public domain (CC0).
 
 On the page, the names and aliases of the codex have a quiet underline. A pause over a name shows the start of its entry, and Ctrl+click opens it. The corkboard can colour each card by its point of view character, and the inspector of a scene has optional fields for its goal, conflict, and outcome.
 
@@ -231,7 +220,7 @@ The buttons at the top right of the page, and the keys in the table above, chang
 - Family tree: the people with a parent link, one row for each generation.
 - Insights: charts of the manuscript. They show the words of each chapter and scene, the share of each POV and of dialogue in each chapter, the 30 most used words without common English words, and how often each character of the codex is named in each chapter.
 
-Give a scene or an entity a date in its inspector, as year-month-day, such as `1847-03-04`. To use your own months, press Ctrl+Alt+C and write one month on each line with its number of days, such as `Frostmonth 40`.
+Give a scene or an entity a date in its inspector, as year-month-day, such as `1847-03-04`. To use your own months, choose "Edit the calendar of the story" in the command palette and write one month on each line with its number of days, such as `Frostmonth 40`.
 
 ### Goals and progress
 
@@ -239,7 +228,7 @@ Press Ctrl+Shift+G to set a word target for one session, and a word goal and a d
 
 ### The codex
 
-The codex holds the entities of the story: characters, places, items, factions, lore, and terms. Each entity has a page for its description, like a scene. Press Ctrl+Shift+E to open the codex panel. The panel groups the entities by type and has a filter field. Use its + button to add an entity.
+The codex holds the entities of the story: characters, places, items, factions, lore, and terms. Each entity has a page for its description, like a scene. Press Ctrl+Shift+C to open the codex panel. The panel groups the entities by type and has a filter field. Use its + button to add an entity.
 
 The inspector of an entity shows these parts:
 
@@ -257,10 +246,10 @@ To link to an entity, type `[[` on the page. A list of entities opens under the 
 
 ### Versions
 
-A project can keep versions of all its files. Choose "Turn on versions" in the project menu, or press Ctrl+Alt+V. The app makes a git repository in the project folder, or uses the repository that already holds the folder, and saves a first version. You do not need to know git: the app runs it for you, and never uses the network.
+A project can keep versions of all its files. Choose "Turn on versions" in the project menu or the command palette. The app makes a git repository in the project folder, or uses the repository that already holds the folder, and saves a first version. You do not need to know git: the app runs it for you, and never uses the network.
 
 - Press Ctrl+Alt+S to save a version with a short message. By default, the app also saves a version when a project with changes closes.
-- Press Ctrl+Alt+H to see the versions of the project. The inspector of a text lists the versions of that text.
+- Choose "Show the versions" in the command palette to see the versions of the project. The inspector of a text lists the versions of that text.
 - Click "Compare" next to a version in the inspector to see the changes since that version, word by word.
 - Restore a text from the compare view, or the whole project from the list of versions. Before a restore, the app saves a version of the state before, so you can undo a restore.
 
@@ -272,23 +261,23 @@ The settings can also mark repeated words, filter words such as "just" and "seem
 
 ### Revision
 
-A draft pass is one round of revision. Press Ctrl+Alt+D, name the pass, and start it. The app keeps a snapshot of each text at the start of each pass. With "Tint the passes" on, the page gives the words of each pass a soft background in the color of that pass.
+A draft pass is one round of revision. Choose "Draft passes" in the command palette, name the pass, and start it. The app keeps a snapshot of each text at the start of each pass. With "Tint the passes" on, the page gives the words of each pass a soft background in the color of that pass.
 
-Press Ctrl+Alt+L for the revision checklist. Choose a pass, add checks such as "Cut filter words", and tick each check for each chapter.
+Choose "Show or hide the revision checklist" in the command palette. Choose a pass, add checks such as "Cut filter words", and tick each check for each chapter.
 
 Select words on the page and press Ctrl+Alt+K to add a comment. A dotted line marks the commented words. Press Ctrl+Alt+O to see every open comment. Click a comment to open its text with the words selected, and click "Resolve" when it is done. The comments are in `binder.toml`, so the Markdown files stay prose only.
 
 ### Essays and research
 
-A new essay starts with the parts of an argument: a thesis, two claims, the counter-arguments, a conclusion, and an evidence note. In an essay, an essay collection, or a non-fiction project, the inspector sets the part of the argument of each text. For an evidence item, the inspector also chooses the claims that it supports. Press Ctrl+Alt+E for the argument map. It shows the thesis, each claim with its evidence, the counter-arguments, and the conclusion, and it marks each claim with no evidence.
+A new essay starts with the parts of an argument: a thesis, two claims, the counter-arguments, a conclusion, and an evidence note. In an essay, an essay collection, or a non-fiction project, the inspector sets the part of the argument of each text. For an evidence item, the inspector also chooses the claims that it supports. Choose "Show or hide the argument map" in the command palette. It shows the thesis, each claim with its evidence, the counter-arguments, and the conclusion, and it marks each claim with no evidence.
 
-Press Ctrl+Alt+J to add, change, or remove the sources of the project. The app gives each source a key, such as `kurlansky2002`. Type `[@` on the page to choose a source, and press Enter to insert its key as `[@kurlansky2002]`. Type `; @` inside the brackets to add a second source. A pause on a key shows the source.
+Choose "Edit the sources" in the command palette to add, change, or remove the sources of the project. The app gives each source a key, such as `kurlansky2002`. Type `[@` on the page to choose a source, and press Enter to insert its key as `[@kurlansky2002]`. Type `; @` inside the brackets to add a second source. A pause on a key shows the source.
 
-Press Ctrl+Alt+Q for the quote bank. Add the words of a quote, choose its source, and type its page. Drag a quote onto the page, or press Return or click "Insert", to put it at the cursor with its citation, such as `“…” [@kurlansky2002, p. 12]`.
+Choose "Show the quote bank" in the command palette. Add the words of a quote, choose its source, and type its page. Drag a quote onto the page, or press Return or click "Insert", to put it at the cursor with its citation, such as `“…” [@kurlansky2002, p. 12]`.
 
 To add a research file, click the add button of the binder and choose "Add a research file". The app copies the file into `research/`. An image shows fit to the page, and a PDF shows its pages. Another kind of file opens in its own app. The inspector of a research file links it to texts, and the inspector of a text lists its research files.
 
-Press Ctrl+Alt+U to record a submission: the piece, where it went, and the date. The list shows the open submissions first. Choose Accepted, Rejected, or Withdrawn to close one, or click "All" to see every submission.
+Choose "Track the submissions" in the command palette to record a submission: the piece, where it went, and the date. The list shows the open submissions first. Choose Accepted, Rejected, or Withdrawn to close one, or click "All" to see every submission.
 
 ### Print
 
@@ -344,7 +333,7 @@ Press Ctrl+H to replace. Type the old words, press Tab, and type the new words. 
 
 ## Configuration
 
-Click the settings button on the workspace screen to change these settings. Each change applies at once.
+Press Ctrl+, or click the settings button on the workspace screen to change these settings. Each change applies at once.
 
 | Setting | Default | What it does |
 |---|---|---|
