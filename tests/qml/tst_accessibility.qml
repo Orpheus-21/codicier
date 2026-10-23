@@ -240,6 +240,29 @@ TestCase {
         compare("Open " + view.session.fields(view.session.currentId).title, name);
     }
 
+    function test_homeTabStartsWithTheTopBar() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        const folder = temp + "/codicier-home-" + Date.now();
+        workspace.folder = folder;
+        compare(workspace.createSample(), "");
+        const win = Qt.createComponent("Codicier", "Main").createObject(null, { visible: true, width: 1200, height: 800 });
+        Workspaces.open(folder);
+        waitForRendering(win.contentItem);
+        const names = [];
+        for (let i = 0; i < 5; ++i) {
+            keyClick(Qt.Key_Tab);
+            const item = win.activeFocusItem;
+            names.push(item ? (item.Accessible.name || item.text || "") : "");
+        }
+        compare(names.slice(0, 4), [Workspaces.currentName, "Import a project", "New project", "Settings"]);
+        // The keys of the later tests go to the test window again.
+        win.close();
+        win.destroy();
+        wait(50);
+        testCase.Window.window.requestActivate();
+        tryVerify(() => testCase.Window.window.active);
+    }
+
     function test_f6MovesThroughThePanes() {
         const view = makeView();
         const model = view.session.binder;

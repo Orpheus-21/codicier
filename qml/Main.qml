@@ -176,16 +176,6 @@ Window {
                 }
             }
 
-            WorkspaceHome {
-                id: workspaceHome
-
-                anchors.top: topBar.bottom
-                anchors.bottom: parent.bottom
-                width: parent.width
-                folder: Workspaces.current
-                onProjectActivated: folder => window.projectFolder = folder
-            }
-
             Row {
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.space.l
@@ -222,6 +212,16 @@ Window {
                     label: "Settings"
                     onClicked: settingsDialog.open()
                 }
+            }
+
+            WorkspaceHome {
+                id: workspaceHome
+
+                anchors.top: topBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                folder: Workspaces.current
+                onProjectActivated: folder => window.projectFolder = folder
             }
 
             Text {
