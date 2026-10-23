@@ -1,5 +1,7 @@
+#include "ProjectStore.h"
 #include "Scrivener.h"
 
+#include <QDirIterator>
 #include <QFile>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -64,6 +66,76 @@ private slots:
         const std::optional<Scrivener::Binder> binder = Scrivener::readBinder(dir.path());
         QVERIFY(binder);
         QCOMPARE(binder->roots.at(0).children.at(0).type, QStringLiteral("WebArchive"));
+    }
+
+    void importBuildsAProjectThatLoads()
+    {
+        QTemporaryDir dir;
+        const QString target = dir.filePath("lighthouse");
+        Scrivener::Skipped skipped;
+        const QList<LoadError> errors
+            = Scrivener::importProject(fixture, target, "Lighthouse", &skipped);
+        QVERIFY2(errors.isEmpty(),
+                 qPrintable(errors.isEmpty() ? QString() : errors.first().text()));
+        const LoadResult result = ProjectStore::load(target);
+        QVERIFY2(result.ok(), qPrintable(result.ok() ? QString() : result.errors.first().text()));
+        const Project &project = result.project;
+        QCOMPARE(project.title, QStringLiteral("Lighthouse"));
+        QCOMPARE(project.data["author"].value_or(std::string()), std::string("A. Writer"));
+
+        QStringList tree;
+        for (const ProjectItem &item : project.items)
+            tree.append(item.kind + ":" + item.title);
+        QCOMPARE(tree,
+                 (QStringList { "part:Part One", "chapter:Dusk", "scene:The stairs",
+                                "scene:A cut scene", "chapter:Morning", "scene:Morning",
+                                "scene:The log", "folder:Research", "note:Lighthouse facts",
+                                "file:Old map", "folder:Characters", "note:Elin" }));
+        QCOMPARE(project.items.at(0).section, QStringLiteral("manuscript"));
+        QCOMPARE(project.items.at(7).section, QStringLiteral("notes"));
+        QCOMPARE(project.items.at(9).section, QStringLiteral("research"));
+
+        const ProjectItem &stairs = project.items.at(2);
+        QFile text(QDir(target).filePath(stairs.file));
+        QVERIFY(text.open(QIODevice::ReadOnly));
+        QVERIFY(text.readAll().contains("*Fair. Wind north-west.*"));
+        QCOMPARE(stairs.data["synopsis"].value_or(std::string()),
+                 std::string("Elin climbs the stairs."));
+        QCOMPARE(stairs.data["notes"].value_or(std::string()),
+                 std::string("Check the step count."));
+        QCOMPARE(stairs.data["label"].value_or(std::string()), std::string("orange"));
+        QCOMPARE(stairs.data["status"].value_or(std::string()), std::string("revised"));
+        QCOMPARE(project.items.at(1).data["label"].value_or(std::string()), std::string("blue"));
+        QVERIFY(!project.items.at(3).data["include"].value_or(true));
+        QCOMPARE(project.items.at(6).data["status"].value_or(std::string()), std::string("final"));
+        const toml::array *tags = stairs.data["tags"].as_array();
+        QVERIFY(tags != nullptr);
+        QCOMPARE((*tags)[0].value_or(std::string()), std::string("label: Subplot"));
+        QCOMPARE((*tags)[1].value_or(std::string()), std::string("status: Revised Draft"));
+        QVERIFY(QFileInfo(QDir(target).filePath(project.items.at(9).file)).size() > 0);
+        QVERIFY(project.items.at(9).file.endsWith(".png"));
+        QCOMPARE(skipped.trash, 1);
+    }
+
+    void importLeavesTheScrivFolderAlone()
+    {
+        QTemporaryDir dir;
+        const auto listing = [this] {
+            QStringList all;
+            QDirIterator it(fixture, QDir::AllEntries | QDir::NoDotAndDotDot,
+                            QDirIterator::Subdirectories);
+            while (it.hasNext()) {
+                it.next();
+                all.append(it.filePath() + " " + QString::number(it.fileInfo().size()));
+            }
+            all.sort();
+            return all;
+        };
+        const QStringList before = listing();
+        QVERIFY(Scrivener::importProject(fixture, dir.filePath("p"), "P").isEmpty());
+        QCOMPARE(listing(), before);
+        // A folder that is not empty is no place for an import.
+        QVERIFY(!Scrivener::importProject(fixture, dir.filePath("p"), "P").isEmpty());
     }
 
     void brokenOrMissingBinderIsAnError()

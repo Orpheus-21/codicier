@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ProjectStore.h"
+
 #include <QHash>
 #include <QList>
 #include <QString>
@@ -49,5 +51,24 @@ struct Binder
 // Reads the binder of the .scriv folder. Returns nothing and sets error
 // when the folder has no .scrivx or the XML is broken.
 std::optional<Binder> readBinder(const QString &folder, QString *error = nullptr);
+
+// What the import left out, by kind, for the note of the import.
+struct Skipped
+{
+    int trash = 0;
+    int snapshots = 0;
+    int comments = 0;
+    int media = 0;
+};
+
+// Makes a new Codicier project in the empty folder target from the .scriv
+// folder, with the title. The Draft becomes the manuscript: an item with
+// children becomes a part when its children have children, else a chapter;
+// a text becomes a scene. A text with children and its own text gets that
+// text as its first scene. The Research folder and the other top folders
+// go to the notes, with media files in the research section. The Trash
+// stays out. Returns the errors; skipped counts what stayed out.
+QList<LoadError> importProject(const QString &scriv, const QString &target, const QString &title,
+                               Skipped *skipped = nullptr);
 
 } // namespace Scrivener
