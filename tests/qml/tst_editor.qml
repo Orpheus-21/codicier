@@ -1162,6 +1162,32 @@ TestCase {
         keyClick(Qt.Key_Escape);
     }
 
+    function test_wholeBookOnTheBoardAndOutliner() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.createSample(), "");
+        let view = createTemporaryObject(viewComponent, testCase, { folder: workspace.get(0).folder }) as ProjectView;
+        const folder = view.folder;
+        view.session.currentId = view.session.items().find(item => item.kind === "scene").id;
+        view.toggleViewMode("board");
+        waitForRendering(view);
+        const board = findChild(view, "corkboardView") as Corkboard;
+        const chapterCards = board.cards.length;
+        mouseClick(findChild(board, "scopeBook") as Item);
+        verify(view.wholeBook);
+        tryVerify(() => board.cards.length > chapterCards);
+        const scenes = view.session.items().filter(item => item.kind === "scene").length;
+        compare(board.cards.length, scenes);
+        view.toggleViewMode("outline");
+        const outliner = findChild(view, "outlinerView") as Outliner;
+        tryCompare(outliner.rows, "length", scenes);
+        // The choice stays with the project.
+        view.destroy();
+        wait(0);
+        view = createTemporaryObject(viewComponent, testCase, { folder: folder }) as ProjectView;
+        verify(view.wholeBook);
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};

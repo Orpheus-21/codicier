@@ -13,6 +13,9 @@ Item {
     Accessible.name: "Outliner"
 
     required property ProjectSession session
+    // The outliner shows every text of the book, not the open chapter.
+    property bool wholeBook: false
+    signal scopeChosen(bool whole)
     required property string itemId
 
     // A click on a row asks to open the text.
@@ -89,11 +92,21 @@ Item {
         color: Theme.color.paper
     }
 
+    ScopeChoice {
+        id: scopeRow
+
+        x: Theme.space.xl
+        y: Theme.space.s
+        wholeBook: outliner.wholeBook
+        onChosen: whole => outliner.scopeChosen(whole)
+    }
+
     Row {
         id: header
 
+        anchors.top: scopeRow.bottom
+        anchors.topMargin: Theme.space.s
         x: Theme.space.xl
-        y: Theme.space.l
 
         Repeater {
             model: outliner.columns

@@ -2896,10 +2896,14 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
 QVariantList ProjectSession::childrenOf(const QString &id) const
 {
     QVariantList list;
-    const int index = indexOf(id);
-    if (index < 0)
-        return list;
-    for (const int child : project.items.at(index).children) {
+    QList<int> children;
+    if (id == QLatin1String("@manuscript")) {
+        for (const ChapterGroup &group : chapterGroups())
+            children.append(group.scenes);
+    } else if (const int index = indexOf(id); index >= 0) {
+        children = project.items.at(index).children;
+    }
+    for (const int child : std::as_const(children)) {
         const ProjectItem &item = project.items.at(child);
         const QString status = QString::fromStdString(item.data["status"].value_or(std::string()));
         list.append(QVariantMap {
@@ -2920,9 +2924,16 @@ QVariantList ProjectSession::childrenOf(const QString &id) const
 QVariantList ProjectSession::outlineOf(const QString &id) const
 {
     QVariantList list;
-    const int index = indexOf(id);
-    if (index < 0)
-        return list;
+    // The whole manuscript starts at each of its top items.
+    QList<int> starts;
+    if (id == QLatin1String("@manuscript")) {
+        for (const int root : project.roots) {
+            if (project.items.at(root).section == QLatin1String("manuscript"))
+                starts.append(root);
+        }
+    } else if (const int index = indexOf(id); index >= 0) {
+        starts.append(index);
+    }
     const auto text = [this](const ProjectItem &item, const char *key) {
         return QString::fromStdString(item.data[key].value_or(std::string()));
     };
@@ -2956,7 +2967,8 @@ QVariantList ProjectSession::outlineOf(const QString &id) const
         for (const int child : item.children)
             walk(child);
     };
-    walk(index);
+    for (const int start : std::as_const(starts))
+        walk(start);
     return list;
 }
 

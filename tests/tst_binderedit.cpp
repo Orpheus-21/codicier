@@ -1450,6 +1450,20 @@ private slots:
         QCOMPARE(after, scenes - 1);
     }
 
+    void wholeManuscriptForTheBoardAndOutliner()
+    {
+        int scenes = 0;
+        for (const QVariant &chapter : session->printChapters(QString()))
+            scenes += static_cast<int>(chapter.toMap().value("texts").toStringList().size());
+        // Every scene, also one left out of the print, is on the board.
+        QVERIFY(session->childrenOf("@manuscript").size() >= scenes);
+        for (const QVariant &card : session->childrenOf("@manuscript"))
+            QCOMPARE(card.toMap().value("kind").toString(), QStringLiteral("scene"));
+        QVERIFY(session->outlineOf("@manuscript").size()
+                >= session->childrenOf("@manuscript").size());
+        QVERIFY(session->childrenOf("no-such-id").isEmpty());
+    }
+
     void numbersFollowTheBinder()
     {
         QVERIFY(!session->numbered());

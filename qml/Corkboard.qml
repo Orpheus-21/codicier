@@ -12,6 +12,9 @@ Item {
     Accessible.name: "Corkboard"
 
     required property ProjectSession session
+    // The board shows every scene of the book, not the open chapter.
+    property bool wholeBook: false
+    signal scopeChosen(bool whole)
     required property string itemId
 
     // A click on a card asks to open the item.
@@ -206,11 +209,15 @@ Item {
     Flow {
         id: colourBar
 
-        visible: board.cards.length > 0
         x: Theme.space.xl
         y: Theme.space.l
         width: parent.width - 2 * Theme.space.xl
         spacing: Theme.space.s
+
+        ScopeChoice {
+            wholeBook: board.wholeBook
+            onChosen: whole => board.scopeChosen(whole)
+        }
 
         Choice {
             objectName: "gridBoard"

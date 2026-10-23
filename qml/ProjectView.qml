@@ -29,6 +29,10 @@ Item {
     // The author asks for the settings, which the window holds.
     signal settingsRequested
 
+    // The corkboard and the outliner show the whole book, not one chapter.
+    property bool wholeBook: false
+    onWholeBookChanged: stateTimer.restart()
+
     // The binder pane on the left and the inspector pane on the right.
     property bool binderOpen: true
     property bool inspectorOpen: false
@@ -44,6 +48,8 @@ Item {
             binderPane.T.SplitView.preferredWidth = state["binder-width"];
         if (state["inspector-width"] > 0)
             inspectorPane.T.SplitView.preferredWidth = state["inspector-width"];
+        if (typeof state["whole-book"] === "boolean")
+            wholeBook = state["whole-book"];
         if (state.item && session.fields(state.item).title !== undefined)
             session.currentId = state.item;
         else
@@ -66,7 +72,8 @@ Item {
             "binder": binderOpen,
             "binder-width": Math.round(binderPane.T.SplitView.preferredWidth),
             "inspector": inspectorOpen,
-            "inspector-width": Math.round(inspectorPane.T.SplitView.preferredWidth)
+            "inspector-width": Math.round(inspectorPane.T.SplitView.preferredWidth),
+            "whole-book": wholeBook
         });
     }
 
@@ -1022,7 +1029,9 @@ Item {
                 width: parent.width
                 z: 4
                 session: view.session
-                itemId: visible ? view.boardId : ""
+                itemId: visible ? (view.wholeBook ? "@manuscript" : view.boardId) : ""
+                wholeBook: view.wholeBook
+                onScopeChosen: whole => view.wholeBook = whole
                 onOpened: id => view.openText(id)
             }
 
@@ -1139,7 +1148,9 @@ Item {
                 width: parent.width
                 z: 4
                 session: view.session
-                itemId: visible ? view.boardId : ""
+                itemId: visible ? (view.wholeBook ? "@manuscript" : view.boardId) : ""
+                wholeBook: view.wholeBook
+                onScopeChosen: whole => view.wholeBook = whole
                 onOpened: id => view.openText(id)
             }
 
