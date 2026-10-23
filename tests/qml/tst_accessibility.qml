@@ -263,6 +263,39 @@ TestCase {
         tryVerify(() => testCase.Window.window.active);
     }
 
+    function test_longBackupPathStaysOnTheHomeScreen() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        const folder = temp + "/codicier-path-" + Date.now();
+        workspace.folder = folder;
+        compare(workspace.createSample(), "");
+        const keep = Settings.backupFolder;
+        Settings.backupFolder = temp + "/" + "a-very-long-folder-name-for-backups/".repeat(8);
+        // One backup, so the line names the folder.
+        const session = Qt.createQmlObject("import Codicier; ProjectSession {}", testCase);
+        session.folder = workspace.get(0).folder;
+        session.backupFolder = Settings.backupFolder;
+        verify(session.setField(session.items().find(item => item.kind === "scene").id, "synopsis", "Changed."));
+        verify(session.backup() !== "");
+        session.destroy();
+        wait(0);
+        const win = Qt.createComponent("Codicier", "Main").createObject(null, { visible: true, width: 900, height: 700 });
+        Workspaces.open(folder);
+        waitForRendering(win.contentItem);
+        tryVerify(() => (findChild(win.contentItem, "lastBackup") as Text)?.visible ?? false, 3000);
+        const line = findChild(win.contentItem, "lastBackup") as Text;
+        const fits = line.width <= line.parent.width + 1;
+        const shortened = line.truncated;
+        const width = line.width + " of " + line.parent.width;
+        Settings.backupFolder = keep;
+        verify(fits, "line " + width);
+        verify(shortened);
+        win.close();
+        win.destroy();
+        wait(50);
+        testCase.Window.window.requestActivate();
+        tryVerify(() => testCase.Window.window.active);
+    }
+
     function test_f6MovesThroughThePanes() {
         const view = makeView();
         const model = view.session.binder;

@@ -386,6 +386,9 @@ Item {
                     text: Settings.backupFolder === "" ? "Backups are off. Settings can turn them on."
                         : when !== "" ? "Last backup " + when + ", in " + Settings.backupFolder
                         : "No backup yet. One is made when the project closes."
+                    // A long folder path is shortened in the middle.
+                    width: parent.width
+                    elide: Text.ElideMiddle
                 }
             }
 
