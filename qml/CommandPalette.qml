@@ -8,6 +8,7 @@ import QtQuick.Templates as T
 T.Dialog {
     id: finder
 
+    objectName: "commandPalette"
     title: "Find a command or an item"
 
     required property ProjectSession session
@@ -35,8 +36,15 @@ T.Dialog {
         return 3;
     }
 
+    // The text as the author sees it: an input method shows the text it has
+    // not committed yet (the preedit) at the cursor, before the text field
+    // has it.
+    function typed(text: string, preedit: string, cursor: int): string {
+        return text.slice(0, cursor) + preedit + text.slice(cursor);
+    }
+
     function filter() {
-        const query = field.text.trim().toLowerCase();
+        const query = typed(field.text, field.preeditText, field.cursorPosition).trim().toLowerCase();
         let list = [];
         for (let i = 0; i < entries.length; ++i) {
             const r = query === "" ? 0 : rank(entries[i].name, query);
@@ -110,6 +118,7 @@ T.Dialog {
             iconName: "search"
             placeholderText: "Find a command or an item"
             onTextChanged: finder.filter()
+            onPreeditTextChanged: finder.filter()
             Keys.onDownPressed: finder.move(1)
             Keys.onUpPressed: finder.move(-1)
             Keys.onReturnPressed: finder.run(results.currentIndex)

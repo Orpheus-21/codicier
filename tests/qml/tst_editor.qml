@@ -1137,6 +1137,17 @@ TestCase {
         compare(asked, 2);
     }
 
+    function test_paletteReadsTheTextOfAnInputMethod() {
+        const view = makeView();
+        view.commands.find(command => command.id === "palette").run();
+        const palette = findChild(view, "commandPalette") as CommandPalette;
+        verify(palette);
+        compare(palette.typed("", "stor", 0), "stor");
+        compare(palette.typed("ab", "X", 1), "aXb");
+        compare(palette.typed("stor", "", 4), "stor");
+        keyClick(Qt.Key_Escape);
+    }
+
     function test_everyCommandHasAKey() {
         const view = makeView();
         let seen = {};
