@@ -5,6 +5,7 @@
 #include <QFileSystemWatcher>
 #include <QList>
 #include <QString>
+#include <QUrl>
 #include <QtQml/qqmlregistration.h>
 
 #include <cstdint>
@@ -71,6 +72,10 @@ public:
     Q_INVOKABLE QString create(const QString &title, const QString &kind, const QString &author);
     // Copies the sample project into this workspace. Returns an error text, or "".
     Q_INVOKABLE QString createSample();
+    // Makes a new project in the workspace from a Scrivener project folder
+    // (.scriv), named after it, and opens it. The .scriv folder stays as it
+    // is. Returns an error text, or "".
+    Q_INVOKABLE QString importScrivener(const QUrl &scriv);
     // The binder of a new project of the kind: title, kind, section, and
     // depth for each item, in binder order.
     Q_INVOKABLE static QVariantList templateOutline(const QString &kind);

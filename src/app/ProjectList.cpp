@@ -4,6 +4,7 @@
 #include "Index.h"
 #include "Naming.h"
 #include "ProjectStore.h"
+#include "Scrivener.h"
 #include "Templates.h"
 
 #include <QDir>
@@ -236,6 +237,36 @@ QString ProjectList::remove(const QString &projectFolder, const QString &backupF
         return QStringLiteral("Some files of the project could not be deleted.");
     }
     refresh();
+    return { };
+}
+
+QString ProjectList::importScrivener(const QUrl &scriv)
+{
+    if (workspace.isEmpty())
+        return QStringLiteral("Choose a workspace first.");
+    const QFileInfo source(scriv.isLocalFile() ? scriv.toLocalFile() : scriv.toString());
+    if (!source.isDir())
+        return QStringLiteral("Choose the folder of a Scrivener project, such as My Novel.scriv.");
+    // "My Novel.scriv" gives the title "My Novel".
+    QString title = source.fileName();
+    if (title.endsWith(QLatin1String(".scriv"), Qt::CaseInsensitive))
+        title.chop(6);
+    const QDir dir(workspace);
+    QSet<QString> taken;
+    for (const QString &entry : dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot))
+        taken.insert(entry + QStringLiteral(".md"));
+    QString folderName = Naming::fileNameFor(title, taken);
+    folderName.chop(3);
+    const QString target = dir.filePath(folderName);
+    const QList<LoadError> errors
+        = Scrivener::importProject(source.absoluteFilePath(), target, title);
+    if (!errors.isEmpty()) {
+        // The folder is new and holds only what the failed import wrote.
+        QDir(target).removeRecursively();
+        return errors.first().text();
+    }
+    refresh();
+    emit created(target);
     return { };
 }
 

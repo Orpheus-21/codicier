@@ -672,6 +672,22 @@ TestCase {
         keyClick(Qt.Key_Escape);
     }
 
+    function test_importAScrivenerProject() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        verify(workspace.importScrivener(Qt.resolvedUrl("../fixtures/tst_rtf_missing")).startsWith("Choose the folder"));
+        verify(workspace.importScrivener(Qt.resolvedUrl("../fixtures/research")).includes("not a Scrivener project"));
+        compare(workspace.importScrivener(Qt.resolvedUrl("../fixtures/scriv/Lighthouse.scriv")), "");
+        compare(workspace.count, 1);
+        compare(workspace.get(0).title, "Lighthouse");
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.get(0).folder }) as ProjectView;
+        compare(view.session.error, "");
+        verify(view.session.items().some(item => item.title === "The stairs" && item.kind === "scene"));
+        // A second import of the same project gets a folder of its own.
+        compare(workspace.importScrivener(Qt.resolvedUrl("../fixtures/scriv/Lighthouse.scriv")), "");
+        compare(workspace.count, 2);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

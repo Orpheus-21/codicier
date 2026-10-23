@@ -192,6 +192,14 @@ Window {
                 spacing: Theme.space.xs
 
                 Button {
+                    objectName: "importScrivener"
+                    iconName: "download"
+                    text: "Import"
+                    Accessible.name: "Import a Scrivener project"
+                    onClicked: workspaceHome.importScrivener()
+                }
+
+                Button {
                     iconName: "plus"
                     text: "New project"
                     onClicked: workspaceHome.openNewProject()

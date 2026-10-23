@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Dialogs
 import QtQuick.Templates as T
 
 // The workspace home: the project to continue, then all projects in rows
@@ -15,6 +16,23 @@ Item {
 
     // A click on a project. T28 opens it.
     signal projectActivated(string folder)
+
+    // Why the last import failed, or "".
+    property string importError: ""
+
+    // Asks for a Scrivener project and makes a new project from it. The new
+    // project opens at once, as a new project from a template does.
+    function importScrivener() {
+        importError = "";
+        scrivDialog.open();
+    }
+
+    FolderDialog {
+        id: scrivDialog
+
+        title: "Choose a Scrivener project (.scriv)"
+        onAccepted: home.importError = projectList.importScrivener(selectedFolder)
+    }
 
     ProjectList {
         id: projectList
@@ -235,6 +253,17 @@ Item {
             width: Math.min(880, parent.width - 2 * Theme.space.xl)
             spacing: Theme.space.xxxl
 
+            Text {
+                objectName: "importError"
+                visible: home.importError !== ""
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: "The import failed: " + home.importError
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.accent
+            }
+
             // The project with the newest edit.
             Column {
                 id: continueBlock
@@ -349,7 +378,7 @@ Item {
                 Muted {
                     width: parent.width
                     wrapMode: Text.Wrap
-                    text: "A project is a folder in this workspace. Make the first one from a template, or open a sample to look around."
+                    text: "A project is a folder in this workspace. Make the first one from a template, open a sample to look around, or bring in a project from Scrivener."
                 }
 
                 Row {
@@ -367,6 +396,12 @@ Item {
                         iconName: "book-open"
                         text: "Open a sample"
                         onClicked: sampleError.text = projectList.createSample()
+                    }
+
+                    Button {
+                        iconName: "download"
+                        text: "Import from Scrivener"
+                        onClicked: home.importScrivener()
                     }
                 }
 
