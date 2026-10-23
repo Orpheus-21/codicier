@@ -988,6 +988,17 @@ TestCase {
         verify(events[1].x > events[0].x);
         verify(events[1].x <= timelineView.nameWidth + timelineView.usable);
         compare(faults(timelineView), []);
+        // Each lane has a band, and the lanes alternate.
+        const bands = [];
+        const collect = item => {
+            if (item.objectName === "trackBand")
+                bands.push(item);
+            for (const child of item.children)
+                collect(child);
+        };
+        collect(tracks.contentItem);
+        compare(bands.length, 2);
+        verify(!Qt.colorEqual(bands[0].color, bands[1].color));
         mouseClick(events[1]);
         compare(view.session.currentId, scenes[0].id);
         compare(view.viewMode, "page");
@@ -1028,6 +1039,15 @@ TestCase {
                               || a.y + events[i].height <= b.y || b.y + events[j].height <= a.y;
                 verify(apart, events[i].Accessible.name + " covers " + events[j].Accessible.name);
             }
+        }
+        // Each card is inside the band of its own lane, and lanes alternate.
+        for (const event of events) {
+            let lane = event.parent;
+            while (lane && lane.objectName !== "timelineTrack")
+                lane = lane.parent;
+            verify(lane, "no lane for " + event.Accessible.name);
+            const at = event.mapToItem(lane, 0, 0);
+            verify(at.y >= 0 && at.y + event.height <= lane.height, event.Accessible.name + " leaves its lane");
         }
     }
 

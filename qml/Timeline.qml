@@ -156,6 +156,20 @@ Item {
                 width: flick.contentWidth
                 height: timeline.heights[index] ?? timeline.trackHeight
 
+                // A band for each lane, so a card plainly belongs to one.
+                Rectangle {
+                    objectName: "trackBand"
+                    anchors.fill: parent
+                    color: track.index % 2 === 1 ? Theme.color.surface : "transparent"
+
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        height: 1
+                        color: Theme.color.rule
+                    }
+                }
+
                 Rectangle {
                     y: timeline.rowHeight
                     x: timeline.nameWidth
