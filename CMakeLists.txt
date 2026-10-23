@@ -17,6 +17,9 @@ find_package(Qt6 6.12 QUIET COMPONENTS DBus)
 # Hunspell checks the spelling, offline, with the dictionaries of the system.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(HUNSPELL REQUIRED IMPORTED_TARGET hunspell)
+# poppler-qt6 draws the PDF files of the research section. A build without it
+# opens a PDF in the app of the system.
+pkg_check_modules(POPPLER IMPORTED_TARGET poppler-qt6)
 # toml++ reads the project files (docs/format.md).
 find_package(tomlplusplus 3 REQUIRED)
 qt_standard_project_setup(REQUIRES 6.12)
@@ -48,12 +51,16 @@ target_link_libraries(codicier_ui PUBLIC codicier_core Qt6::Gui Qt6::Quick PRIVA
 if(TARGET Qt6::DBus)
     target_link_libraries(codicier_ui PRIVATE Qt6::DBus)
 endif()
+if(POPPLER_FOUND)
+    target_link_libraries(codicier_ui PRIVATE PkgConfig::POPPLER)
+    target_compile_definitions(codicier_ui PRIVATE CODICIER_PDF)
+endif()
 target_compile_options(codicier_ui PRIVATE -Wall -Wextra)
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(codicier_ui
     URI Codicier
     QML_FILES qml/Main.qml qml/Theme.qml qml/Icon.qml qml/IconPaths.js qml/Reading.js
-        qml/FocusRing.qml qml/Activator.qml qml/ArgumentMap.qml qml/SourcesDialog.qml qml/QuotesPanel.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
+        qml/FocusRing.qml qml/Activator.qml qml/ArgumentMap.qml qml/SourcesDialog.qml qml/QuotesPanel.qml qml/ResearchView.qml qml/Button.qml qml/IconButton.qml qml/TextField.qml
         qml/ListItem.qml qml/Pane.qml qml/Splitter.qml qml/Menu.qml
         qml/WorkspaceHome.qml qml/NewProjectDialog.qml qml/ProjectView.qml
         qml/Binder.qml qml/BinderRow.qml qml/Editor.qml qml/TextArea.qml qml/Inspector.qml
@@ -70,6 +77,7 @@ qt_add_qml_module(codicier_ui
         src/app/Thesaurus.cpp src/app/Thesaurus.h
         src/app/NameGenerator.cpp src/app/NameGenerator.h
         src/app/Reminder.cpp src/app/Reminder.h
+        src/app/Pdf.cpp src/app/Pdf.h
     RESOURCES fonts/Literata.ttf fonts/Literata-Italic.ttf fonts/Inter.ttf
 )
 

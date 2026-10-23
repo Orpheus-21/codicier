@@ -1371,6 +1371,24 @@ private slots:
         QCOMPARE(map.value("loose").toList().size(), 1);
     }
 
+    void researchTakesACopyOfAnyFile()
+    {
+        const QUrl pdf = QUrl::fromLocalFile(QStringLiteral(FIXTURE_DIR "/research/salt.pdf"));
+        const QString id = session->addResearch(pdf);
+        QVERIFY(!id.isEmpty());
+        QCOMPARE(session->currentId(), id);
+        QCOMPARE(session->fields(id).value("kind").toString(), QStringLiteral("file"));
+        const QString file = session->fileUrl(id).toLocalFile();
+        QVERIFY(file.endsWith("/research/salt.pdf"));
+        QCOMPARE(QFileInfo(file).size(), QFileInfo(pdf.toLocalFile()).size());
+        // A second copy gets a name of its own.
+        QVERIFY(session->fileUrl(session->addResearch(pdf))
+                    .toLocalFile()
+                    .endsWith("/research/salt-2.pdf"));
+        QVERIFY(session->addResearch(QUrl::fromLocalFile("/no/such/file.pdf")).isEmpty());
+        QVERIFY(!session->lastError().isEmpty());
+    }
+
     void numbersFollowTheBinder()
     {
         QVERIFY(!session->numbered());

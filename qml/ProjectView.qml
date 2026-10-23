@@ -485,6 +485,13 @@ Item {
         onAccepted: view.session.addMap(selectedFile)
     }
 
+    FileDialog {
+        id: researchDialog
+
+        title: "Choose a file for the research"
+        onAccepted: view.session.addResearch(selectedFile)
+    }
+
     SourcesDialog {
         id: sourcesDialog
 
@@ -692,6 +699,7 @@ Item {
                 T.Action { text: "New term"; onTriggered: binder.addItem("term") }
                 T.Action { text: "New map…"; onTriggered: mapDialog.open() }
                 T.Action { text: "New idea canvas"; onTriggered: view.session.addCanvas() }
+                T.Action { text: "Add a research file…"; onTriggered: researchDialog.open() }
             }
 
             Menu {
@@ -924,6 +932,17 @@ Item {
                 session: view.session
                 itemId: visible ? view.session.currentId : ""
                 onOpened: id => view.openText(id)
+            }
+
+            ResearchView {
+                objectName: "researchView"
+                visible: view.viewMode === "page" && view.currentKind === "file"
+                anchors.top: editorBar.bottom
+                anchors.bottom: parent.bottom
+                width: parent.width
+                z: 3
+                session: view.session
+                itemId: visible ? view.session.currentId : ""
             }
 
             MapView {

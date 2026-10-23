@@ -526,17 +526,35 @@ QString ProjectSession::addMap(const QUrl &image)
         emit edited();
         return { };
     }
-    // The image is copied into maps/, with a name that no other file has.
+    return addCopy(source, QStringLiteral("maps"), QStringLiteral("map"), QStringLiteral("codex"));
+}
+
+QString ProjectSession::addResearch(const QUrl &file)
+{
+    editError.clear();
+    const QFileInfo source(file.isLocalFile() ? file.toLocalFile() : file.toString());
+    if (project.readOnly || !source.isFile()) {
+        editError = QStringLiteral("Choose a file to add to the research.");
+        emit edited();
+        return { };
+    }
+    return addCopy(source, QStringLiteral("research"), QStringLiteral("file"),
+                   QStringLiteral("research"));
+}
+
+QString ProjectSession::addCopy(const QFileInfo &source, const QString &folder, const QString &kind,
+                                const QString &section)
+{
     const QDir dir(project.folder);
-    dir.mkpath(QStringLiteral("maps"));
+    dir.mkpath(folder);
     const QString extension = u'.' + source.suffix().toLower();
     QString name = Naming::fileNameFor(source.completeBaseName(), { });
     name.chop(3);
-    QString file = QStringLiteral("maps/") + name + extension;
+    QString file = folder + u'/' + name + extension;
     for (int n = 2; QFileInfo::exists(dir.filePath(file)); ++n)
-        file = QStringLiteral("maps/%1-%2%3").arg(name).arg(n).arg(extension);
+        file = QStringLiteral("%1/%2-%3%4").arg(folder, name).arg(n).arg(extension);
     if (!QFile::copy(source.absoluteFilePath(), dir.filePath(file))) {
-        editError = QStringLiteral("Cannot copy the image into the project.");
+        editError = QStringLiteral("Cannot copy the file into the project.");
         emit edited();
         return { };
     }
@@ -545,12 +563,12 @@ QString ProjectSession::addMap(const QUrl &image)
         ids.insert(each.id);
     ProjectItem item;
     item.id = Naming::newItemId(ids);
-    item.kind = QStringLiteral("map");
+    item.kind = kind;
     item.title = source.completeBaseName();
     item.file = file;
     project.items.append(item);
     place(static_cast<int>(project.items.size() - 1), -1, static_cast<int>(project.roots.size()),
-          QStringLiteral("codex"));
+          section);
     commit({ file });
     setCurrentId(item.id);
     return item.id;

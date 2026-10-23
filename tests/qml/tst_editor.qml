@@ -565,6 +565,26 @@ TestCase {
         verify(text.text.endsWith("]“Salt is so common.” [@kurlansky2002, p. 12]"));
     }
 
+    function test_researchPdfShowsItsPages() {
+        const view = makeView();
+        const id = view.session.addResearch(Qt.resolvedUrl("../fixtures/research/salt.pdf"));
+        verify(id !== "");
+        waitForRendering(view);
+        const research = findChild(view, "researchView") as ResearchView;
+        verify(research.visible);
+        // A build with no PDF viewer offers the app of the system.
+        if (!Pdf.available) {
+            verify((findChild(research, "openExternally") as Item).visible);
+            return;
+        }
+        const pages = findChild(research, "pdfPages") as ListView;
+        compare(pages.count, 2);
+        tryVerify(() => findChild(pages, "pdfPage-0") !== null);
+        const paper = (findChild(pages, "pdfPage-0") as Item).children[0];
+        verify(Math.abs(paper.height / paper.width - 400 / 300) < 0.01);
+        tryVerify(() => (paper.children[0] as PdfPage).ready, 5000);
+    }
+
     function test_cardsTakeTheColourOfTheirPov() {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);

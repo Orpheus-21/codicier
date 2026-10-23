@@ -18,6 +18,7 @@
 #include <memory>
 
 class Calendar;
+class QFileInfo;
 class History;
 class SpellChecker;
 class Thesaurus;
@@ -168,6 +169,10 @@ public:
     // Copies a local image into maps/ and adds it as a map in the codex.
     // Returns the new id, or "" with the reason in lastError.
     Q_INVOKABLE QString addMap(const QUrl &image);
+    // Copies a local file of any kind into research/ and adds it to the
+    // research section. Returns the new id, or "" with the reason in
+    // lastError.
+    Q_INVOKABLE QString addResearch(const QUrl &file);
     // The URL of the file of an item, such as the image of a map.
     Q_INVOKABLE QUrl fileUrl(const QString &id) const;
     // The pins of a map: the index in binder.toml, the place, its title, and
@@ -550,6 +555,11 @@ private:
     void noteSaved(const QString &file);
     int indexOf(const QString &id) const;
     void place(int index, int parent, int position, const QString &section);
+    // Copies source into the folder of the project, with a name that no
+    // other file has, and adds it as a new item of kind at the top of
+    // section. Returns the new id, or "" with the reason in lastError.
+    QString addCopy(const QFileInfo &source, const QString &folder, const QString &kind,
+                    const QString &section);
     void detach(int index);
     // Where a move would put the item: the parent (-1 for the top level),
     // the position, and the section. Returns false if the move is not valid.
