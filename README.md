@@ -18,10 +18,11 @@ The app also does these things:
 - It has a codex of the characters, places, items, factions, lore, and terms of the story, with links from the text and a list of mentions.
 - For essays and non-fiction, it maps each claim to its evidence, keeps a bibliography of sources with citations, keeps a bank of quotes, shows research images and PDF files, and tracks where each piece was submitted.
 - It prints a chapter or the whole manuscript, or saves it as a PDF file.
+- It exports the manuscript to DOCX, EPUB, Markdown, or PDF.
 - It has a command palette that finds every command and every item by name.
 - It keeps the layout of the panes for each project. A key map file sets the key of each command.
 
-The app runs as a native window. It does not use a web view. It works offline: it sends no telemetry and needs no network connection. Import, export, and typesetting beyond a plain print are not part of the app.
+The app runs as a native window. It does not use a web view. It works offline: it sends no telemetry and needs no network connection. Import and typesetting beyond a plain print are not part of the app.
 
 The project is in development. Not all features are complete.
 
@@ -151,6 +152,7 @@ These are the default keys. The key map file can change each key. See "Configura
 | F11 | Start or stop focus mode. |
 | Escape | Stop focus mode, or close the search panel. |
 | Ctrl+P | Print a chapter or the manuscript, or save it as a PDF file. |
+| Ctrl+E | Export the manuscript. |
 | Ctrl+W | Close the project and go back to the workspace. |
 | F1 | Show every command and its key. |
 
@@ -290,6 +292,19 @@ Press Ctrl+Alt+U to record a submission: the piece, where it went, and the date.
 ### Print
 
 Press Ctrl+P. Choose "This chapter" or "The whole manuscript", and choose a printer or "Save as PDF". The print uses the font and the size of the page. Each chapter starts on a new page with its title, the scene break mark of the project comes between scenes, and each page has a number at the foot. Scenes that are left out of the manuscript stay out. The paper is Letter in the United States and A4 in other places, with margins of 25 mm.
+
+### Export
+
+Press Ctrl+E, choose a format, and click "Export". The file holds every chapter in reading order, without the scenes that are left out of the manuscript.
+
+| Format | What you get |
+|---|---|
+| Word (DOCX) | A title page, then each chapter as a heading that starts a new page. Bold, italic, and the scene break mark carry over. |
+| EPUB | An e-book with a title page, one file for each chapter, and a table of contents. |
+| PDF | The same pages as a print, in the font and the size of the page. |
+| Markdown | One file: the title, then each chapter as a `##` heading with its scenes. |
+
+The app writes DOCX and EPUB itself, so the export needs no other program.
 
 ### Search and replace
 
