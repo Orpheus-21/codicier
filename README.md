@@ -17,10 +17,11 @@ The app also does these things:
 - It tracks a word target for each session, a goal and a deadline for the project, a history of the words of each day, and writing sprints.
 - It has a codex of the characters, places, items, factions, lore, and terms of the story, with links from the text and a list of mentions.
 - For essays and non-fiction, it maps each claim to its evidence, keeps a bibliography of sources with citations, keeps a bank of quotes, shows research images and PDF files, and tracks where each piece was submitted.
+- It prints a chapter or the whole manuscript, or saves it as a PDF file.
 - It has a command palette that finds every command and every item by name.
 - It keeps the layout of the panes for each project. A key map file sets the key of each command.
 
-The app runs as a native window. It does not use a web view. It works offline: it sends no telemetry and needs no network connection. Typesetting, import, and export are not part of the app.
+The app runs as a native window. It does not use a web view. It works offline: it sends no telemetry and needs no network connection. Import, export, and typesetting beyond a plain print are not part of the app.
 
 The project is in development. Not all features are complete.
 
@@ -149,6 +150,7 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Shift+I | Show or hide the inspector. If your key map file still has the old default, Ctrl+I, the app moves it to Ctrl+Shift+I. |
 | F11 | Start or stop focus mode. |
 | Escape | Stop focus mode, or close the search panel. |
+| Ctrl+P | Print a chapter or the manuscript, or save it as a PDF file. |
 | Ctrl+W | Close the project and go back to the workspace. |
 | F1 | Show every command and its key. |
 
@@ -284,6 +286,10 @@ Press Ctrl+Alt+Q for the quote bank. Add the words of a quote, choose its source
 To add a research file, click the add button of the binder and choose "Add a research file". The app copies the file into `research/`. An image shows fit to the page, and a PDF shows its pages. Another kind of file opens in its own app. The inspector of a research file links it to texts, and the inspector of a text lists its research files.
 
 Press Ctrl+Alt+U to record a submission: the piece, where it went, and the date. The list shows the open submissions first. Choose Accepted, Rejected, or Withdrawn to close one, or click "All" to see every submission.
+
+### Print
+
+Press Ctrl+P. Choose "This chapter" or "The whole manuscript", and choose a printer or "Save as PDF". The print uses the font and the size of the page. Each chapter starts on a new page with its title, the scene break mark of the project comes between scenes, and each page has a number at the foot. Scenes that are left out of the manuscript stay out. The paper is Letter in the United States and A4 in other places, with margins of 25 mm.
 
 ### Search and replace
 
