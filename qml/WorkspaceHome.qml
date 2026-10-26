@@ -27,6 +27,21 @@ Item {
         scrivDialog.open();
     }
 
+    // The one import menu, below the button that opens it.
+    function openImportMenu(button: Item) {
+        importMenu.popup(button, 0, button.height);
+    }
+
+    Menu {
+        id: importMenu
+
+        objectName: "importMenu"
+
+        T.Action { text: "A Scrivener project…"; onTriggered: home.importScrivener() }
+        T.Action { text: "A folder of Markdown files…"; onTriggered: home.importMarkdown() }
+        T.Action { text: "A Word file (DOCX)…"; onTriggered: home.importDocx() }
+    }
+
     // Asks for a folder of Markdown files and makes a new project from it.
     function importMarkdown() {
         importError = "";
@@ -408,7 +423,7 @@ Item {
                 Muted {
                     width: parent.width
                     wrapMode: Text.Wrap
-                    text: "A project is a folder in this workspace. Make the first one from a template, open a sample to look around, or bring in a project from Scrivener."
+                    text: "A project is a folder in this workspace. Make the first one from a template, open a sample to look around, or import a project from Scrivener, Markdown, or Word."
                 }
 
                 Row {
@@ -429,9 +444,12 @@ Item {
                     }
 
                     Button {
+                        id: emptyImport
+
+                        objectName: "emptyImport"
                         iconName: "download"
-                        text: "Import from Scrivener"
-                        onClicked: home.importScrivener()
+                        text: "Import…"
+                        onClicked: home.openImportMenu(emptyImport)
                     }
                 }
 

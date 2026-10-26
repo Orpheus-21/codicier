@@ -189,15 +189,7 @@ Window {
                     iconName: "download"
                     text: "Import"
                     Accessible.name: "Import a project"
-                    onClicked: importMenu.popup(importButton, 0, importButton.height)
-                }
-
-                Menu {
-                    id: importMenu
-
-                    T.Action { text: "A Scrivener project…"; onTriggered: workspaceHome.importScrivener() }
-                    T.Action { text: "A folder of Markdown files…"; onTriggered: workspaceHome.importMarkdown() }
-                    T.Action { text: "A Word file (DOCX)…"; onTriggered: workspaceHome.importDocx() }
+                    onClicked: workspaceHome.openImportMenu(importButton)
                 }
 
                 Button {

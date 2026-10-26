@@ -296,6 +296,48 @@ TestCase {
         tryVerify(() => testCase.Window.window.active);
     }
 
+    function test_oneImportMenuOnTheHomeScreen() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        const folder = temp + "/codicier-empty-" + Date.now();
+        workspace.folder = folder;
+        // A workspace folder that exists and holds no project.
+        compare(workspace.create("Gone", "blank", ""), "");
+        compare(workspace.remove(workspace.get(0).folder, ""), "");
+        compare(workspace.count, 0);
+        const win = Qt.createComponent("Codicier", "Main").createObject(null, { visible: true, width: 1000, height: 700 });
+        Workspaces.open(folder);
+        tryVerify(() => (findChild(win.contentItem, "emptyImport") as Item)?.visible ?? false, 3000);
+        const overlay = win.contentItem.T.Overlay.overlay;
+        // The open menu: a popup item on the overlay with the three imports.
+        const openMenu = () => overlay.children.find(child => child.visible && String(child).startsWith("QQuickPopupItem"));
+        const entries = item => {
+            let found = [];
+            const walk = node => {
+                if (typeof node.text === "string" && node.text.endsWith("…") && !found.includes(node.text))
+                    found.push(node.text);
+                for (const child of node.children)
+                    walk(child);
+            };
+            walk(item);
+            return found;
+        };
+        waitForRendering(win.contentItem);
+        mouseClick(findChild(win.contentItem, "emptyImport") as Item);
+        tryVerify(() => openMenu() !== undefined);
+        compare(entries(openMenu()), ["A Scrivener project…", "A folder of Markdown files…", "A Word file (DOCX)…"]);
+        keyClick(Qt.Key_Escape);
+        tryVerify(() => openMenu() === undefined);
+        mouseClick(findChild(win.contentItem, "importButton") as Item);
+        tryVerify(() => openMenu() !== undefined);
+        compare(entries(openMenu()).length, 3);
+        keyClick(Qt.Key_Escape);
+        win.close();
+        win.destroy();
+        wait(50);
+        testCase.Window.window.requestActivate();
+        tryVerify(() => testCase.Window.window.active);
+    }
+
     function test_f6MovesThroughThePanes() {
         const view = makeView();
         const model = view.session.binder;
