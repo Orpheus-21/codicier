@@ -164,7 +164,7 @@ In the binder, Ctrl+click adds an item to the selection, and Shift+click selects
 
 On the page, the names and aliases of the codex have a quiet underline. A pause over a name shows the start of its entry, and Ctrl+click opens it. The corkboard can colour each card by its point of view character, and the inspector of a scene has optional fields for its goal, conflict, and outcome.
 
-The corkboard shows the cards in a grid or free. On the free board, drag a card anywhere; a card dropped on another one forms a stack. The board keeps the place of each card.
+The corkboard and the outliner show the open chapter, or every scene of the book with "Whole book". The project keeps the choice. The corkboard shows the cards in a grid or free. On the free board, drag a card anywhere; a card dropped on another one forms a stack. The board keeps the place of each card.
 
 "New idea canvas" in the add menu of the binder makes a canvas with the notes. Double-click the canvas for a note, add cards of the texts of the manuscript, and drag from the dot on the right of a node to another node to draw a line. Click a node and press Delete to remove it. The canvas saves to a file in `canvases/`.
 
@@ -246,7 +246,7 @@ To link to an entity, type `[[` on the page. A list of entities opens under the 
 
 ### Versions
 
-A project can keep versions of all its files. Choose "Turn on versions" in the project menu or the command palette. The app makes a git repository in the project folder, or uses the repository that already holds the folder, and saves a first version. You do not need to know git: the app runs it for you, and never uses the network.
+A project can keep versions of all its files. Choose "Turn on versions" in the project menu or the command palette, or click "Turn on versions" in the empty versions panel. The app makes a git repository in the project folder, or uses the repository that already holds the folder, and saves a first version. You do not need to know git: the app runs it for you, and never uses the network.
 
 - Press Ctrl+Alt+S to save a version with a short message. By default, the app also saves a version when a project with changes closes.
 - Choose "Show the versions" in the command palette to see the versions of the project. The inspector of a text lists the versions of that text.
@@ -269,7 +269,7 @@ Select words on the page and press Ctrl+Alt+K to add a comment. A dotted line ma
 
 ### Essays and research
 
-A new essay starts with the parts of an argument: a thesis, two claims, the counter-arguments, a conclusion, and an evidence note. In an essay, an essay collection, or a non-fiction project, the inspector sets the part of the argument of each text. For an evidence item, the inspector also chooses the claims that it supports. Choose "Show or hide the argument map" in the command palette. It shows the thesis, each claim with its evidence, the counter-arguments, and the conclusion, and it marks each claim with no evidence.
+The tools for essays (the argument map, the sources, and the quote bank) show in essays, essay collections, and non-fiction projects. The setting "Tools for essays" shows them in every project. A new essay starts with the parts of an argument: a thesis, two claims, the counter-arguments, a conclusion, and an evidence note. In an essay, an essay collection, or a non-fiction project, the inspector sets the part of the argument of each text. For an evidence item, the inspector also chooses the claims that it supports. Choose "Show or hide the argument map" in the command palette. It shows the thesis, each claim with its evidence, the counter-arguments, and the conclusion, and it marks each claim with no evidence.
 
 Choose "Edit the sources" in the command palette to add, change, or remove the sources of the project. The app gives each source a key, such as `kurlansky2002`. Type `[@` on the page to choose a source, and press Enter to insert its key as `[@kurlansky2002]`. Type `; @` inside the brackets to add a second source. A pause on a key shows the source.
 
@@ -350,6 +350,7 @@ Press Ctrl+, or click the settings button on the workspace screen to change thes
 | Space between paragraphs | One line | Half a line, one line, or none with a first-line indent, as in a printed book. The file does not change. |
 | Focus mode dims | Other paragraphs | Nothing, other paragraphs, or other sentences. |
 | Focus mode shows | Only the page | "The page and the bars" keeps the top bar and the status bar in focus mode. |
+| Tools for essays | In essays and non-fiction | "In every project" also shows the argument map, the sources, and the quote bank in fiction. |
 | Daily reminder to write | Off | A time such as 09:30. Once a day at that time, while the app runs, a desktop notification reminds you to write. |
 | Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
