@@ -164,6 +164,30 @@ TestCase {
         compare(text.text, "dusk fell");
     }
 
+    function test_noteForNextTimeComesBackWhenTheProjectOpens() {
+        const view = makeView();
+        const folder = view.folder;
+        const dialog = findChild(view, "nextTimeDialog") as T.Dialog;
+        const bar = findChild(view, "nextTimeBar") as Rectangle;
+        verify(!bar.visible);
+        dialog.open();
+        tryVerify(() => dialog.opened);
+        const field = findChild(dialog, "nextTimeField") as TextField;
+        field.text = "Fix the ending";
+        keyClick(Qt.Key_Return);
+        compare(view.nextTime, "Fix the ending");
+        tryVerify(() => bar.visible);
+        view.saveState();
+        view.destroy();
+        wait(50);
+        const again = createTemporaryObject(viewComponent, testCase, { folder: folder }) as ProjectView;
+        compare(again.nextTime, "Fix the ending");
+        const done = findChild(again, "nextTimeDone") as Button;
+        mouseClick(done);
+        compare(again.nextTime, "");
+        verify(!(findChild(again, "nextTimeBar") as Rectangle).visible);
+    }
+
     function test_boldAndItalicToggleTheMarks() {
         const view = makeView();
         const text = findChild(view, "editor") as TextEdit;

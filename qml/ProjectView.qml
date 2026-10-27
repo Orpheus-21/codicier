@@ -38,6 +38,10 @@ Item {
     property bool wholeBook: false
     onWholeBookChanged: stateTimer.restart()
 
+    // The line that the author left for the next visit, or "".
+    property string nextTime: ""
+    onNextTimeChanged: stateTimer.restart()
+
     // The binder pane on the left and the inspector pane on the right.
     property bool binderOpen: true
     property bool inspectorOpen: false
@@ -55,6 +59,8 @@ Item {
             inspectorPane.T.SplitView.preferredWidth = state["inspector-width"];
         if (typeof state["whole-book"] === "boolean")
             wholeBook = state["whole-book"];
+        if (typeof state["next-time"] === "string")
+            nextTime = state["next-time"];
         if (state.item && session.fields(state.item).title !== undefined)
             session.currentId = state.item;
         else
@@ -78,7 +84,8 @@ Item {
             "binder-width": Math.round(binderPane.T.SplitView.preferredWidth),
             "inspector": inspectorOpen,
             "inspector-width": Math.round(inspectorPane.T.SplitView.preferredWidth),
-            "whole-book": wholeBook
+            "whole-book": wholeBook,
+            "next-time": nextTime
         });
     }
 
@@ -478,6 +485,7 @@ Item {
         { id: "versions.list", name: "Show the versions", sequence: "", former: "Ctrl+Alt+H", run: () => view.openVersions() },
         { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
         { id: "versions.on", name: "Turn on versions", sequence: "", former: "Ctrl+Alt+V", run: () => view.turnOnVersions() },
+        { id: "nexttime", name: "Leave a note for next time", sequence: "", run: () => nextTimeDialog.open() },
         { id: "progress", name: "Goals and progress", sequence: "Ctrl+Shift+G", run: () => progressDialog.open() },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+C", former: "Ctrl+Shift+E", run: () => view.openCodex() },
         { id: "search", name: "Search the project", sequence: "Ctrl+Shift+F", run: () => view.openSearch(false) },
@@ -600,6 +608,16 @@ Item {
         onSaved: message => view.versionsMessage = message
     }
 
+    NextTimeDialog {
+        id: nextTimeDialog
+
+        objectName: "nextTimeDialog"
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        note: view.nextTime
+        onWritten: text => view.nextTime = text
+    }
+
     NameDialog {
         id: nameDialog
 
@@ -667,6 +685,51 @@ Item {
         objectName: "firstRunHint"
         view: view
         binderWidth: view.binderOpen ? binderPane.width : 0
+    }
+
+    // The line for this visit stays until the author marks it done.
+    Rectangle {
+        objectName: "nextTimeBar"
+        visible: view.nextTime !== "" && !view.focusMode
+        z: 20
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: Theme.space.l
+        width: Math.min(560, parent.width - 2 * Theme.space.xl)
+        height: nextRow.implicitHeight + 2 * Theme.space.m
+        radius: Theme.radius.medium
+        color: Theme.color.surface
+        border.width: 1
+        border.color: Theme.color.accent
+        Accessible.role: Accessible.StaticText
+        Accessible.name: "Next time: " + view.nextTime
+
+        Row {
+            id: nextRow
+
+            x: Theme.space.m
+            y: Theme.space.m
+            width: parent.width - 2 * Theme.space.m
+            spacing: Theme.space.m
+
+            Text {
+                width: parent.width - doneButton.width - parent.spacing
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Next time: " + view.nextTime
+                wrapMode: Text.Wrap
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.ink
+            }
+
+            Button {
+                id: doneButton
+
+                objectName: "nextTimeDone"
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Done"
+                onClicked: view.nextTime = ""
+            }
+        }
     }
 
     Shortcut {
