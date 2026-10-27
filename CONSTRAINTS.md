@@ -59,7 +59,6 @@ No rule is planned now.
 
 | ID | Rule | Path | Reason | Owner | Expires |
 |---|---|---|---|---|---|
-| E4 | assertion-removed | tests/tst_backup.cpp | The pruning now keeps only zips of the same project, so the test uses real zips in place of empty fake files. | Orpheus-21 | 2026-10-27 |
 | E5 | assertion-removed | tests/tst_projectlist.cpp | The project list gets an author role, so the role count goes from 11 to 12. | Orpheus-21 | 2026-10-28 |
 | E6 | assertion-removed | tests/qml/tst_theme.qml | Three new themes (night, mist, contrast), so the list of theme names grows from three to six. | Orpheus-21 | 2026-10-29 |
 | E7 | assertion-removed | tests/tst_scrivener.cpp | The import adds the note "Imported from Scrivener" before the research notes, so the indices of the research items in the test move up by one. | Orpheus-21 | 2026-10-30 |
