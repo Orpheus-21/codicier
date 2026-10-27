@@ -53,6 +53,32 @@ QString createdIn(const QByteArray &projectToml)
     return { };
 }
 
+// The zips in the folder that belong to the project with the created time,
+// newest first. The folder name at the top of a zip is the name that the
+// project folder had when the zip was made, so a renamed project still finds
+// its old zips. The time is the stamp at the end of the file name.
+QList<std::pair<QString, QDateTime>> zipsOf(const QDir &target, const QString &created)
+{
+    QList<std::pair<QString, QDateTime>> found;
+    for (const QString &zip : target.entryList({ QStringLiteral("*.zip") }, QDir::Files)) {
+        const QString path = target.filePath(zip);
+        QZipReader reader(path);
+        const auto entries = reader.fileInfoList();
+        if (entries.isEmpty())
+            continue;
+        const QString top = entries.first().filePath.section(u'/', 0, 0);
+        if (createdIn(reader.fileData(top + QStringLiteral("/project.toml"))) != created)
+            continue;
+        found.append({ path,
+                       QDateTime::fromString(zip.chopped(4).last(23),
+                                             QStringLiteral("yyyy-MM-ddTHH-mm-ss-zzz")) });
+    }
+    std::ranges::sort(found, [](const auto &a, const auto &b) {
+        return a.second != b.second ? a.second > b.second : a.first > b.first;
+    });
+    return found;
+}
+
 } // namespace
 
 namespace Backup {
@@ -121,62 +147,28 @@ QString write(const QString &projectFolder, const QString &backupFolder, int kee
     // project with the same folder name in another workspace shares the
     // folder, so only the zips with the same created time count.
     const QString created = createdIn(read(project.filePath(QStringLiteral("project.toml"))));
-    QStringList zips;
-    for (const QString &zip :
-         target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files, QDir::Name)) {
-        const QByteArray toml
-            = QZipReader(target.filePath(zip)).fileData(name + QStringLiteral("/project.toml"));
-        if (createdIn(toml) == created)
-            zips.append(zip);
-    }
-    while (zips.size() > keep)
-        QFile::remove(target.filePath(zips.takeFirst()));
+    const auto zips = zipsOf(target, created);
+    for (qsizetype i = keep; i < zips.size(); ++i)
+        QFile::remove(zips.at(i).first);
     return target.filePath(zipName);
 }
 
 QDateTime latest(const QString &projectFolder, const QString &backupFolder)
 {
-    const QDir project(projectFolder);
-    const QString name = QFileInfo(project.absolutePath()).fileName();
-    const QDir target(QDir(backupFolder).filePath(name));
-    if (backupFolder.isEmpty() || !target.exists())
-        return { };
-    const QString created = createdIn(read(project.filePath(QStringLiteral("project.toml"))));
-    // The names sort by time, so the newest of this project is the first match
-    // from the end.
-    const QStringList zips = target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files,
-                                              QDir::Name | QDir::Reversed);
-    for (const QString &zip : zips) {
-        const QByteArray toml
-            = QZipReader(target.filePath(zip)).fileData(name + QStringLiteral("/project.toml"));
-        if (createdIn(toml) != created)
-            continue;
-        const QString stamp = zip.mid(name.size() + 1).chopped(4);
-        return QDateTime::fromString(stamp, QStringLiteral("yyyy-MM-ddTHH-mm-ss-zzz"));
-    }
-    return { };
+    const QList<Entry> entries = list(projectFolder, backupFolder);
+    return entries.isEmpty() ? QDateTime() : entries.first().time;
 }
 
 QList<Entry> list(const QString &projectFolder, const QString &backupFolder)
 {
     QList<Entry> entries;
     const QDir project(projectFolder);
-    const QString name = QFileInfo(project.absolutePath()).fileName();
-    const QDir target(QDir(backupFolder).filePath(name));
+    const QDir target(QDir(backupFolder).filePath(QFileInfo(project.absolutePath()).fileName()));
     if (backupFolder.isEmpty() || !target.exists())
         return entries;
     const QString created = createdIn(read(project.filePath(QStringLiteral("project.toml"))));
-    const QStringList zips = target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files,
-                                              QDir::Name | QDir::Reversed);
-    for (const QString &zip : zips) {
-        const QByteArray toml
-            = QZipReader(target.filePath(zip)).fileData(name + QStringLiteral("/project.toml"));
-        if (createdIn(toml) != created)
-            continue;
-        const QString stamp = zip.mid(name.size() + 1).chopped(4);
-        entries.append({ target.filePath(zip),
-                         QDateTime::fromString(stamp, QStringLiteral("yyyy-MM-ddTHH-mm-ss-zzz")) });
-    }
+    for (const auto &[path, time] : zipsOf(target, created))
+        entries.append({ path, time });
     return entries;
 }
 
@@ -233,11 +225,7 @@ int removeAll(const QString &projectFolder, const QString &backupFolder, QString
     if (backupFolder.isEmpty() || !target.exists())
         return 0;
     int removed = 0;
-    for (const QString &zip : target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files)) {
-        const QString path = target.filePath(zip);
-        const QByteArray toml = QZipReader(path).fileData(name + QStringLiteral("/project.toml"));
-        if (createdIn(toml) != created)
-            continue;
+    for (const auto &[path, time] : zipsOf(target, created)) {
         if (!QFile::remove(path)) {
             fail(error, QStringLiteral("Cannot delete %1.").arg(path));
             return -1;

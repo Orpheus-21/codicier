@@ -19,6 +19,11 @@ Item {
 
     // Why the last import failed, or "".
     property string importError: ""
+    // Why the last rename, copy, or move of a project failed, or "".
+    property string projectError: ""
+    // The project that the row menu works on.
+    property string menuFolder: ""
+    property string menuTitle: ""
 
     // Asks for a Scrivener project and makes a new project from it. The new
     // project opens at once, as a new project from a template does.
@@ -30,6 +35,40 @@ Item {
     // The one import menu, below the button that opens it.
     function openImportMenu(button: Item) {
         importMenu.popup(button, 0, button.height);
+    }
+
+    Menu {
+        id: rowMenu
+
+        objectName: "rowMenu"
+
+        T.Action {
+            text: "Rename…"
+            onTriggered: renameDialog.open()
+        }
+
+        T.Action {
+            text: "Make a copy"
+            onTriggered: home.projectError = projectList.duplicate(home.menuFolder)
+        }
+
+        T.Action {
+            text: "Move to the archive"
+            onTriggered: home.projectError = projectList.archive(home.menuFolder)
+        }
+    }
+
+    LineDialog {
+        id: renameDialog
+
+        objectName: "renameDialog"
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        heading: "Rename the project"
+        hint: "The new title"
+        action: "Rename"
+        note: home.menuTitle
+        onWritten: text => home.projectError = projectList.rename(home.menuFolder, text, Settings.backupFolder)
     }
 
     Menu {
@@ -237,6 +276,20 @@ Item {
                 }
 
                 IconButton {
+                    id: moreButton
+
+                    objectName: "moreProject"
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconName: "ellipsis"
+                    label: "More for " + (row.title || row.folder)
+                    onClicked: {
+                        home.menuFolder = row.folder;
+                        home.menuTitle = row.title;
+                        rowMenu.popup(moreButton, 0, moreButton.height);
+                    }
+                }
+
+                IconButton {
                     objectName: "restoreProject"
                     anchors.verticalCenter: parent.verticalCenter
                     iconName: "rotate-ccw-clock"
@@ -309,6 +362,17 @@ Item {
                 width: parent.width
                 wrapMode: Text.Wrap
                 text: "The import failed: " + home.importError
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.accent
+            }
+
+            Text {
+                objectName: "projectError"
+                visible: home.projectError !== ""
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: home.projectError
                 font.family: Theme.type.ui
                 font.pixelSize: Theme.type.body
                 color: Theme.color.accent

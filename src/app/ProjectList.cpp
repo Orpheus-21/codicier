@@ -13,6 +13,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QLockFile>
 #include <QRegularExpression>
 #include <QSet>
 
@@ -226,7 +227,7 @@ QString ProjectList::create(const QString &title, const QString &kind, const QSt
     return { };
 }
 
-QString ProjectList::remove(const QString &projectFolder, const QString &backupFolder)
+QString ProjectList::checkProject(const QString &projectFolder) const
 {
     const QFileInfo info(projectFolder);
     // Only a real project folder in this workspace: never a link, a parent,
@@ -235,6 +236,116 @@ QString ProjectList::remove(const QString &projectFolder, const QString &backupF
         || info.absolutePath() != QDir(workspace).absolutePath()
         || !QFileInfo::exists(QDir(projectFolder).filePath(QStringLiteral("project.toml"))))
         return QStringLiteral("This folder is not a project in the workspace.");
+    return { };
+}
+
+QString ProjectList::rename(const QString &projectFolder, const QString &title,
+                            const QString &backupFolder)
+{
+    const QString clean = title.simplified();
+    if (clean.isEmpty())
+        return QStringLiteral("Type a title.");
+    if (const QString bad = checkProject(projectFolder); !bad.isEmpty())
+        return bad;
+    // Another window that holds the project open would lose its folder.
+    QLockFile lock(QDir(projectFolder).filePath(QStringLiteral(".codicier/lock")));
+    lock.setStaleLockTime(0);
+    if (QFileInfo::exists(lock.fileName()) && !lock.tryLock(0))
+        return QStringLiteral("The project is open in another window. Close it first.");
+    LoadResult loaded = ProjectStore::load(projectFolder);
+    if (!loaded.ok())
+        return loaded.errors.first().text();
+    loaded.project.title = clean;
+    const QList<LoadError> errors = ProjectStore::save(loaded.project);
+    if (!errors.isEmpty())
+        return errors.first().text();
+    // The folder name follows the title, unless the name stays the same.
+    const QString oldName = QFileInfo(projectFolder).fileName();
+    QSet<QString> taken;
+    for (const QString &entry :
+         QDir(workspace).entryList(QDir::AllEntries | QDir::NoDotAndDotDot)) {
+        if (entry != oldName)
+            taken.insert(entry + QStringLiteral(".md"));
+    }
+    QString newName = Naming::fileNameFor(clean, taken);
+    newName.chop(3);
+    lock.unlock();
+    if (newName != oldName) {
+        if (!QDir(workspace).rename(oldName, newName)) {
+            refresh();
+            return QStringLiteral("The title changed, but the folder could not be renamed.");
+        }
+        // The zips keep their old names and are found by the created time.
+        if (!backupFolder.isEmpty() && QDir(backupFolder).exists(oldName)
+            && !QDir(backupFolder).exists(newName))
+            QDir(backupFolder).rename(oldName, newName);
+    }
+    refresh();
+    return { };
+}
+
+QString ProjectList::duplicate(const QString &projectFolder)
+{
+    if (const QString bad = checkProject(projectFolder); !bad.isEmpty())
+        return bad;
+    LoadResult loaded = ProjectStore::load(projectFolder);
+    if (!loaded.ok())
+        return loaded.errors.first().text();
+    const QString target = newFolderFor(loaded.project.title + QStringLiteral(" (copy)"));
+    const QDir source(projectFolder);
+    QDirIterator it(projectFolder, QDir::Files | QDir::Hidden, QDirIterator::Subdirectories);
+    bool failed = !QDir().mkpath(target);
+    while (!failed && it.hasNext()) {
+        const QString relative = source.relativeFilePath(it.next());
+        // .codicier/ holds the lock and what the app builds again.
+        if (relative.startsWith(QStringLiteral(".codicier/")))
+            continue;
+        const QString to = QDir(target).filePath(relative);
+        failed = !QDir().mkpath(QFileInfo(to).path()) || !QFile::copy(it.filePath(), to);
+    }
+    if (!failed) {
+        loaded = ProjectStore::load(target);
+        failed = !loaded.ok();
+        if (!failed) {
+            loaded.project.title += QStringLiteral(" (copy)");
+            failed = !ProjectStore::save(loaded.project).isEmpty();
+        }
+    }
+    if (failed) {
+        QDir(target).removeRecursively();
+        return QStringLiteral("Cannot copy the project.");
+    }
+    refresh();
+    return { };
+}
+
+QString ProjectList::archive(const QString &projectFolder)
+{
+    if (const QString bad = checkProject(projectFolder); !bad.isEmpty())
+        return bad;
+    QLockFile lock(QDir(projectFolder).filePath(QStringLiteral(".codicier/lock")));
+    lock.setStaleLockTime(0);
+    if (QFileInfo::exists(lock.fileName()) && !lock.tryLock(0))
+        return QStringLiteral("The project is open in another window. Close it first.");
+    lock.unlock();
+    const QDir archived(QDir(workspace).filePath(QStringLiteral("archive")));
+    if (!archived.mkpath(QStringLiteral(".")))
+        return QStringLiteral("Cannot make the archive folder.");
+    // A folder with the same name in the archive gets a number.
+    const QString name = QFileInfo(projectFolder).fileName();
+    QString to = name;
+    for (int n = 2; archived.exists(to); ++n)
+        to = name + u'-' + QString::number(n);
+    if (!QDir(workspace).rename(name, QStringLiteral("archive/") + to))
+        return QStringLiteral("Cannot move the project to the archive.");
+    refresh();
+    return { };
+}
+
+QString ProjectList::remove(const QString &projectFolder, const QString &backupFolder)
+{
+    if (const QString bad = checkProject(projectFolder); !bad.isEmpty())
+        return bad;
     // The backups go first: the match needs the project.toml of the folder.
     QString error;
     if (!backupFolder.isEmpty() && Backup::removeAll(projectFolder, backupFolder, &error) < 0)

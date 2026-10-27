@@ -97,6 +97,18 @@ public:
     // after its title. The old project stays as it is. Returns an error text,
     // or "" and emits created.
     Q_INVOKABLE QString restoreBackup(const QString &zipPath);
+    // Gives a project a new title and a folder name that matches the title.
+    // The backups of the project move to the new name in backupFolder. A
+    // project that another window holds open is refused. Returns an error
+    // text, or "".
+    Q_INVOKABLE QString rename(const QString &projectFolder, const QString &title,
+                               const QString &backupFolder);
+    // Copies a project, without its .codicier folder, to a new project with
+    // " (copy)" after its title. Returns an error text, or "".
+    Q_INVOKABLE QString duplicate(const QString &projectFolder);
+    // Moves a project to the folder "archive" of the workspace. The home
+    // screen no longer lists it. Returns an error text, or "".
+    Q_INVOKABLE QString archive(const QString &projectFolder);
     // Deletes a project for good: its folder and its backups in
     // backupFolder, with no copy in a trash. The folder must be a project
     // directly in the workspace. Returns an error text, or "".
@@ -108,6 +120,9 @@ public:
     static bool isFiction(const QString &kind);
     // "Today", "Yesterday", "3 days ago", "2 weeks ago", or "March 2026".
     static QString editedLabel(const QDateTime &edited, const QDateTime &now);
+    // An error text if the folder is not a project directly in the
+    // workspace, else "".
+    QString checkProject(const QString &projectFolder) const;
     static Entry read(const QString &projectFolder);
 
 signals:

@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QLockFile>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -82,6 +83,68 @@ private slots:
         QVERIFY(!Backup::restore(zip, dir.filePath("target"), &error));
         QVERIFY(error.contains("unsafe"));
         QVERIFY(!QFile::exists(dir.filePath("escaped.txt")));
+    }
+
+    void renameChangesTheTitleTheFolderAndKeepsTheBackups()
+    {
+        QTemporaryDir dir;
+        QTemporaryDir backups;
+        const QString folder = dir.filePath("ledger");
+        QVERIFY(Templates::create(folder, "novel", "The Salt Ledger", "A").isEmpty());
+        ProjectList list;
+        list.setFolder(dir.path());
+        QVERIFY(!Backup::write(folder, backups.path(), 5).isEmpty());
+        QVERIFY(!list.rename(folder, "   ", backups.path()).isEmpty());
+        QCOMPARE(list.rename(folder, "The Tide Table", backups.path()), QString());
+        QCOMPARE(titles(list), QStringList { "The Tide Table" });
+        const QString renamed = dir.filePath("the-tide-table");
+        QVERIFY(QFile::exists(renamed + "/project.toml"));
+        QVERIFY(!QFileInfo::exists(folder));
+        // The old zip is still the backup of the project.
+        QVERIFY(Backup::latest(renamed, backups.path()).isValid());
+        QVERIFY(!Backup::write(renamed, backups.path(), 5).isEmpty());
+        QCOMPARE(Backup::list(renamed, backups.path()).size(), 2);
+        // A new title with the same folder name keeps the folder.
+        QCOMPARE(list.rename(renamed, "The Tide Table!", backups.path()), QString());
+        QVERIFY(QFile::exists(renamed + "/project.toml"));
+        QVERIFY(!list.rename(dir.filePath("nothing"), "X", backups.path()).isEmpty());
+    }
+
+    void aProjectOpenInAnotherWindowIsNotRenamedOrArchived()
+    {
+        QTemporaryDir dir;
+        const QString folder = dir.filePath("ledger");
+        QVERIFY(Templates::create(folder, "novel", "The Salt Ledger", "A").isEmpty());
+        QVERIFY(QDir().mkpath(folder + "/.codicier"));
+        QLockFile held(folder + "/.codicier/lock");
+        held.setStaleLockTime(0);
+        QVERIFY(held.tryLock(0));
+        ProjectList list;
+        list.setFolder(dir.path());
+        QVERIFY(list.rename(folder, "Other", QString()).contains("another window"));
+        QVERIFY(list.archive(folder).contains("another window"));
+        QVERIFY(QFile::exists(folder + "/project.toml"));
+        held.unlock();
+        QCOMPARE(list.archive(folder), QString());
+        QCOMPARE(list.count(), 0);
+        QVERIFY(QFile::exists(dir.filePath("archive/ledger/project.toml")));
+    }
+
+    void duplicateCopiesTheProjectWithoutTheAppFolder()
+    {
+        QTemporaryDir dir;
+        const QString folder = dir.filePath("ledger");
+        QVERIFY(Templates::create(folder, "novel", "The Salt Ledger", "A").isEmpty());
+        QVERIFY(QDir().mkpath(folder + "/.codicier"));
+        writeFile(folder + "/.codicier/state.toml", "x = 1\n");
+        ProjectList list;
+        list.setFolder(dir.path());
+        QCOMPARE(list.duplicate(folder), QString());
+        QCOMPARE(list.count(), 2);
+        QVERIFY(titles(list).contains("The Salt Ledger (copy)"));
+        QVERIFY(QFile::exists(dir.filePath("the-salt-ledger-copy/project.toml")));
+        QVERIFY(!QFileInfo::exists(dir.filePath("the-salt-ledger-copy/.codicier")));
+        QVERIFY(!list.duplicate(dir.filePath("none")).isEmpty());
     }
 
     void listsTheProjectsNewestFirst()
