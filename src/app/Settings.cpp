@@ -67,7 +67,6 @@ Settings::Settings(QObject *parent) : QObject(parent)
     reopen = settings.value("start/openLast", false).toBool();
     last = settings.value("start/lastProject").toString();
     marksHidden = settings.value("view/hideMarks", true).toBool();
-    free = settings.value("view/freeBoard", false).toBool();
     reminderAt = settings.value("goals/reminderTime").toString();
     if (!QTime::fromString(reminderAt, QStringLiteral("HH:mm")).isValid())
         reminderAt.clear();

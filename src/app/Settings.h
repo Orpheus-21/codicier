@@ -54,7 +54,6 @@ class Settings : public QObject
     // the cursor, 2 its sentence.
     Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY changed)
     // True places the cards of the corkboard anywhere, in place of a grid.
-    Q_PROPERTY(bool freeBoard READ freeBoard WRITE setFreeBoard NOTIFY changed)
     // The colour of the cards on the corkboard: "label" for the colour
     // label of each item, or "pov" for its point of view character.
     Q_PROPERTY(QString cardColour READ cardColour WRITE setCardColour NOTIFY changed)
@@ -137,8 +136,6 @@ public:
     QString reminderShown() const { return shownOn; }
     void setReminderShown(const QString &value) { change(shownOn, value, "goals/reminderShown"); }
     QString cardColour() const { return cards; }
-    bool freeBoard() const { return free; }
-    void setFreeBoard(bool value) { change(free, value, "view/freeBoard"); }
     void setCardColour(const QString &value)
     {
         if (value == QLatin1String("label") || value == QLatin1String("pov"))
@@ -199,7 +196,6 @@ private:
     QString cards = QStringLiteral("label");
     QString reminderAt;
     QString shownOn;
-    bool free = false;
     int scope = 1;
     int spacing = 150;
     int paragraphSpace = 100;

@@ -834,46 +834,6 @@ TestCase {
         compare(view.session.fields(view.session.currentId).kind, "character");
     }
 
-    function test_freeBoardKeepsAndStacksCards() {
-        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
-        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
-        compare(workspace.create("Lamp", "novel", ""), "");
-        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.folder + "/lamp" }) as ProjectView;
-        const first = view.session.currentId;
-        const second = view.session.add("scene");
-        view.session.currentId = first;
-        view.viewMode = "board";
-        const board = findChild(view, "corkboardView") as Corkboard;
-        tryCompare(board.cards, "length", 2);
-        Settings.freeBoard = true;
-        const free = findChild(board, "freeBoard") as Flickable;
-        waitForRendering(free);
-        const cards = [];
-        for (const child of free.contentItem.children) {
-            if (child.objectName === "freeCard")
-                cards.push(child);
-        }
-        compare(cards.length, 2);
-        // A drag moves the card, and its place stays.
-        const moved = cards.find(card => card.item.id === second);
-        mouseDrag(moved, 20, 20, 300, 40);
-        tryVerify(() => view.session.fields(second).boardX > 250);
-        // On another card, it snaps beside it as a stack.
-        const other = board.placeOf(first, 0);
-        board.placeCard(second, other.x + 10, other.y + 5);
-        compare(view.session.fields(second).boardX, other.x + 18);
-        compare(view.session.fields(second).boardY, other.y + 18);
-        // The card on the board moves there too.
-        let shown = null;
-        for (const child of free.contentItem.children) {
-            if (child.objectName === "freeCard" && child.item.id === second)
-                shown = child;
-        }
-        tryCompare(shown, "x", other.x + 18);
-        compare(board.raised[board.raised.length - 1], second);
-        Settings.freeBoard = false;
-    }
-
     function test_ideaCanvasKeepsNotesCardsAndLines() {
         const view = makeView();
         const scene = view.session.currentId;
