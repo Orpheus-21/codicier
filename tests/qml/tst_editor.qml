@@ -172,7 +172,7 @@ TestCase {
         verify(!bar.visible);
         dialog.open();
         tryVerify(() => dialog.opened);
-        const field = findChild(dialog, "nextTimeField") as TextField;
+        const field = findChild(dialog, "lineField") as TextField;
         field.text = "Fix the ending";
         keyClick(Qt.Key_Return);
         compare(view.nextTime, "Fix the ending");
@@ -186,6 +186,21 @@ TestCase {
         mouseClick(done);
         compare(again.nextTime, "");
         verify(!(findChild(again, "nextTimeBar") as Rectangle).visible);
+    }
+
+    function test_quickCaptureKeepsTheFocusOnThePage() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        const scene = view.session.currentId;
+        const dialog = findChild(view, "captureDialog") as T.Dialog;
+        dialog.open();
+        tryVerify(() => dialog.opened);
+        (findChild(dialog, "lineField") as TextField).text = "Name the ferry";
+        keyClick(Qt.Key_Return);
+        tryVerify(() => !dialog.visible);
+        compare(view.session.currentId, scene);
+        tryVerify(() => text.activeFocus);
+        verify(view.session.items().some(item => item.title === "Ideas"));
     }
 
     function test_boldAndItalicToggleTheMarks() {

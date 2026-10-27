@@ -3,16 +3,19 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Templates as T
 
-// Leaves one line for the next visit. The project shows it when it opens.
+// Asks for one line of text, such as the note for the next visit or an idea.
 T.Dialog {
     id: dialog
 
-    title: "Note for next time"
+    title: dialog.heading
 
-    // The line that the project holds now.
+    property string heading: ""
+    property string hint: ""
+    property string action: "Keep"
+    // The line that the field starts with.
     property string note: ""
 
-    // The author kept the line. An empty line removes the note.
+    // The author kept the line. The line can be empty.
     signal written(text: string)
 
     function keep() {
@@ -47,7 +50,7 @@ T.Dialog {
         spacing: Theme.space.l
 
         Text {
-            text: "Note for next time"
+            text: dialog.heading
             font.family: Theme.type.reading
             font.pixelSize: Theme.type.title
             color: Theme.color.ink
@@ -56,10 +59,10 @@ T.Dialog {
         TextField {
             id: field
 
-            objectName: "nextTimeField"
+            objectName: "lineField"
             width: parent.width
-            Accessible.name: "Note for next time"
-            placeholderText: "Where to start, such as \"Fix the ending of chapter 3\""
+            Accessible.name: dialog.heading
+            placeholderText: dialog.hint
             Keys.onReturnPressed: dialog.keep()
             Keys.onEnterPressed: dialog.keep()
         }
@@ -74,9 +77,9 @@ T.Dialog {
             }
 
             Button {
-                objectName: "keepNextTime"
+                objectName: "keepLine"
                 kind: "primary"
-                text: "Keep"
+                text: dialog.action
                 onClicked: dialog.keep()
             }
         }

@@ -485,6 +485,7 @@ Item {
         { id: "versions.list", name: "Show the versions", sequence: "", former: "Ctrl+Alt+H", run: () => view.openVersions() },
         { id: "versions.save", name: "Save a version", sequence: "Ctrl+Alt+S", run: () => versionDialog.open() },
         { id: "versions.on", name: "Turn on versions", sequence: "", former: "Ctrl+Alt+V", run: () => view.turnOnVersions() },
+        { id: "capture", name: "Add a quick idea to the Ideas note", sequence: "Ctrl+Shift+A", run: () => captureDialog.open() },
         { id: "nexttime", name: "Leave a note for next time", sequence: "", run: () => nextTimeDialog.open() },
         { id: "progress", name: "Goals and progress", sequence: "Ctrl+Shift+G", run: () => progressDialog.open() },
         { id: "codex", name: "Open the codex", sequence: "Ctrl+Shift+C", former: "Ctrl+Shift+E", run: () => view.openCodex() },
@@ -608,14 +609,30 @@ Item {
         onSaved: message => view.versionsMessage = message
     }
 
-    NextTimeDialog {
+    LineDialog {
         id: nextTimeDialog
 
         objectName: "nextTimeDialog"
         parent: T.Overlay.overlay
         anchors.centerIn: parent
+        heading: "Note for next time"
+        hint: "Where to start, such as \"Fix the ending of chapter 3\""
         note: view.nextTime
         onWritten: text => view.nextTime = text
+    }
+
+    // A line for the "Ideas" note. The page keeps the focus afterwards.
+    LineDialog {
+        id: captureDialog
+
+        objectName: "captureDialog"
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        heading: "Quick idea"
+        hint: "An idea, a name, a thing to check"
+        action: "Add"
+        onWritten: text => view.session.capture(text)
+        onClosed: editor.focusText()
     }
 
     NameDialog {

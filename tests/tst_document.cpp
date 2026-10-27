@@ -617,6 +617,32 @@ private slots:
         QVERIFY(!data->html().contains(QStringLiteral("==")));
     }
 
+    void captureAddsLinesToTheIdeasNote()
+    {
+        ProjectSession session;
+        session.setFolder(dir.path());
+        session.setCurrentId("t6v4h9r2mz");
+        QVERIFY(!session.capture(QStringLiteral("   ")));
+        QVERIFY(session.capture(QStringLiteral("A  lighthouse\nkeeper")));
+        QVERIFY(session.capture(QStringLiteral("Check the tide table")));
+        // The open scene stays open, and the note is made once.
+        QCOMPARE(session.currentId(), QStringLiteral("t6v4h9r2mz"));
+        QString file;
+        int notes = 0;
+        for (const QVariant &item : session.items()) {
+            if (item.toMap().value("title").toString() == QLatin1String("Ideas")) {
+                ++notes;
+                file = session.fields(item.toMap().value("id").toString()).value("file").toString();
+            }
+        }
+        QCOMPARE(notes, 1);
+        const QString today = QDate::currentDate().toString(Qt::ISODate);
+        QCOMPARE(readFile(path(file.toUtf8().constData())),
+                 QStringLiteral("- %1: A lighthouse keeper\n- %1: Check the tide table\n")
+                     .arg(today)
+                     .toUtf8());
+    }
+
     void sessionSnapshotsBeforeALargeDeletion()
     {
         ProjectSession session;

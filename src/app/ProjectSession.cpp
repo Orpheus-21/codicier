@@ -1703,6 +1703,57 @@ QString ProjectSession::duplicate(const QString &id)
     return copyId;
 }
 
+bool ProjectSession::capture(const QString &line)
+{
+    const QString clean = line.simplified();
+    if (clean.isEmpty() || project.readOnly || !loadError.isEmpty())
+        return false;
+    const QString before = current;
+    int at = -1;
+    for (int i = 0; i < project.items.size(); ++i) {
+        const ProjectItem &item = project.items.at(i);
+        if (item.kind == QLatin1String("note") && item.title == QLatin1String("Ideas")
+            && item.section != QLatin1String("trash")) {
+            at = i;
+            break;
+        }
+    }
+    if (at < 0) {
+        const QString id = add(QStringLiteral("note"));
+        if (id.isEmpty() || !rename(id, QStringLiteral("Ideas")))
+            return false;
+        setCurrentId(before);
+        at = indexOf(id);
+    }
+    const QString file = project.items.at(at).file;
+    const QString id = project.items.at(at).id;
+    // The files hold the latest typing before the line goes in.
+    saveAll();
+    bool ok = false;
+    QString old = readTextFile(QDir(project.folder).filePath(file), &ok);
+    if (!ok)
+        return false;
+    while (old.endsWith(u'\n'))
+        old.chop(1);
+    const QString out = (old.isEmpty() ? QString() : old + u'\n')
+        + QStringLiteral("- %1: %2\n").arg(QDate::currentDate().toString(Qt::ISODate), clean);
+    QSaveFile target(QDir(project.folder).filePath(file));
+    const QByteArray bytes = out.toUtf8();
+    if (!target.open(QIODevice::WriteOnly) || target.write(bytes) != bytes.size()
+        || !target.commit())
+        return false;
+    changedSinceBackup = true;
+    noteSaved(file);
+    binderModel.setItemWords(id, Index::countWords(out));
+    if (text.file() == file)
+        text.reloadIfClean();
+    for (const QPointer<Document> &document : std::as_const(tracked)) {
+        if (document && document->file() == file)
+            document->reloadIfClean();
+    }
+    return true;
+}
+
 QString ProjectSession::addCanvas()
 {
     if (project.readOnly || !loadError.isEmpty())

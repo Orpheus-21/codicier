@@ -221,6 +221,10 @@ public:
     Q_INVOKABLE QVariantList mentionsOf(const QString &id);
     // Sets the value of one field of an entity. An empty value removes it.
     Q_INVOKABLE bool setEntityField(const QString &id, const QString &field, const QString &value);
+    // Adds the line, with today's date, to the end of the note "Ideas", and
+    // makes that note if the project has none. The open item stays open.
+    // Returns false for an empty line or a project that cannot change.
+    Q_INVOKABLE bool capture(const QString &line);
     // Gives the item a new title and saves the binder.
     Q_INVOKABLE bool rename(const QString &id, const QString &title);
     // Saves a search in the binder, in the searches section. Its title is
