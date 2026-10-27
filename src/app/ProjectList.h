@@ -89,6 +89,14 @@ public:
     // "today at 14:05" or "3 March at 14:05", or "" with no backup.
     Q_INVOKABLE static QString lastBackup(const QString &projectFolder,
                                           const QString &backupFolder);
+    // The zip backups of the project in the backup folder, newest first, as
+    // maps with a path and a label (the date).
+    Q_INVOKABLE static QVariantList backups(const QString &projectFolder,
+                                            const QString &backupFolder);
+    // Unpacks a backup as a new project in the workspace, with " (restored)"
+    // after its title. The old project stays as it is. Returns an error text,
+    // or "" and emits created.
+    Q_INVOKABLE QString restoreBackup(const QString &zipPath);
     // Deletes a project for good: its folder and its backups in
     // backupFolder, with no copy in a trash. The folder must be a project
     // directly in the workspace. Returns an error text, or "".

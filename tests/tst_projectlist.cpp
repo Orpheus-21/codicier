@@ -11,6 +11,8 @@
 #include <QTest>
 #include <QThread>
 
+#include <private/qzipwriter_p.h>
+
 namespace {
 
 void writeFile(const QString &path, const QByteArray &bytes)
@@ -35,6 +37,53 @@ class TestProjectList : public QObject
     Q_OBJECT
 
 private slots:
+    void aBackupRestoresAsANewProject()
+    {
+        QTemporaryDir dir;
+        QTemporaryDir backups;
+        const QString folder = dir.filePath("ledger");
+        QVERIFY(Templates::create(folder, "novel", "The Salt Ledger", "A").isEmpty());
+        ProjectList list;
+        list.setFolder(dir.path());
+        QVERIFY(ProjectList::backups(folder, backups.path()).isEmpty());
+        QString error;
+        QVERIFY(!Backup::write(folder, backups.path(), 5, &error).isEmpty());
+        const QVariantList found = ProjectList::backups(folder, backups.path());
+        QCOMPARE(found.size(), 1);
+        const QString zip = found.first().toMap().value("path").toString();
+        QSignalSpy created(&list, &ProjectList::created);
+        QCOMPARE(list.restoreBackup(zip), QString());
+        QCOMPARE(created.size(), 1);
+        // The old project stays, and the new one has a new title and folder.
+        QCOMPARE(list.count(), 2);
+        QVERIFY(titles(list).contains("The Salt Ledger (restored)"));
+        QVERIFY(titles(list).contains("The Salt Ledger"));
+        const QString restored = created.first().first().toString();
+        QVERIFY(restored != folder);
+        QVERIFY(QFile::exists(restored + "/binder.toml"));
+        // A second restore makes a second folder.
+        QCOMPARE(list.restoreBackup(zip), QString());
+        QCOMPARE(list.count(), 3);
+        QVERIFY(!list.restoreBackup(dir.filePath("none.zip")).isEmpty());
+    }
+
+    void aZipWithAPathOutsideTheFolderIsRefused()
+    {
+        QTemporaryDir dir;
+        const QString zip = dir.filePath("evil/evil-2026-01-01T00-00-00-000.zip");
+        QVERIFY(QDir().mkpath(dir.filePath("evil")));
+        {
+            QZipWriter writer(zip);
+            writer.addFile("evil/project.toml", "x");
+            writer.addFile("evil/../escaped.txt", "x");
+            writer.close();
+        }
+        QString error;
+        QVERIFY(!Backup::restore(zip, dir.filePath("target"), &error));
+        QVERIFY(error.contains("unsafe"));
+        QVERIFY(!QFile::exists(dir.filePath("escaped.txt")));
+    }
+
     void listsTheProjectsNewestFirst()
     {
         QTemporaryDir dir;

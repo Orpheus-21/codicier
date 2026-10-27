@@ -237,6 +237,14 @@ Item {
                 }
 
                 IconButton {
+                    objectName: "restoreProject"
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconName: "rotate-ccw-clock"
+                    label: "Backups of " + (row.title || row.folder)
+                    onClicked: restoreDialog.ask(row.folder, row.title || row.folder.split("/").pop())
+                }
+
+                IconButton {
                     objectName: "deleteProject"
                     anchors.verticalCenter: parent.verticalCenter
                     iconName: "trash"
@@ -503,6 +511,15 @@ Item {
 
     function openNewProject() {
         newProject.open();
+    }
+
+    RestoreDialog {
+        id: restoreDialog
+
+        objectName: "restoreDialog"
+        parent: T.Overlay.overlay
+        anchors.centerIn: parent
+        projects: projectList
     }
 
     DeleteProjectDialog {

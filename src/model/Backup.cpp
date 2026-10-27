@@ -157,6 +157,69 @@ QDateTime latest(const QString &projectFolder, const QString &backupFolder)
     return { };
 }
 
+QList<Entry> list(const QString &projectFolder, const QString &backupFolder)
+{
+    QList<Entry> entries;
+    const QDir project(projectFolder);
+    const QString name = QFileInfo(project.absolutePath()).fileName();
+    const QDir target(QDir(backupFolder).filePath(name));
+    if (backupFolder.isEmpty() || !target.exists())
+        return entries;
+    const QString created = createdIn(read(project.filePath(QStringLiteral("project.toml"))));
+    const QStringList zips = target.entryList({ name + QStringLiteral("-*.zip") }, QDir::Files,
+                                              QDir::Name | QDir::Reversed);
+    for (const QString &zip : zips) {
+        const QByteArray toml
+            = QZipReader(target.filePath(zip)).fileData(name + QStringLiteral("/project.toml"));
+        if (createdIn(toml) != created)
+            continue;
+        const QString stamp = zip.mid(name.size() + 1).chopped(4);
+        entries.append({ target.filePath(zip),
+                         QDateTime::fromString(stamp, QStringLiteral("yyyy-MM-ddTHH-mm-ss-zzz")) });
+    }
+    return entries;
+}
+
+bool restore(const QString &zipPath, const QString &targetFolder, QString *error)
+{
+    QZipReader zip(zipPath);
+    if (!zip.isReadable())
+        return fail(error, QStringLiteral("Cannot read the backup."));
+    if (QFileInfo::exists(targetFolder))
+        return fail(error, QStringLiteral("The folder %1 exists already.").arg(targetFolder));
+    const QDir target(targetFolder);
+    if (!target.mkpath(QStringLiteral(".")))
+        return fail(error, QStringLiteral("Cannot make the folder %1.").arg(targetFolder));
+    bool hasProject = false;
+    for (const QZipReader::FileInfo &info : zip.fileInfoList()) {
+        // Drop the folder name at the top.
+        const qsizetype slash = info.filePath.indexOf(u'/');
+        if (slash < 0)
+            continue;
+        const QString relative = info.filePath.mid(slash + 1);
+        if (relative.isEmpty())
+            continue;
+        // A path that leaves the folder is not in a backup of this app.
+        if (relative.startsWith(u'/') || relative.split(u'/').contains(QStringLiteral("..")))
+            return fail(error, QStringLiteral("The backup has an unsafe path: %1.").arg(relative));
+        if (info.isDir) {
+            target.mkpath(relative);
+            continue;
+        }
+        if (!info.isFile)
+            continue;
+        target.mkpath(QFileInfo(relative).path());
+        QSaveFile out(target.filePath(relative));
+        const QByteArray bytes = zip.fileData(info.filePath);
+        if (!out.open(QIODevice::WriteOnly) || out.write(bytes) != bytes.size() || !out.commit())
+            return fail(error, QStringLiteral("Cannot write %1.").arg(relative));
+        hasProject = hasProject || relative == QLatin1String("project.toml");
+    }
+    if (!hasProject)
+        return fail(error, QStringLiteral("The zip is not a backup of a project."));
+    return true;
+}
+
 int removeAll(const QString &projectFolder, const QString &backupFolder, QString *error)
 {
     const QDir project(projectFolder);

@@ -341,16 +341,64 @@ QString ProjectList::createSample()
     return { };
 }
 
-QString ProjectList::lastBackup(const QString &projectFolder, const QString &backupFolder)
+namespace {
+
+// "today at 14:05" or "3 March at 14:05".
+QString whenLabel(const QDateTime &time)
 {
-    const QDateTime time = Backup::latest(projectFolder, backupFolder);
-    if (!time.isValid())
-        return { };
     const QLocale english(QLocale::English, QLocale::UnitedKingdom);
     const QString day = time.date() == QDate::currentDate()
         ? QStringLiteral("today")
         : english.toString(time.date(), QStringLiteral("d MMMM"));
     return day + QStringLiteral(" at ") + time.toString(QStringLiteral("HH:mm"));
+}
+
+} // namespace
+
+QString ProjectList::lastBackup(const QString &projectFolder, const QString &backupFolder)
+{
+    const QDateTime time = Backup::latest(projectFolder, backupFolder);
+    return time.isValid() ? whenLabel(time) : QString();
+}
+
+QVariantList ProjectList::backups(const QString &projectFolder, const QString &backupFolder)
+{
+    QVariantList list;
+    for (const Backup::Entry &entry : Backup::list(projectFolder, backupFolder)) {
+        list.append(QVariantMap { { QStringLiteral("path"), entry.path },
+                                  { QStringLiteral("label"),
+                                    entry.time.isValid() ? whenLabel(entry.time) : entry.path } });
+    }
+    return list;
+}
+
+QString ProjectList::restoreBackup(const QString &zipPath)
+{
+    if (workspace.isEmpty())
+        return QStringLiteral("Choose a workspace first.");
+    if (!QFileInfo(zipPath).isFile())
+        return QStringLiteral("The backup is not there.");
+    // The backup folder of a project has the name of the project folder.
+    const QString target
+        = newFolderFor(QFileInfo(zipPath).dir().dirName() + QStringLiteral(" (restored)"));
+    QString error;
+    if (!Backup::restore(zipPath, target, &error)) {
+        QDir(target).removeRecursively();
+        return error;
+    }
+    // A new title tells the new project from the old one.
+    LoadResult loaded = ProjectStore::load(target);
+    if (loaded.ok()) {
+        loaded.project.title += QStringLiteral(" (restored)");
+        loaded.errors = ProjectStore::save(loaded.project);
+    }
+    if (!loaded.ok()) {
+        QDir(target).removeRecursively();
+        return loaded.errors.first().text();
+    }
+    refresh();
+    emit created(target);
+    return { };
 }
 
 QVariantList ProjectList::templateOutline(const QString &kind)

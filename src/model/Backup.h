@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QList>
 #include <QString>
 
 // Zip backups of a project folder.
@@ -22,5 +23,21 @@ int removeAll(const QString &projectFolder, const QString &backupFolder, QString
 // The time of the newest zip of the project in the backup folder, or an
 // invalid time when it has none.
 QDateTime latest(const QString &projectFolder, const QString &backupFolder);
+
+// One zip backup of a project.
+struct Entry
+{
+    QString path;
+    QDateTime time;
+};
+
+// The zips of the project in the backup folder, newest first. A zip is of
+// the project when its project.toml has the same created time.
+QList<Entry> list(const QString &projectFolder, const QString &backupFolder);
+
+// Unpacks a zip into targetFolder, which must not exist yet. The folder name
+// at the top of the zip is dropped. Returns false with the reason in error;
+// then the caller removes the folder.
+bool restore(const QString &zipPath, const QString &targetFolder, QString *error = nullptr);
 
 } // namespace Backup
