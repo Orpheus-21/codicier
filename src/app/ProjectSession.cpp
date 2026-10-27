@@ -47,6 +47,9 @@ ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
             applyPasses();
         applyComments();
     });
+    connect(
+        &text, &Document::largeDeletion, this,
+        [this](const QString &, const QByteArray &before) { keepBeforeDeletion(current, before); });
     connect(this, &ProjectSession::currentIdChanged, this, [this] {
         if (passTints)
             applyPasses();
@@ -3338,6 +3341,9 @@ void ProjectSession::trackDocument(Document *document, const QString &id)
         changedSinceBackup = true;
         noteSaved(file);
     });
+    connect(
+        document, &Document::largeDeletion, this,
+        [this, id](const QString &, const QByteArray &before) { keepBeforeDeletion(id, before); });
     connect(document, &Document::dirtyChanged, this, [this, document] {
         if (watcher && !document->file().isEmpty())
             watcher->setUnsaved(document->file(), document->dirty());
@@ -3365,6 +3371,13 @@ QString ProjectSession::takeSnapshot(const QString &id, const QString &title)
     if (!path.isEmpty())
         emit snapshotsChanged();
     return path;
+}
+
+void ProjectSession::keepBeforeDeletion(const QString &id, const QByteArray &before)
+{
+    if (!Snapshots::keep(project.folder, id, QStringLiteral("Before large deletion"), before)
+             .isEmpty())
+        emit snapshotsChanged();
 }
 
 QVariantList ProjectSession::snapshots(const QString &id) const

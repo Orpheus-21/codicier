@@ -232,6 +232,33 @@ private slots:
         QVERIFY(!QFile::exists(journal));
     }
 
+    void largeDeletionKeepsTheTextBefore()
+    {
+        Document document;
+        QTextDocument text;
+        // Qt sends contentsChange only to a document with a layout, as the
+        // editor has.
+        text.documentLayout();
+        document.attach(&text);
+        document.open(dir.path(), scene);
+        QTextCursor cursor(&text);
+        cursor.movePosition(QTextCursor::End);
+        cursor.insertText(QString(Document::largeDeletionChars + 50, u'a'));
+        QTest::qWait(Document::countDelayMs + 100);
+        QSignalSpy spy(&document, &Document::largeDeletion);
+        // A small deletion gives no copy.
+        cursor.setPosition(0);
+        cursor.setPosition(10, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+        QCOMPARE(spy.size(), 0);
+        QTest::qWait(Document::countDelayMs + 100);
+        const QString kept = text.toPlainText();
+        cursor.select(QTextCursor::Document);
+        cursor.removeSelectedText();
+        QCOMPARE(spy.size(), 1);
+        QCOMPARE(spy.first().at(1).toByteArray(), (kept + u'\n').toUtf8());
+    }
+
     void savesOneSecondAfterTheLastEdit()
     {
         Document document;
@@ -567,6 +594,29 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(loaded.size() >= 1, 5000);
         QCOMPARE(session.currentId(), QStringLiteral("t6v4h9r2mz"));
         QCOMPARE(session.document()->file(), QString::fromUtf8(scene));
+    }
+
+    void sessionSnapshotsBeforeALargeDeletion()
+    {
+        ProjectSession session;
+        session.setFolder(dir.path());
+        session.setCurrentId("t6v4h9r2mz");
+        QTextDocument page;
+        page.documentLayout();
+        session.document()->attach(&page);
+        QTextCursor cursor(&page);
+        cursor.movePosition(QTextCursor::End);
+        cursor.insertText(QString(Document::largeDeletionChars + 50, u'a'));
+        QTest::qWait(Document::countDelayMs + 100);
+        const QString before = page.toPlainText();
+        cursor.select(QTextCursor::Document);
+        cursor.removeSelectedText();
+        const QVariantList list = session.snapshots("t6v4h9r2mz");
+        QCOMPARE(list.size(), 1);
+        QCOMPARE(list.first().toMap().value("title").toString(),
+                 QStringLiteral("Before large deletion"));
+        QCOMPARE(readFile(path(list.first().toMap().value("path").toString().toUtf8().constData())),
+                 (before + u'\n').toUtf8());
     }
 };
 

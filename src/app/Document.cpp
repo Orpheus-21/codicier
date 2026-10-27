@@ -104,6 +104,13 @@ void Document::attach(QTextDocument *value)
     setPasses(passes);
     highlighter->setComments(comments);
     connect(document, &QTextDocument::contentsChanged, this, &Document::edited);
+    connect(document, &QTextDocument::contentsChange, this, [this](int, int removed, int added) {
+        if (loading || locked || path.isEmpty() || removed - added < largeDeletionChars
+            || quietText.isEmpty() || quietText == lastKept)
+            return;
+        lastKept = quietText;
+        emit largeDeletion(path, toFile(quietText));
+    });
     // After the edit, so the format change does not run inside it.
     connect(
         document, &QTextDocument::contentsChange, this,
@@ -465,7 +472,8 @@ void Document::edited()
 
 void Document::countWords()
 {
-    const int count = path.isEmpty() ? 0 : Index::countWords(text());
+    quietText = path.isEmpty() ? QString() : text();
+    const int count = path.isEmpty() ? 0 : Index::countWords(quietText);
     if (count == wordCount)
         return;
     wordCount = count;

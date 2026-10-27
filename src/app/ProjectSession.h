@@ -493,6 +493,8 @@ signals:
     void textsChanged();
 
 private:
+    // Keeps the text from before a large deletion as a snapshot of the item.
+    void keepBeforeDeletion(const QString &id, const QByteArray &before);
     // Takes the lock of folder, or opens it read-only when another window
     // holds it.
     void takeLock(const QString &folder);

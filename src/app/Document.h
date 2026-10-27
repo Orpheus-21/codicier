@@ -60,6 +60,9 @@ public:
     // start.
     static inline int saveDelayMs = 1000;
     static constexpr int countDelayMs = 250;
+    // A deletion of this many characters or more (about 100 words) gets a
+    // snapshot first.
+    static constexpr int largeDeletionChars = 600;
 
     explicit Document(QObject *parent = nullptr);
     // Saves unsaved edits while the text still exists.
@@ -157,6 +160,9 @@ signals:
     // The opened file had a journal from a run that ended before a save:
     // text that the file does not hold. The bytes are in the form of a file.
     void recovered(const QString &file, const QByteArray &bytes);
+    // An edit removed at least largeDeletionChars characters. The bytes are
+    // the text, in the form of a file, from before the edit.
+    void largeDeletion(const QString &file, const QByteArray &before);
 
 private:
     QPointer<QQuickTextDocument> quickDocument;
@@ -196,6 +202,10 @@ private:
     QString journalPath() const;
     void writeJournal();
     int wordCount = 0;
+    // The text at the last quiet moment, 250 ms after an edit. A large
+    // deletion keeps it, and lastKept stops a second copy of the same text.
+    QString quietText;
+    QString lastKept;
 
     void edited();
     void readFile();
