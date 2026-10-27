@@ -1561,6 +1561,23 @@ private slots:
         QVERIFY(!first.contains(nobody));
     }
 
+    void tensionIsAFiveStepRatingAndDrawsAcrossTheBook()
+    {
+        QVERIFY(!session->setField("m1n2p3q4r5", "tension", 0));
+        QVERIFY(!session->setField("m1n2p3q4r5", "tension", 6));
+        QVERIFY(session->insights().value("tension").toList().isEmpty());
+        QVERIFY(session->setField("m1n2p3q4r5", "tension", 4));
+        QCOMPARE(session->fields("m1n2p3q4r5").value("tension").toInt(), 4);
+        const QVariantList points = session->insights().value("tension").toList();
+        QCOMPARE(points.size(), 1);
+        QCOMPARE(points.first().toMap().value("value").toInt(), 4);
+        const double at = points.first().toMap().value("position").toDouble();
+        QVERIFY(at >= 0.0 && at <= 1.0);
+        QVERIFY(session->setField("m1n2p3q4r5", "tension", QString()));
+        QCOMPARE(session->fields("m1n2p3q4r5").value("tension").toInt(), 0);
+        QVERIFY(session->insights().value("tension").toList().isEmpty());
+    }
+
     void wholeManuscriptForTheBoardAndOutliner()
     {
         int scenes = 0;

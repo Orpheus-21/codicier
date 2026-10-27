@@ -809,6 +809,11 @@ QVariantMap ProjectSession::insights()
     // still in draft in a chapter that is marked final.
     QVariantList gaps;
     QVariantList unfinished;
+    QVariantList tension;
+    qsizetype sceneCount = 0;
+    for (const ChapterGroup &group : std::as_const(groups))
+        sceneCount += group.scenes.size();
+    qsizetype sceneNumber = 0;
     const auto textOfKey = [](const ProjectItem &item, const char *key) {
         return QString::fromStdString(item.data[key].value_or(std::string())).trimmed();
     };
@@ -843,6 +848,15 @@ QVariantMap ProjectSession::insights()
                                           { QStringLiteral("title"), scene.title },
                                           { QStringLiteral("chapter"), group.title },
                                           { QStringLiteral("missing"), missing } });
+            const int level = static_cast<int>(scene.data["tension"].value_or(std::int64_t { 0 }));
+            if (level > 0)
+                tension.append(QVariantMap {
+                    { QStringLiteral("id"), scene.id },
+                    { QStringLiteral("title"), scene.title },
+                    { QStringLiteral("value"), level },
+                    { QStringLiteral("position"),
+                      sceneCount > 1 ? double(sceneNumber) / double(sceneCount - 1) : 0.5 } });
+            ++sceneNumber;
             const QString status = textOfKey(scene, "status");
             if (chapterDone && (status.isEmpty() || status == QLatin1String("draft")))
                 unfinished.append(QVariantMap { { QStringLiteral("id"), scene.id },
@@ -945,10 +959,10 @@ QVariantMap ProjectSession::insights()
     for (const Character &character : std::as_const(characters))
         people.append(QVariantMap { { QStringLiteral("id"), character.id },
                                     { QStringLiteral("title"), character.title } });
-    return { { QStringLiteral("chapters"), chapters },    { QStringLiteral("povNames"), povNames },
-             { QStringLiteral("words"), common },         { QStringLiteral("names"), names },
-             { QStringLiteral("characters"), people },    { QStringLiteral("gaps"), gaps },
-             { QStringLiteral("unfinished"), unfinished } };
+    return { { QStringLiteral("chapters"), chapters },     { QStringLiteral("povNames"), povNames },
+             { QStringLiteral("words"), common },          { QStringLiteral("names"), names },
+             { QStringLiteral("characters"), people },     { QStringLiteral("gaps"), gaps },
+             { QStringLiteral("unfinished"), unfinished }, { QStringLiteral("tension"), tension } };
 }
 
 QVariantMap ProjectSession::firstAppearances()
@@ -2931,6 +2945,8 @@ QVariantMap ProjectSession::fields(const QString &id) const
     for (const char *key : { "pov", "place", "time", "synopsis", "notes", "beat", "date", "label",
                              "goal", "conflict", "outcome", "argument" })
         map.insert(QString::fromLatin1(key), string(key));
+    map.insert(QStringLiteral("tension"),
+               static_cast<int>(item.data["tension"].value_or(std::int64_t { 0 })));
     map.insert(QStringLiteral("dateLabel"), calendar().label(string("date")));
     map.insert(QStringLiteral("boardX"),
                static_cast<int>(item.data["board-x"].value_or(std::int64_t { -1 })));
@@ -3034,6 +3050,16 @@ bool ProjectSession::setField(const QString &id, const QString &key, const QVari
             data.erase(name);
         else if (calendar().dayOf(date))
             data.insert_or_assign(name, date.toStdString());
+        else
+            return false;
+    } else if (key == QLatin1String("tension")) {
+        // The tension of a scene, 1 (calm) to 5 (high), or "" for none.
+        bool ok = false;
+        const int level = value.toString().toInt(&ok);
+        if (value.toString().isEmpty())
+            data.erase(name);
+        else if (ok && level >= 1 && level <= 5)
+            data.insert_or_assign(name, static_cast<std::int64_t>(level));
         else
             return false;
     } else if (key == QLatin1String("label")) {

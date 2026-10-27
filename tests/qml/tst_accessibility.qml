@@ -1256,6 +1256,24 @@ TestCase {
         compare(view.session.currentId, port);
     }
 
+    function test_tensionRatingDrawsTheLineInTheInsights() {
+        const view = makeView();
+        const scene = view.session.plotGrid()[0].id;
+        view.session.currentId = scene;
+        view.inspectorOpen = true;
+        waitForRendering(view);
+        const four = findChild(view, "tension4") as Choice;
+        verify(four.visible);
+        mouseClick(four);
+        compare(view.session.fields(scene).tension, 4);
+        view.commands.find(command => command.id === "insights").run();
+        const insightsView = findChild(view, "insightsView") as Insights;
+        insightsView.refresh();
+        waitForRendering(view);
+        verify((findChild(insightsView, "tensionChart") as Item).visible);
+        compare(insightsView.figures.tension.length, 1);
+    }
+
     function test_insightsShowTheLengths() {
         failOnWarning(/TypeError/);
         const view = makeView();

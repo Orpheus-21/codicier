@@ -519,6 +519,40 @@ Pane {
             }
 
             Column {
+                visible: inspector.fields.kind === "scene"
+                width: parent.width
+                spacing: Theme.space.xs
+
+                Caps {
+                    text: "Tension"
+                }
+
+                Row {
+                    spacing: Theme.space.xs
+
+                    Choice {
+                        objectName: "tensionNone"
+                        label: "None"
+                        chosen: (inspector.fields.tension ?? 0) === 0
+                        onClicked: inspector.save("tension", "")
+                    }
+
+                    Repeater {
+                        model: 5
+
+                        Choice {
+                            required property int index
+
+                            objectName: "tension" + (index + 1)
+                            label: String(index + 1)
+                            chosen: (inspector.fields.tension ?? 0) === index + 1
+                            onClicked: inspector.save("tension", index + 1)
+                        }
+                    }
+                }
+            }
+
+            Column {
                 // A word target is for the texts of the book, not for an entity.
                 visible: inspector.entityType === undefined
                 width: parent.width

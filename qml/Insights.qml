@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Shapes
 
 import "Reading.js" as Reading
 
@@ -537,6 +538,81 @@ Item {
                     height: 34
                     text: modelData.chapter + ": " + modelData.title + " is still a draft"
                     onClicked: insights.opened(modelData.id)
+                }
+            }
+
+            Heading {
+                text: "Tension"
+            }
+
+            Text {
+                visible: (insights.figures.tension ?? []).length === 0
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: "Rate scenes from 1 to 5 in the inspector to see the tension across the book."
+                font.family: Theme.type.ui
+                font.pixelSize: Theme.type.body
+                color: Theme.color.inkMuted
+            }
+
+            // One line across the book: the scenes with a rating, in order.
+            Item {
+                id: tensionChart
+
+                readonly property var points: insights.figures.tension ?? []
+                readonly property real inset: 10
+
+                objectName: "tensionChart"
+                visible: points.length > 0
+                width: parent.width
+                height: 140
+                Accessible.role: Accessible.StaticText
+                Accessible.name: "Tension line of " + points.length + " rated scenes: "
+                                 + points.map(point => point.title + " " + point.value).join(", ")
+
+                function xOf(point: var): real {
+                    return inset + point.position * (width - 2 * inset);
+                }
+
+                function yOf(point: var): real {
+                    return height - inset - (point.value - 1) / 4 * (height - 2 * inset);
+                }
+
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    width: parent.width
+                    height: 1
+                    color: Theme.color.rule
+                }
+
+                Shape {
+                    anchors.fill: parent
+                    preferredRendererType: Shape.CurveRenderer
+
+                    ShapePath {
+                        strokeColor: Theme.color.accent
+                        strokeWidth: 2
+                        fillColor: "transparent"
+
+                        PathPolyline {
+                            path: tensionChart.points.map(point => Qt.point(tensionChart.xOf(point), tensionChart.yOf(point)))
+                        }
+                    }
+                }
+
+                Repeater {
+                    model: tensionChart.points
+
+                    Rectangle {
+                        required property var modelData
+
+                        x: tensionChart.xOf(modelData) - 4
+                        y: tensionChart.yOf(modelData) - 4
+                        width: 8
+                        height: 8
+                        radius: 4
+                        color: Theme.color.accent
+                    }
                 }
             }
 

@@ -163,7 +163,9 @@ public:
     // list of each chapter, which counts the mentions of each; and gaps, the
     // scenes with no POV, date, or synopsis (id, title, chapter, and the
     // missing names); and unfinished, the scenes still in draft in a
-    // chapter marked final (id, title, and chapter).
+    // chapter marked final (id, title, and chapter); and tension, the
+    // scenes with a tension rating of 1 to 5 in book order (id, title, value,
+    // and position, 0 for the first scene of the book to 1 for the last).
     Q_INVOKABLE QVariantMap insights();
     // Capitalised names that come back in the manuscript (4 times or more
     // inside a sentence) and are not in the codex, most often first, up to
