@@ -7,6 +7,14 @@ import QtQuick.Templates as T
 Window {
     id: window
 
+    // The project that was open at the last quit comes back, if the author
+    // chose that. The home screen clears the folder, so it starts on home.
+    onProjectFolderChanged: Settings.lastProject = projectFolder
+    Component.onCompleted: {
+        if (Settings.openLast && Workspaces.current !== "")
+            projectFolder = Settings.lastProject;
+    }
+
     // The last error from opening a folder, shown under the button.
     property string error: ""
     // The folder of the open project, or "" for the workspace home.

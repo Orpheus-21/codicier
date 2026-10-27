@@ -66,6 +66,10 @@ class Settings : public QObject
     Q_PROPERTY(bool hideMarks READ hideMarks WRITE setHideMarks NOTIFY changed)
     // True after the author saw the first-run hints of a project.
     Q_PROPERTY(bool hintsSeen READ hintsSeen WRITE setHintsSeen NOTIFY changed)
+    // True opens the project that was open at the last quit when the app starts.
+    Q_PROPERTY(bool openLast READ openLast WRITE setOpenLast NOTIFY changed)
+    // The folder of the open project, or "" when the app is on the home screen.
+    Q_PROPERTY(QString lastProject READ lastProject WRITE setLastProject NOTIFY changed)
     // True shows a text label next to the icons of the top bar.
     Q_PROPERTY(bool buttonLabels READ buttonLabels WRITE setButtonLabels NOTIFY changed)
     // The word target of one writing session, 0 for none, up to 100000.
@@ -146,6 +150,10 @@ public:
     void setHideMarks(bool value) { change(marksHidden, value, "view/hideMarks"); }
     bool hintsSeen() const { return seen; }
     void setHintsSeen(bool value) { change(seen, value, "view/hintsSeen"); }
+    bool openLast() const { return reopen; }
+    void setOpenLast(bool value) { change(reopen, value, "start/openLast"); }
+    QString lastProject() const { return last; }
+    void setLastProject(const QString &value) { change(last, value, "start/lastProject"); }
     bool buttonLabels() const { return labels; }
     void setButtonLabels(bool value) { change(labels, value, "view/buttonLabels"); }
     int sessionTarget() const { return target; }
@@ -185,6 +193,8 @@ private:
     bool essayTools = false;
     bool labels = false;
     bool seen = false;
+    bool reopen = false;
+    QString last;
     bool marksHidden = true;
     QString cards = QStringLiteral("label");
     QString reminderAt;

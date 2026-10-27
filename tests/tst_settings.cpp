@@ -284,6 +284,22 @@ private slots:
         again.setHintsSeen(false);
     }
 
+    void startSettingsSurviveARestart()
+    {
+        {
+            Settings settings;
+            QVERIFY(!settings.openLast());
+            QVERIFY(settings.lastProject().isEmpty());
+            settings.setOpenLast(true);
+            settings.setLastProject(QStringLiteral("/tmp/harbour"));
+        }
+        Settings again;
+        QVERIFY(again.openLast());
+        QCOMPARE(again.lastProject(), QStringLiteral("/tmp/harbour"));
+        again.setOpenLast(false);
+        again.setLastProject(QString());
+    }
+
     void viewSettingsSurviveARestartAndClamp()
     {
         {

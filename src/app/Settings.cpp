@@ -64,6 +64,8 @@ Settings::Settings(QObject *parent) : QObject(parent)
     essayTools = settings.value("view/essayTools", false).toBool();
     labels = settings.value("view/buttonLabels", false).toBool();
     seen = settings.value("view/hintsSeen", false).toBool();
+    reopen = settings.value("start/openLast", false).toBool();
+    last = settings.value("start/lastProject").toString();
     marksHidden = settings.value("view/hideMarks", true).toBool();
     free = settings.value("view/freeBoard", false).toBool();
     reminderAt = settings.value("goals/reminderTime").toString();

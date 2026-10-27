@@ -475,6 +475,24 @@ T.Dialog {
                     }
                 }
 
+                Setting {
+                    label: "When the app starts"
+
+                    Choice {
+                        objectName: "startHome"
+                        label: "Show the home screen"
+                        chosen: !Settings.openLast
+                        onClicked: Settings.openLast = false
+                    }
+
+                    Choice {
+                        objectName: "startLast"
+                        label: "Open the last project"
+                        chosen: Settings.openLast
+                        onClicked: Settings.openLast = true
+                    }
+                }
+
                 Heading {
                     text: "Writing"
                 }
