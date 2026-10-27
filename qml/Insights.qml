@@ -499,6 +499,48 @@ Item {
             }
 
             Heading {
+                visible: gapRows.count > 0
+                text: "Scenes with missing information"
+            }
+
+            Repeater {
+                id: gapRows
+
+                model: insights.figures.gaps ?? []
+
+                ListItem {
+                    required property var modelData
+
+                    objectName: "gapScene"
+                    width: parent.width
+                    height: 34
+                    text: modelData.chapter + ": " + modelData.title + " has no " + modelData.missing.join(", no ")
+                    onClicked: insights.opened(modelData.id)
+                }
+            }
+
+            Heading {
+                visible: unfinishedRows.count > 0
+                text: "Drafts in finished chapters"
+            }
+
+            Repeater {
+                id: unfinishedRows
+
+                model: insights.figures.unfinished ?? []
+
+                ListItem {
+                    required property var modelData
+
+                    objectName: "unfinishedScene"
+                    width: parent.width
+                    height: 34
+                    text: modelData.chapter + ": " + modelData.title + " is still a draft"
+                    onClicked: insights.opened(modelData.id)
+                }
+            }
+
+            Heading {
                 text: "Dialogue"
             }
 

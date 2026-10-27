@@ -160,7 +160,10 @@ public:
     // the manuscript with a word and a count each, with no common English
     // word and no word of one or two letters; and characters, the
     // characters of the codex (id and title), in the order of the presence
-    // list of each chapter, which counts the mentions of each.
+    // list of each chapter, which counts the mentions of each; and gaps, the
+    // scenes with no POV, date, or synopsis (id, title, chapter, and the
+    // missing names); and unfinished, the scenes still in draft in a
+    // chapter marked final (id, title, and chapter).
     Q_INVOKABLE QVariantMap insights();
     // The phrases of 3 to 6 words that come back in two or more scenes, most
     // first, up to 30: the phrase, the count, and the scenes (id and title)

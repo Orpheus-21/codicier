@@ -1481,6 +1481,37 @@ private slots:
         QCOMPARE(saga.printChapters(QString()).size(), 2);
     }
 
+    void insightsListWhatIsMissing()
+    {
+        const auto idsOf = [](const QVariantList &list) {
+            QStringList ids;
+            for (const QVariant &item : list)
+                ids.append(item.toMap().value("id").toString());
+            return ids;
+        };
+        const QVariantMap before = session->insights();
+        const QVariantList chapters = before.value("chapters").toList();
+        QVERIFY(!chapters.isEmpty());
+        const QVariantMap chapter = chapters.first().toMap();
+        const QString sceneId
+            = chapter.value("scenes").toList().first().toMap().value("id").toString();
+        QVERIFY(session->setField(sceneId, "pov", QString()));
+        QVERIFY(session->setField(sceneId, "synopsis", QString()));
+        QVERIFY(session->setField(sceneId, "date", QString()));
+        QVERIFY(idsOf(session->insights().value("gaps").toList()).contains(sceneId));
+        QVERIFY(session->setField(sceneId, "pov", QStringLiteral("Mara")));
+        QVERIFY(session->setField(sceneId, "synopsis", QStringLiteral("She arrives.")));
+        QVERIFY(session->setField(sceneId, "date", QStringLiteral("2026-01-01")));
+        QVERIFY(!idsOf(session->insights().value("gaps").toList()).contains(sceneId));
+        // A scene in draft in a chapter marked final is listed.
+        QVERIFY(session->setField(sceneId, "status", QStringLiteral("draft")));
+        QVERIFY(
+            session->setField(chapter.value("id").toString(), "status", QStringLiteral("final")));
+        QVERIFY(idsOf(session->insights().value("unfinished").toList()).contains(sceneId));
+        QVERIFY(session->setField(sceneId, "status", QStringLiteral("final")));
+        QVERIFY(!idsOf(session->insights().value("unfinished").toList()).contains(sceneId));
+    }
+
     void wholeManuscriptForTheBoardAndOutliner()
     {
         int scenes = 0;

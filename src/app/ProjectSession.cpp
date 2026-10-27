@@ -805,8 +805,18 @@ QVariantMap ProjectSession::insights()
                                      | QRegularExpression::UseUnicodePropertiesOption) });
     }
     QVariantList chapters;
+    // The scenes that lack a POV, a date, or a synopsis, and the scenes
+    // still in draft in a chapter that is marked final.
+    QVariantList gaps;
+    QVariantList unfinished;
+    const auto textOfKey = [](const ProjectItem &item, const char *key) {
+        return QString::fromStdString(item.data[key].value_or(std::string())).trimmed();
+    };
     for (const ChapterGroup &group : std::as_const(groups)) {
         QVariantList scenes;
+        const int owner = indexOf(group.id);
+        const bool chapterDone
+            = owner >= 0 && textOfKey(project.items.at(owner), "status") == QLatin1String("final");
         int words = 0;
         // For the readability: the sentences, and the words and syllables
         // of those sentences.
@@ -820,8 +830,24 @@ QVariantMap ProjectSession::insights()
             const ProjectItem &scene = project.items.at(index);
             const int count = binderModel.wordsOf(scene.id);
             words += count;
-            const QString pov
-                = QString::fromStdString(scene.data["pov"].value_or(std::string())).trimmed();
+            const QString pov = textOfKey(scene, "pov");
+            QStringList missing;
+            for (const auto &[key, name] :
+                 { std::pair { "pov", "POV" }, std::pair { "date", "date" },
+                   std::pair { "synopsis", "synopsis" } }) {
+                if (textOfKey(scene, key).isEmpty())
+                    missing.append(QString::fromLatin1(name));
+            }
+            if (!missing.isEmpty())
+                gaps.append(QVariantMap { { QStringLiteral("id"), scene.id },
+                                          { QStringLiteral("title"), scene.title },
+                                          { QStringLiteral("chapter"), group.title },
+                                          { QStringLiteral("missing"), missing } });
+            const QString status = textOfKey(scene, "status");
+            if (chapterDone && (status.isEmpty() || status == QLatin1String("draft")))
+                unfinished.append(QVariantMap { { QStringLiteral("id"), scene.id },
+                                                { QStringLiteral("title"), scene.title },
+                                                { QStringLiteral("chapter"), group.title } });
             povWords[pov.isEmpty() ? QStringLiteral("No POV") : pov] += count;
             QFile file(QDir(project.folder).filePath(scene.file));
             if (file.open(QIODevice::ReadOnly)) {
@@ -919,11 +945,10 @@ QVariantMap ProjectSession::insights()
     for (const Character &character : std::as_const(characters))
         people.append(QVariantMap { { QStringLiteral("id"), character.id },
                                     { QStringLiteral("title"), character.title } });
-    return { { QStringLiteral("chapters"), chapters },
-             { QStringLiteral("povNames"), povNames },
-             { QStringLiteral("words"), common },
-             { QStringLiteral("names"), names },
-             { QStringLiteral("characters"), people } };
+    return { { QStringLiteral("chapters"), chapters },    { QStringLiteral("povNames"), povNames },
+             { QStringLiteral("words"), common },         { QStringLiteral("names"), names },
+             { QStringLiteral("characters"), people },    { QStringLiteral("gaps"), gaps },
+             { QStringLiteral("unfinished"), unfinished } };
 }
 
 QVariantList ProjectSession::relations(const QString &id) const
