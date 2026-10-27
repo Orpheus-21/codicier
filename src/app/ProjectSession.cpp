@@ -951,6 +951,61 @@ QVariantMap ProjectSession::insights()
              { QStringLiteral("unfinished"), unfinished } };
 }
 
+QVariantList ProjectSession::suggestedEntries()
+{
+    saveAll();
+    // A name: one to three words that start with a capital letter.
+    static const QRegularExpression name(
+        QStringLiteral("\\p{Lu}[\\p{L}'’]*(?:[ ]\\p{Lu}[\\p{L}'’]*){0,2}"),
+        QRegularExpression::UseUnicodePropertiesOption);
+    static const QRegularExpression notLetters(QStringLiteral("[^\\p{L}]+"),
+                                               QRegularExpression::UseUnicodePropertiesOption);
+    static const QString opens = QStringLiteral(".!?:;…“\"‘—-*#>\n");
+    QSet<QString> known;
+    for (const QString &each : std::as_const(knownNames)) {
+        for (const QString &part : each.split(notLetters, Qt::SkipEmptyParts))
+            known.insert(part.toLower());
+    }
+    QHash<QString, int> counts;
+    for (const ChapterGroup &group : chapterGroups()) {
+        for (const int scene : group.scenes) {
+            const QString body = textOf(scene);
+            QRegularExpressionMatchIterator it = name.globalMatch(body);
+            while (it.hasNext()) {
+                const QRegularExpressionMatch match = it.next();
+                // A name at the start of a sentence is no sign: any word
+                // starts a sentence with a capital.
+                qsizetype before = match.capturedStart() - 1;
+                while (before >= 0 && body.at(before) == u' ')
+                    --before;
+                if (before < 0 || opens.contains(body.at(before)))
+                    continue;
+                const QString found = match.captured();
+                const QStringList words = found.split(notLetters, Qt::SkipEmptyParts);
+                const bool common = std::ranges::any_of(words, [&known](const QString &word) {
+                    const QString low = word.toLower();
+                    return known.contains(low) || stopWords().contains(low) || word.size() < 3;
+                });
+                if (!common)
+                    ++counts[found];
+            }
+        }
+    }
+    QList<std::pair<QString, int>> ranked;
+    for (auto it = counts.cbegin(); it != counts.cend(); ++it) {
+        if (it.value() >= 4)
+            ranked.append({ it.key(), it.value() });
+    }
+    std::ranges::sort(ranked, [](const auto &a, const auto &b) {
+        return a.second != b.second ? a.second > b.second : a.first < b.first;
+    });
+    QVariantList list;
+    for (qsizetype i = 0; i < std::min<qsizetype>(8, ranked.size()); ++i)
+        list.append(QVariantMap { { QStringLiteral("name"), ranked.at(i).first },
+                                  { QStringLiteral("count"), ranked.at(i).second } });
+    return list;
+}
+
 QVariantList ProjectSession::relations(const QString &id) const
 {
     QVariantList list;

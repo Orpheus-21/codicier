@@ -1512,6 +1512,38 @@ private slots:
         QVERIFY(!idsOf(session->insights().value("unfinished").toList()).contains(sceneId));
     }
 
+    void suggestedEntriesAreNamesThatComeBackAndHaveNoEntry()
+    {
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        QString body;
+        for (int i = 0; i < 4; ++i)
+            body += QStringLiteral("Then we saw Zelda and Port Ruin. We waited for Quill. ");
+        // A name at the start of a sentence, and a name seen once, are no sign.
+        body += QStringLiteral("Quartz is rare. We met Oddo once.");
+        editor.setPlainText(body);
+        const QVariantList found = session->suggestedEntries();
+        QStringList names;
+        for (const QVariant &each : found)
+            names.append(each.toMap().value("name").toString());
+        QVERIFY(names.contains("Zelda"));
+        QVERIFY(names.contains("Port Ruin"));
+        QVERIFY(names.contains("Quill"));
+        QVERIFY(!names.contains("Then"));
+        QVERIFY(!names.contains("Quartz"));
+        QVERIFY(!names.contains("Oddo"));
+        // A name that the codex holds is not offered again.
+        const QString id = session->add("character");
+        QVERIFY(session->rename(id, "Zelda"));
+        session->setCurrentId("m1n2p3q4r5");
+        QStringList after;
+        for (const QVariant &each : session->suggestedEntries())
+            after.append(each.toMap().value("name").toString());
+        QVERIFY(!after.contains("Zelda"));
+        QVERIFY(after.contains("Quill"));
+    }
+
     void wholeManuscriptForTheBoardAndOutliner()
     {
         int scenes = 0;

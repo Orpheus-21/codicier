@@ -469,6 +469,22 @@ TestCase {
         compare(view.session.fields(first).aliases, ["the clerk", "M"]);
     }
 
+    function test_codexOffersNamesThatComeBack() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "We waited for Quill. ".repeat(5);
+        view.openCodex();
+        verify(view.codexOpen);
+        const box = findChild(view, "codexSuggestions") as Column;
+        tryVerify(() => box.visible);
+        const button = findChild(box, "codexSuggestion") as Button;
+        compare(button.text, "Quill (5)");
+        waitForRendering(view);
+        mouseClick(button);
+        verify(view.session.items().some(item => item.kind === "character" && item.title === "Quill"));
+        tryVerify(() => !box.visible);
+    }
+
     function test_customTypeWithFields() {
         const view = makeView();
         view.openCodex();

@@ -165,6 +165,10 @@ public:
     // missing names); and unfinished, the scenes still in draft in a
     // chapter marked final (id, title, and chapter).
     Q_INVOKABLE QVariantMap insights();
+    // Capitalised names that come back in the manuscript (4 times or more
+    // inside a sentence) and are not in the codex, most often first, up to
+    // 8: a name and a count each.
+    Q_INVOKABLE QVariantList suggestedEntries();
     // The phrases of 3 to 6 words that come back in two or more scenes, most
     // first, up to 30: the phrase, the count, and the scenes (id and title)
     // in manuscript order. A phrase of common words only does not count.

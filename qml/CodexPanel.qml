@@ -24,6 +24,17 @@ Item {
     // The entity types in the order of the list: kind, name, and fields.
     property var types: []
     property var entities: []
+    // Names that come back in the text and have no entry: name and count.
+    property var suggestions: []
+
+    // Adds the name as a new character. The codex lists it at once.
+    function addSuggestion(name: string) {
+        const id = session.add("character");
+        if (id === "")
+            return;
+        session.rename(id, name);
+        suggestions = session.suggestedEntries();
+    }
 
     function heading(kind: string): string {
         const type = types.find(entry => entry.kind === kind);
@@ -48,6 +59,7 @@ Item {
 
     function start() {
         refresh();
+        suggestions = session.suggestedEntries();
         field.forceActiveFocus();
         field.selectAll();
     }
@@ -146,7 +158,7 @@ Item {
         objectName: "codexList"
         anchors.top: field.bottom
         anchors.topMargin: Theme.space.s
-        anchors.bottom: parent.bottom
+        anchors.bottom: suggestionBox.visible ? suggestionBox.top : parent.bottom
         width: parent.width
         clip: true
         boundsBehavior: Flickable.StopAtBounds
@@ -185,6 +197,45 @@ Item {
             text: modelData.title
             highlighted: ListView.isCurrentItem || modelData.id === panel.session.currentId
             onClicked: panel.openRow(index)
+        }
+    }
+
+    // Names to add: a name that comes back in the text and has no entry.
+    Column {
+        id: suggestionBox
+
+        objectName: "codexSuggestions"
+        visible: panel.suggestions.length > 0
+        anchors.bottom: parent.bottom
+        width: parent.width
+        spacing: Theme.space.xs
+
+        Text {
+            leftPadding: Theme.space.s
+            text: "Names to add as characters"
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.small
+            font.weight: Font.DemiBold
+            font.letterSpacing: 1.2
+            font.capitalization: Font.AllUppercase
+            color: Theme.color.inkMuted
+        }
+
+        Flow {
+            width: parent.width
+            spacing: Theme.space.xs
+
+            Repeater {
+                model: panel.suggestions
+
+                Button {
+                    required property var modelData
+
+                    objectName: "codexSuggestion"
+                    text: modelData.name + " (" + modelData.count + ")"
+                    onClicked: panel.addSuggestion(modelData.name)
+                }
+            }
         }
     }
 }
