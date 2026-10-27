@@ -17,6 +17,7 @@ Item {
         folder: view.folder
         backupFolder: Settings.backupFolder
         backupsToKeep: Settings.backupsToKeep
+        hourlyBackup: Settings.hourlyBackup
         spellCheck: Settings.spellCheck
         styleChecks: Settings.styleChecks
         hideMarks: Settings.hideMarks

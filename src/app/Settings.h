@@ -34,6 +34,8 @@ class Settings : public QObject
     Q_PROPERTY(int uiScale READ uiScale WRITE setUiScale NOTIFY changed)
     // The width of the page in characters, 45 to 90.
     Q_PROPERTY(int measure READ measure WRITE setMeasure NOTIFY changed)
+    // True also writes a backup of an open project after each hour with a change.
+    Q_PROPERTY(bool hourlyBackup READ hourlyBackup WRITE setHourlyBackup NOTIFY changed)
     // True turns every animation off.
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
     // Focus mode hides the top bar and the status bar. Off keeps them.
@@ -143,6 +145,8 @@ public:
     void setHideMarks(bool value) { change(marksHidden, value, "view/hideMarks"); }
     bool hintsSeen() const { return seen; }
     void setHintsSeen(bool value) { change(seen, value, "view/hintsSeen"); }
+    bool hourlyBackup() const { return hourly; }
+    void setHourlyBackup(bool value) { change(hourly, value, "backup/hourly"); }
     bool openLast() const { return reopen; }
     void setOpenLast(bool value) { change(reopen, value, "start/openLast"); }
     QString lastProject() const { return last; }
@@ -186,6 +190,7 @@ private:
     bool labels = false;
     bool seen = false;
     bool reopen = false;
+    bool hourly = true;
     QString last;
     bool marksHidden = true;
     QString cards = QStringLiteral("label");

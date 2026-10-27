@@ -63,6 +63,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     labels = settings.value("view/buttonLabels", false).toBool();
     seen = settings.value("view/hintsSeen", false).toBool();
     reopen = settings.value("start/openLast", false).toBool();
+    hourly = settings.value("backup/hourly", true).toBool();
     last = settings.value("start/lastProject").toString();
     marksHidden = settings.value("view/hideMarks", true).toBool();
     reminderAt = settings.value("goals/reminderTime").toString();

@@ -492,6 +492,35 @@ private slots:
         QVERIFY(!session->setField("t6v4h9r2mz", "include", "no"));
     }
 
+    void hourlyBackupWritesAZipAfterAChange()
+    {
+        // A second window on the same folder is read-only, so the test
+        // uses its own copy of the project.
+        QTemporaryDir copy;
+        copyFixture(copy.path());
+        QTemporaryDir backups;
+        ProjectSession timed;
+        timed.setProperty("backupFolder", backups.path());
+        timed.setProperty("backupIntervalMs", 50);
+        timed.setFolder(copy.path());
+        const QString name = QFileInfo(copy.path()).fileName();
+        const auto zips = [&] {
+            return QDir(backups.filePath(name)).entryList({ "*.zip" }, QDir::Files).size();
+        };
+        // No change yet, so the first beat writes nothing.
+        QTest::qWait(150);
+        QCOMPARE(zips(), 0);
+        QVERIFY(timed.setField("m1n2p3q4r5", "label", "blue"));
+        timed.takeSnapshot("m1n2p3q4r5", "Hourly");
+        QTRY_COMPARE_WITH_TIMEOUT(zips(), 1, 3000);
+        // The switch turns the beat off.
+        timed.setProperty("hourlyBackup", false);
+        timed.takeSnapshot("m1n2p3q4r5", "Hourly again");
+        QTest::qWait(200);
+        QCOMPARE(zips(), 1);
+        timed.setProperty("backupFolder", QString());
+    }
+
     void emptyTrashDeletesOnlyTheTrash()
     {
         QTemporaryDir backups;

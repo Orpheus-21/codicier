@@ -10,6 +10,7 @@
 #include <QPointer>
 #include <QSet>
 #include <QString>
+#include <QTimer>
 #include <QUrl>
 #include <QVariantMap>
 
@@ -83,6 +84,11 @@ class ProjectSession : public QObject
     // An empty folder means no backup.
     Q_PROPERTY(QString backupFolder MEMBER backupFolder NOTIFY backupChanged)
     Q_PROPERTY(int backupsToKeep MEMBER backupsToKeep NOTIFY backupChanged)
+    // True also writes a backup after each hour with a change while the
+    // project is open. The wait is in backupIntervalMs, which a test can
+    // shorten before it sets the folder.
+    Q_PROPERTY(bool hourlyBackup MEMBER hourlyBackup NOTIFY backupChanged)
+    Q_PROPERTY(int backupIntervalMs MEMBER backupIntervalMs NOTIFY backupChanged)
 
 public:
     explicit ProjectSession(QObject *parent = nullptr);
@@ -530,6 +536,11 @@ private:
     QList<QPointer<Document>> tracked;
     QString backupFolder;
     int backupsToKeep = 10;
+    bool hourlyBackup = true;
+    int backupIntervalMs = 60 * 60 * 1000;
+    QTimer backupTimer;
+    // Writes the zip if a file changed since the last backup.
+    QString writeBackup();
     // A file changed since the project opened or since the last backup.
     bool changedSinceBackup = false;
     // The manuscript words when the project opened.

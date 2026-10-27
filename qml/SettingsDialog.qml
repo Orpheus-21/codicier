@@ -656,6 +656,24 @@ T.Dialog {
                 }
 
                 Setting {
+                    label: "Backup while you write"
+
+                    Choice {
+                        objectName: "hourlyOn"
+                        label: "Each hour"
+                        chosen: Settings.hourlyBackup
+                        onClicked: Settings.hourlyBackup = true
+                    }
+
+                    Choice {
+                        objectName: "hourlyOff"
+                        label: "Only when a project closes"
+                        chosen: !Settings.hourlyBackup
+                        onClicked: Settings.hourlyBackup = false
+                    }
+                }
+
+                Setting {
                     label: "Backups to keep for each project"
 
                     TextField {

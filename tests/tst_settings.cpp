@@ -279,6 +279,18 @@ private slots:
         again.setHintsSeen(false);
     }
 
+    void hourlyBackupIsOnAndSurvivesARestart()
+    {
+        {
+            Settings settings;
+            QVERIFY(settings.hourlyBackup());
+            settings.setHourlyBackup(false);
+        }
+        Settings again;
+        QVERIFY(!again.hourlyBackup());
+        again.setHourlyBackup(true);
+    }
+
     void startSettingsSurviveARestart()
     {
         {

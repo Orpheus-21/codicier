@@ -39,6 +39,13 @@ QString readTextFile(const QString &path, bool *ok);
 
 ProjectSession::ProjectSession(QObject *parent) : QObject(parent)
 {
+    // The backup of the hour: only a project with changes gets one.
+    connect(&backupTimer, &QTimer::timeout, this, [this] {
+        if (!hourlyBackup || project.readOnly)
+            return;
+        saveAll();
+        writeBackup();
+    });
     connect(&text, &Document::saved, this, [this](const QString &file) {
         changedSinceBackup = true;
         noteSaved(file);
@@ -128,6 +135,11 @@ QString ProjectSession::backup()
     }
     if (history)
         history->save();
+    return writeBackup();
+}
+
+QString ProjectSession::writeBackup()
+{
     if (!changedSinceBackup || project.folder.isEmpty() || !loadError.isEmpty()
         || backupFolder.isEmpty())
         return { };
@@ -153,6 +165,10 @@ void ProjectSession::setFolder(const QString &folder)
     history.reset();
     takeLock(folder);
     reload();
+    if (folder.isEmpty())
+        backupTimer.stop();
+    else
+        backupTimer.start(backupIntervalMs);
     // The session and the history count the words added from now on.
     sessionStart = manuscriptWords();
     historyTotal = sessionStart;
