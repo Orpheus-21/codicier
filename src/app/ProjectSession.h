@@ -169,6 +169,10 @@ public:
     // inside a sentence) and are not in the codex, most often first, up to
     // 8: a name and a count each.
     Q_INVOKABLE QVariantList suggestedEntries();
+    // The first scene of the manuscript in which each entity of the codex
+    // appears by its title or an alias, as a map from the id of the entity
+    // to the title of the scene. An entity that appears nowhere has no key.
+    Q_INVOKABLE QVariantMap firstAppearances();
     // The phrases of 3 to 6 words that come back in two or more scenes, most
     // first, up to 30: the phrase, the count, and the scenes (id and title)
     // in manuscript order. A phrase of common words only does not count.

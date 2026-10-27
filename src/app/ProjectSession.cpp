@@ -951,6 +951,40 @@ QVariantMap ProjectSession::insights()
              { QStringLiteral("unfinished"), unfinished } };
 }
 
+QVariantMap ProjectSession::firstAppearances()
+{
+    saveAll();
+    struct Entity
+    {
+        QString id;
+        QRegularExpression pattern;
+    };
+    QList<Entity> waiting;
+    for (const ProjectItem &item : std::as_const(project.items)) {
+        if (!isEntity(item.kind) || binderModel.isInTrash(item.id))
+            continue;
+        QStringList names = strings(item.data.get("aliases"));
+        names.prepend(item.title);
+        names.removeAll(QString());
+        waiting.append({ item.id, namePattern(names) });
+    }
+    QVariantMap first;
+    for (const ChapterGroup &group : chapterGroups()) {
+        for (const int scene : group.scenes) {
+            if (waiting.isEmpty())
+                return first;
+            const QString body = textOf(scene);
+            waiting.removeIf([&](const Entity &entity) {
+                if (!entity.pattern.match(body).hasMatch())
+                    return false;
+                first.insert(entity.id, project.items.at(scene).title);
+                return true;
+            });
+        }
+    }
+    return first;
+}
+
 QVariantList ProjectSession::suggestedEntries()
 {
     saveAll();

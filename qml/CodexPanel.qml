@@ -26,6 +26,8 @@ Item {
     property var entities: []
     // Names that come back in the text and have no entry: name and count.
     property var suggestions: []
+    // The title of the first scene in which each entity appears, by id.
+    property var firsts: ({})
 
     // Adds the name as a new character. The codex lists it at once.
     function addSuggestion(name: string) {
@@ -34,6 +36,7 @@ Item {
             return;
         session.rename(id, name);
         suggestions = session.suggestedEntries();
+        firsts = session.firstAppearances();
     }
 
     function heading(kind: string): string {
@@ -60,6 +63,7 @@ Item {
     function start() {
         refresh();
         suggestions = session.suggestedEntries();
+        firsts = session.firstAppearances();
         field.forceActiveFocus();
         field.selectAll();
     }
@@ -195,6 +199,7 @@ Item {
 
             width: ListView.view.width
             text: modelData.title
+            trailing: panel.firsts[modelData.id] ? "First in " + panel.firsts[modelData.id] : ""
             highlighted: ListView.isCurrentItem || modelData.id === panel.session.currentId
             onClicked: panel.openRow(index)
         }

@@ -1544,6 +1544,23 @@ private slots:
         QVERIFY(after.contains("Quill"));
     }
 
+    void firstAppearanceIsTheEarliestSceneThatNamesTheEntity()
+    {
+        session->setCurrentId("m1n2p3q4r5");
+        QTextDocument editor;
+        session->document()->attach(&editor);
+        editor.setPlainText(QStringLiteral("Only Zelda knew."));
+        const QString zelda = session->add("character");
+        QVERIFY(session->rename(zelda, "Zelda"));
+        const QString nobody = session->add("character");
+        QVERIFY(session->rename(nobody, "Nobody Known"));
+        session->setCurrentId("m1n2p3q4r5");
+        const QVariantMap first = session->firstAppearances();
+        QCOMPARE(first.value(zelda).toString(),
+                 session->fields("m1n2p3q4r5").value("title").toString());
+        QVERIFY(!first.contains(nobody));
+    }
+
     void wholeManuscriptForTheBoardAndOutliner()
     {
         int scenes = 0;
