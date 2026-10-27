@@ -3,6 +3,7 @@
 #include "Index.h"
 #include "ProjectStore.h"
 
+#include <QClipboard>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -10,10 +11,13 @@
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QMimeData>
 #include <QQuickTextDocument>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QTextBlockFormat>
 #include <QTextCursor>
+#include <QTextDocumentFragment>
 
 namespace {
 
@@ -120,6 +124,25 @@ void Document::attach(QTextDocument *value)
         },
         Qt::QueuedConnection);
     showText();
+}
+
+void Document::copyPlain(int start, int end) const
+{
+    if (document == nullptr || start >= end)
+        return;
+    QTextCursor cursor(document);
+    cursor.setPosition(start);
+    cursor.setPosition(end, QTextCursor::KeepAnchor);
+    // Qt reads the standard marks. The links [[Title]] and the highlights
+    // ==text== are marks of the app, so they go first.
+    static const QRegularExpression ownMarks(QStringLiteral(R"(\[\[([^\]\n]*)\]\]|==([^=\n]+)==)"));
+    QTextDocument parsed;
+    parsed.setMarkdown(
+        cursor.selection().toPlainText().replace(ownMarks, QStringLiteral("\\1\\2")));
+    auto *data = new QMimeData;
+    data->setText(parsed.toPlainText());
+    data->setHtml(parsed.toHtml());
+    QGuiApplication::clipboard()->setMimeData(data);
 }
 
 void Document::setSpellChecker(const SpellChecker *checker)

@@ -1,11 +1,14 @@
 #include "Document.h"
 #include "ProjectSession.h"
 
+#include <QClipboard>
 #include <QDir>
 #include <QDirIterator>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
+#include <QGuiApplication>
+#include <QMimeData>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -594,6 +597,24 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(loaded.size() >= 1, 5000);
         QCOMPARE(session.currentId(), QStringLiteral("t6v4h9r2mz"));
         QCOMPARE(session.document()->file(), QString::fromUtf8(scene));
+    }
+
+    void copyLeavesOutTheMarks()
+    {
+        Document document;
+        QTextDocument text;
+        document.attach(&text);
+        document.open(dir.path(), scene);
+        QTextCursor cursor(&text);
+        cursor.select(QTextCursor::Document);
+        cursor.insertText(
+            QStringLiteral("# Title\n\nA **bold** word, ==marked==, [[Link]].\n\nNext *one*."));
+        document.copyPlain(0, text.characterCount() - 1);
+        const QMimeData *data = QGuiApplication::clipboard()->mimeData();
+        QCOMPARE(data->text(), QStringLiteral("Title\nA bold word, marked, Link.\nNext one."));
+        QVERIFY(data->html().contains(QStringLiteral("bold")));
+        QVERIFY(!data->html().contains(QLatin1Char('*')));
+        QVERIFY(!data->html().contains(QStringLiteral("==")));
     }
 
     void sessionSnapshotsBeforeALargeDeletion()

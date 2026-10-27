@@ -145,6 +145,25 @@ TestCase {
         verify(!(findChild(again, "firstRunHint") as FirstRunHint).visible);
     }
 
+    function test_copyAndCutLeaveOutTheMarks() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        text.text = "dusk **fell**";
+        text.forceActiveFocus();
+        text.selectAll();
+        keyClick(Qt.Key_C, Qt.ControlModifier);
+        compare(text.text, "dusk **fell**");
+        text.cursorPosition = text.length;
+        text.paste();
+        compare(text.text, "dusk **fell**dusk fell");
+        text.select(0, 13);
+        keyClick(Qt.Key_X, Qt.ControlModifier);
+        compare(text.text, "dusk fell");
+        text.text = "";
+        text.paste();
+        compare(text.text, "dusk fell");
+    }
+
     function test_boldAndItalicToggleTheMarks() {
         const view = makeView();
         const text = findChild(view, "editor") as TextEdit;

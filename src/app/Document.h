@@ -116,6 +116,9 @@ public:
     // Replaces the characters from start to end with text, as one step of
     // undo.
     Q_INVOKABLE void replace(int start, int end, const QString &text);
+    // Puts the characters from start to end on the clipboard as plain text
+    // and as rich text, with no Markdown marks.
+    Q_INVOKABLE void copyPlain(int start, int end) const;
     // The checker for the underlines of unknown words, or null for none.
     void setSpellChecker(const SpellChecker *checker);
     // Checks the whole text again, after the checker learned new words.

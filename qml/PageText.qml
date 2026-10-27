@@ -30,6 +30,25 @@ TextEdit {
     // Save while the text still exists: the text goes before the document.
     Component.onDestruction: pageText.document.save()
 
+    // Copy and cut put the text on the clipboard with no Markdown marks.
+    Keys.forwardTo: [copyKeys]
+
+    Item {
+        id: copyKeys
+
+        Keys.onPressed: event => {
+            const cut = event.matches(StandardKey.Cut);
+            const start = pageText.selectionStart;
+            const end = pageText.selectionEnd;
+            if (!(cut || event.matches(StandardKey.Copy)) || start === end)
+                return;
+            pageText.document.copyPlain(start, end);
+            if (cut && !pageText.readOnly)
+                pageText.remove(start, end);
+            event.accepted = true;
+        }
+    }
+
     FontMetrics {
         id: metrics
 
