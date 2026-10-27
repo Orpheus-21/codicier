@@ -354,24 +354,6 @@ T.Dialog {
                 }
 
                 Setting {
-                    label: "Labels on the top buttons"
-
-                    Choice {
-                        objectName: "labelsOn"
-                        label: "Show"
-                        chosen: Settings.buttonLabels
-                        onClicked: Settings.buttonLabels = true
-                    }
-
-                    Choice {
-                        objectName: "labelsOff"
-                        label: "Icons only"
-                        chosen: !Settings.buttonLabels
-                        onClicked: Settings.buttonLabels = false
-                    }
-                }
-
-                Setting {
                     label: "Line spacing"
 
                     Repeater {
@@ -418,24 +400,6 @@ T.Dialog {
                             regularExpression: /^$|^([01][0-9]|2[0-3]):[0-5][0-9]$/
                         }
                         onEditingFinished: Settings.reminderTime = text
-                    }
-                }
-
-                Setting {
-                    label: "Animations"
-
-                    Choice {
-                        objectName: "motionOn"
-                        label: "On"
-                        chosen: !Settings.reducedMotion
-                        onClicked: Settings.reducedMotion = false
-                    }
-
-                    Choice {
-                        objectName: "motionOff"
-                        label: "Off"
-                        chosen: Settings.reducedMotion
-                        onClicked: Settings.reducedMotion = true
                     }
                 }
 
@@ -490,6 +454,46 @@ T.Dialog {
                         label: "Open the last project"
                         chosen: Settings.openLast
                         onClicked: Settings.openLast = true
+                    }
+                }
+
+                Heading {
+                    text: "Accessibility"
+                }
+
+                Setting {
+                    label: "Labels on the top buttons"
+
+                    Choice {
+                        objectName: "labelsOn"
+                        label: "Show"
+                        chosen: Settings.buttonLabels
+                        onClicked: Settings.buttonLabels = true
+                    }
+
+                    Choice {
+                        objectName: "labelsOff"
+                        label: "Icons only"
+                        chosen: !Settings.buttonLabels
+                        onClicked: Settings.buttonLabels = false
+                    }
+                }
+
+                Setting {
+                    label: "Animations"
+
+                    Choice {
+                        objectName: "motionOn"
+                        label: "On"
+                        chosen: !Settings.reducedMotion
+                        onClicked: Settings.reducedMotion = false
+                    }
+
+                    Choice {
+                        objectName: "motionOff"
+                        label: "Off"
+                        chosen: Settings.reducedMotion
+                        onClicked: Settings.reducedMotion = true
                     }
                 }
 
