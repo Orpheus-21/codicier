@@ -12,8 +12,11 @@ T.Dialog {
     title: "Print"
 
     required property ProjectSession session
-    // "chapter" or "manuscript".
+    // "chapter", "manuscript", or "book" (the book with the id in book).
     property string scope: "chapter"
+    property string book: ""
+    // The books of a series, or an empty list.
+    property var books: []
     // The name of a printer, or "" to save a PDF file.
     property string printer: ""
     // The author clicked a destination, so the printer search keeps it.
@@ -24,7 +27,7 @@ T.Dialog {
     property string error: ""
 
     function refresh() {
-        chapters = session.printChapters(scope === "chapter" ? session.currentId : "");
+        chapters = session.printChapters(scope === "chapter" ? session.currentId : scope === "book" ? book : "");
     }
 
     function send(pdf: url) {
@@ -41,11 +44,13 @@ T.Dialog {
     closePolicy: T.Popup.CloseOnEscape | T.Popup.CloseOnPressOutside
 
     onScopeChanged: refresh()
+    onBookChanged: refresh()
     onAboutToShow: {
         error = "";
         // The printers come a moment later; until then PDF is the choice.
         printer = "";
         picked = false;
+        books = session.books();
         Printer.findPrinters();
         // With no chapter open, the whole manuscript prints.
         inChapter = session.currentId !== "" && session.printChapters(session.currentId).length > 0;
@@ -121,6 +126,22 @@ T.Dialog {
                     label: "The whole manuscript"
                     chosen: dialog.scope === "manuscript"
                     onClicked: dialog.scope = "manuscript"
+                }
+
+                Repeater {
+                    model: dialog.books
+
+                    Choice {
+                        required property var modelData
+
+                        objectName: "printBook-" + modelData.id
+                        label: modelData.title
+                        chosen: dialog.scope === "book" && dialog.book === modelData.id
+                        onClicked: {
+                            dialog.book = modelData.id;
+                            dialog.scope = "book";
+                        }
+                    }
                 }
             }
         }

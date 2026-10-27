@@ -3160,9 +3160,17 @@ QVariantList ProjectSession::printChapters(const QString &id)
 {
     saveAll();
     const int at = indexOf(id);
+    // True when the item is the folder `top` or lies below it.
+    const auto isInside = [this](int item, int top) {
+        for (; item >= 0; item = project.items.at(item).parent) {
+            if (item == top)
+                return true;
+        }
+        return false;
+    };
     QVariantList list;
     for (const ChapterGroup &group : chapterGroups()) {
-        if (!id.isEmpty() && group.id != id && (at < 0 || !group.scenes.contains(at)))
+        if (!id.isEmpty() && !group.scenes.contains(at) && !isInside(indexOf(group.id), at))
             continue;
         QStringList texts;
         for (const int scene : group.scenes) {
@@ -3174,6 +3182,25 @@ QVariantList ProjectSession::printChapters(const QString &id)
                                       { QStringLiteral("texts"), texts } });
     }
     return list;
+}
+
+QVariantList ProjectSession::books() const
+{
+    QVariantList list;
+    for (const int root : project.roots) {
+        const ProjectItem &item = project.items.at(root);
+        if (item.section != QLatin1String("manuscript") || item.kind == QLatin1String("scene"))
+            continue;
+        const std::function<bool(int)> holdsScene = [&](int at) {
+            return std::ranges::any_of(project.items.at(at).children, [&](int child) {
+                return project.items.at(child).kind == QLatin1String("scene") || holdsScene(child);
+            });
+        };
+        if (holdsScene(root))
+            list.append(QVariantMap { { QStringLiteral("id"), item.id },
+                                      { QStringLiteral("title"), item.title } });
+    }
+    return list.size() > 1 ? list : QVariantList();
 }
 
 QVariantMap ProjectSession::bookInfo() const

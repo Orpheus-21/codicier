@@ -2,6 +2,7 @@
 #include "ProjectSession.h"
 #include "ProjectStore.h"
 #include "SpellChecker.h"
+#include "Templates.h"
 #include "Thesaurus.h"
 
 #include <QDate>
@@ -1448,6 +1449,36 @@ private slots:
         for (const QVariant &chapter : session->printChapters(QString()))
             after += static_cast<int>(chapter.toMap().value("texts").toStringList().size());
         QCOMPARE(after, scenes - 1);
+    }
+
+    void aSeriesGivesItsBooksOneByOne()
+    {
+        QTemporaryDir series;
+        QVERIFY(Templates::create(series.filePath("saga"), "series", "Saga", QString()).isEmpty());
+        ProjectSession saga;
+        saga.setFolder(series.filePath("saga"));
+        // One book is no series.
+        QVERIFY(saga.books().isEmpty());
+        QString first;
+        for (const QVariant &item : saga.items()) {
+            if (item.toMap().value("kind").toString() == QLatin1String("folder"))
+                first = item.toMap().value("id").toString();
+        }
+        QVERIFY(!first.isEmpty());
+        saga.setCurrentId(QString());
+        const QString second = saga.add("folder");
+        QVERIFY(!second.isEmpty());
+        QVERIFY(saga.rename(second, "Book Two"));
+        QVERIFY(saga.books().isEmpty());
+        saga.setCurrentId(second);
+        QVERIFY(!saga.add("chapter").isEmpty());
+        QVERIFY(!saga.add("scene").isEmpty());
+        const QVariantList books = saga.books();
+        QCOMPARE(books.size(), 2);
+        QCOMPARE(books.at(1).toMap().value("title").toString(), QStringLiteral("Book Two"));
+        QCOMPARE(saga.printChapters(first).size(), 1);
+        QCOMPARE(saga.printChapters(second).size(), 1);
+        QCOMPARE(saga.printChapters(QString()).size(), 2);
     }
 
     void wholeManuscriptForTheBoardAndOutliner()

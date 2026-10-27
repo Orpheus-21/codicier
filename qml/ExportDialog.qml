@@ -16,6 +16,9 @@ T.Dialog {
     property string format: "docx"
     property string error: ""
     property string done: ""
+    // The book of a series to export, or "" for the whole manuscript.
+    property string book: ""
+    property var books: []
     // Each format: its key, its name, its file suffix, and what it is for.
     readonly property var formats: [
         ["docx", "Word (DOCX)", "docx", "For Word and LibreOffice, and for anyone who asks for a Word file."],
@@ -25,11 +28,14 @@ T.Dialog {
     readonly property var chosen: formats.find(each => each[0] === format)
 
     function send(file: url) {
-        const chapters = session.printChapters("");
-        const book = session.bookInfo();
+        const chapters = session.printChapters(dialog.book);
+        const info = session.bookInfo();
+        const picked = books.find(each => each.id === dialog.book);
+        if (picked)
+            info.title = picked.title;
         error = format === "pdf"
-            ? Printer.print(chapters, Theme.type.reading, Settings.readingSize, book.sceneBreak, "", file)
-            : Exporter.write(format, chapters, book, file);
+            ? Printer.print(chapters, Theme.type.reading, Settings.readingSize, info.sceneBreak, "", file)
+            : Exporter.write(format, chapters, info, file);
         done = error === "" ? "Saved " + decodeURIComponent(file.toString().replace("file://", "")) : "";
     }
 
@@ -43,6 +49,9 @@ T.Dialog {
     onAboutToShow: {
         error = "";
         done = "";
+        books = session.books();
+        if (!books.some(each => each.id === book))
+            book = "";
     }
 
     T.Overlay.modal: Rectangle {
@@ -89,6 +98,31 @@ T.Dialog {
                     label: modelData[1]
                     chosen: dialog.format === modelData[0]
                     onClicked: dialog.format = modelData[0]
+                }
+            }
+        }
+
+        Row {
+            visible: dialog.books.length > 0
+            spacing: Theme.space.xs
+
+            Choice {
+                objectName: "book-all"
+                label: "The whole series"
+                chosen: dialog.book === ""
+                onClicked: dialog.book = ""
+            }
+
+            Repeater {
+                model: dialog.books
+
+                Choice {
+                    required property var modelData
+
+                    objectName: "book-" + modelData.id
+                    label: modelData.title
+                    chosen: dialog.book === modelData.id
+                    onClicked: dialog.book = modelData.id
                 }
             }
         }

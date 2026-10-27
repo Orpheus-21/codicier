@@ -304,7 +304,12 @@ public:
     // The chapters to print, as title and texts (the Markdown of each scene
     // in order). id "" gives the whole manuscript; the id of a chapter or of
     // a scene gives that chapter. Scenes left out of the manuscript stay out.
+    // The id of a folder or a part gives all the chapters inside it.
     Q_INVOKABLE QVariantList printChapters(const QString &id);
+    // The books of a series: the folders and parts at the top of the
+    // manuscript that hold scenes, as id and title. A project with fewer
+    // than two gives an empty list.
+    Q_INVOKABLE QVariantList books() const;
     // The data of the book for an export: title, author, language (a BCP 47
     // tag, such as en-US), and sceneBreak.
     Q_INVOKABLE QVariantMap bookInfo() const;
