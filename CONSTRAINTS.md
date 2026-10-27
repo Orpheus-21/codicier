@@ -64,6 +64,7 @@ No rule is planned now.
 | E7 | assertion-removed | tests/tst_scrivener.cpp | The import adds the note "Imported from Scrivener" before the research notes, so the indices of the research items in the test move up by one. | Orpheus-21 | 2026-10-30 |
 | E8 | assertion-removed | tests/qml/tst_editor.qml | Rarely used commands have no default key now (the keys clashed with input methods and desktops), so "every command has a key" is no longer the rule; a new test checks that no key clashes. | Orpheus-21 | 2026-11-06 |
 | E9 | assertion-removed | tests/qml/tst_editor.qml | The status bar counts now end in "words" (local #41), so the selection count reads "Selection 4 words". | Orpheus-21 | 2026-11-06 |
+| E10 | assertion-removed | tests/tst_settings.cpp | The focus scope gets a fourth value (dialogue only), so the largest allowed value is 3 and the clamp test expects 3 in place of 2. | Orpheus-21 | 2026-11-06 |
 
 An exception lasts 90 days at most.
 

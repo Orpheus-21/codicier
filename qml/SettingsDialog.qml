@@ -536,7 +536,7 @@ T.Dialog {
                     label: "Focus mode dims"
 
                     Repeater {
-                        model: [[0, "Nothing"], [1, "Other paragraphs"], [2, "Other sentences"]]
+                        model: [[0, "Nothing"], [1, "Other paragraphs"], [2, "Other sentences"], [3, "Everything but dialogue"]]
 
                         Choice {
                             required property var modelData

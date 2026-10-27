@@ -123,6 +123,13 @@ private slots:
         QVERIFY(!dimIn(0, 6));
         highlighter->setShownBlock(0, 1);
         QVERIFY(!dimIn(0, 0) && dimIn(0, 6));
+        // Scope 3 keeps the words between quotes bright, with no cursor.
+        document->setPlainText(QStringLiteral("He said \"Go now\" and left.\nThe sea."));
+        highlighter->setShownBlock(-1, 0);
+        highlighter->setFocusScope(3);
+        QVERIFY(dimIn(0, 0));
+        QVERIFY(!dimIn(0, 10));
+        QVERIFY(dimIn(1, 0));
         highlighter->setFocusScope(0);
         QVERIFY(!dimIn(1, 0));
     }

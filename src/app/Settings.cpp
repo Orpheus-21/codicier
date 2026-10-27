@@ -75,7 +75,7 @@ Settings::Settings(QObject *parent) : QObject(parent)
     cards = settings.value("view/cardColour", cards).toString() == QLatin1String("pov")
         ? QStringLiteral("pov")
         : QStringLiteral("label");
-    scope = std::clamp(settings.value("view/focusScope", scope).toInt(), 0, 2);
+    scope = std::clamp(settings.value("view/focusScope", scope).toInt(), 0, 3);
     spacing = std::clamp(settings.value("view/lineSpacing", spacing).toInt(), 120, 200);
     paragraphSpace
         = std::clamp(settings.value("view/paragraphGap", paragraphSpace).toInt(), 0, 100);

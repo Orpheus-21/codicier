@@ -49,7 +49,8 @@ class Document : public QObject
     Q_PROPERTY(
         qreal firstLineIndent READ firstLineIndent WRITE setFirstLineIndent NOTIFY styleChanged)
     // What stays bright in focus mode: 0 all the text, 1 the paragraph with
-    // the cursor, 2 its sentence. The rest takes the mark colour.
+    // the cursor, 2 its sentence, 3 the words between double quotes. The rest
+    // takes the mark colour.
     Q_PROPERTY(int focusScope READ focusScope WRITE setFocusScope NOTIFY styleChanged)
     // The words of the open text. It updates 250 ms after the last edit.
     Q_PROPERTY(int words READ words NOTIFY wordsChanged)

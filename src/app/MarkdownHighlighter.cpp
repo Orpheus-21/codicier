@@ -4,6 +4,7 @@
 
 #include <QColor>
 #include <QFont>
+#include <QRegularExpression>
 #include <QTextBlock>
 
 #include <algorithm>
@@ -55,12 +56,22 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
 
 void MarkdownHighlighter::dimOutsideFocus(const QString &text)
 {
-    if (focusScope == 0 || shownBlock < 0)
+    // Scope 3 needs no cursor: the dialogue stays bright wherever it is.
+    if (focusScope == 0 || (focusScope != 3 && shownBlock < 0))
         return;
-    // The bright part: nothing, the whole block, or the sentence of the cursor.
+    // The bright parts: nothing, the whole block, the sentence of the
+    // cursor, or the words between double quotes.
+    static const QRegularExpression quoted(QStringLiteral("\"[^\"\n]*\"|“[^”\n]*”"));
+    QList<std::pair<qsizetype, qsizetype>> bright;
     qsizetype from = 0;
     qsizetype to = 0;
-    if (currentBlock().blockNumber() == shownBlock) {
+    if (focusScope == 3) {
+        auto found = quoted.globalMatch(text);
+        while (found.hasNext()) {
+            const QRegularExpressionMatch match = found.next();
+            bright.append({ match.capturedStart(), match.capturedEnd() });
+        }
+    } else if (currentBlock().blockNumber() == shownBlock) {
         to = text.size();
         if (focusScope == 2) {
             const auto ends = [&text](qsizetype at) {
@@ -81,8 +92,11 @@ void MarkdownHighlighter::dimOutsideFocus(const QString &text)
             }
         }
     }
+    if (focusScope != 3)
+        bright.append({ from, to });
     for (qsizetype at = 0; at < text.size(); ++at) {
-        if (at >= from && at < to)
+        if (std::ranges::any_of(
+                bright, [at](const auto &range) { return at >= range.first && at < range.second; }))
             continue;
         QTextCharFormat dim = format(static_cast<int>(at));
         if (dim.foreground().color().alpha() == 0)

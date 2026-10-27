@@ -238,7 +238,7 @@ private slots:
         Settings again;
         QCOMPARE(again.focusScope(), 2);
         again.setFocusScope(9);
-        QCOMPARE(again.focusScope(), 2);
+        QCOMPARE(again.focusScope(), 3);
         again.setFocusScope(1);
     }
 

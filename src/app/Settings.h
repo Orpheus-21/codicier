@@ -131,7 +131,7 @@ public:
         change(paragraphSpace, std::clamp(value, 0, 100), "view/paragraphGap");
     }
     int focusScope() const { return scope; }
-    void setFocusScope(int value) { change(scope, std::clamp(value, 0, 2), "view/focusScope"); }
+    void setFocusScope(int value) { change(scope, std::clamp(value, 0, 3), "view/focusScope"); }
     QString reminderTime() const { return reminderAt; }
     void setReminderTime(const QString &value);
     QString reminderShown() const { return shownOn; }
