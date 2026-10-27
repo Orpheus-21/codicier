@@ -56,10 +56,8 @@ class Document : public QObject
     Q_PROPERTY(int words READ words NOTIFY wordsChanged)
 
 public:
-    // The wait after the last edit before the save. The settings change it
-    // for every document; a timer that runs takes the new value at its next
-    // start.
-    static inline int saveDelayMs = 1000;
+    // The wait after the last edit before the save.
+    static constexpr int saveDelayMs = 1000;
     static constexpr int countDelayMs = 250;
     // A deletion of this many characters or more (about 100 words) gets a
     // snapshot first.

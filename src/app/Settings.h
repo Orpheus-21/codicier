@@ -34,8 +34,6 @@ class Settings : public QObject
     Q_PROPERTY(int uiScale READ uiScale WRITE setUiScale NOTIFY changed)
     // The width of the page in characters, 45 to 90.
     Q_PROPERTY(int measure READ measure WRITE setMeasure NOTIFY changed)
-    // The wait before an autosave in milliseconds, 250 to 10000.
-    Q_PROPERTY(int autosaveDelay READ autosaveDelay WRITE setAutosaveDelay NOTIFY changed)
     // True turns every animation off.
     Q_PROPERTY(bool reducedMotion READ reducedMotion WRITE setReducedMotion NOTIFY changed)
     // Focus mode hides the top bar and the status bar. Off keeps them.
@@ -111,8 +109,6 @@ public:
     void setUiScale(int value);
     int measure() const { return columns; }
     void setMeasure(int value);
-    int autosaveDelay() const { return delay; }
-    void setAutosaveDelay(int value);
     bool reducedMotion() const { return lessMotion; }
     void setReducedMotion(bool value) { change(lessMotion, value, "view/reducedMotion"); }
     bool calmFocus() const { return calm; }
@@ -184,7 +180,6 @@ private:
     int size = 19;
     int scale = 100;
     int columns = 66;
-    int delay = 1000;
     bool lessMotion = false;
     bool calm = true;
     bool essayTools = false;

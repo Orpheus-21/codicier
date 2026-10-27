@@ -1,4 +1,3 @@
-#include "Document.h"
 #include "KeyMap.h"
 #include "Reminder.h"
 #include "Settings.h"
@@ -303,7 +302,6 @@ private slots:
             QCOMPARE(settings.theme(), QStringLiteral("system"));
             QCOMPARE(settings.readingSize(), 19);
             QCOMPARE(settings.measure(), 66);
-            QCOMPARE(settings.autosaveDelay(), 1000);
             QSignalSpy changed(&settings, &Settings::changed);
             settings.setTheme("sepia");
             settings.setTheme("purple");
@@ -311,27 +309,20 @@ private slots:
             settings.setUiFont("DejaVu Sans");
             settings.setReadingSize(40);
             settings.setMeasure(10);
-            settings.setAutosaveDelay(2000);
             settings.setReducedMotion(true);
-            QCOMPARE(changed.size(), 7);
-            QCOMPARE(Document::saveDelayMs, 2000);
+            QCOMPARE(changed.size(), 6);
         }
-        Document::saveDelayMs = 1000;
         const Settings again;
         QCOMPARE(again.theme(), QStringLiteral("sepia"));
         QCOMPARE(again.readingFont(), QStringLiteral("DejaVu Serif"));
         QCOMPARE(again.uiFont(), QStringLiteral("DejaVu Sans"));
         QCOMPARE(again.readingSize(), 28);
         QCOMPARE(again.measure(), 45);
-        QCOMPARE(again.autosaveDelay(), 2000);
         QVERIFY(again.reducedMotion());
-        // The saved delay reaches the documents at the start.
-        QCOMPARE(Document::saveDelayMs, 2000);
 
         // A theme name that the app does not know is the system theme.
         QSettings(Workspaces::settingsPath(), QSettings::IniFormat).setValue("view/theme", "neon");
         QCOMPARE(Settings().theme(), QStringLiteral("system"));
-        Document::saveDelayMs = 1000;
     }
 
     void accentSurvivesAndRejectsUnknownNames()

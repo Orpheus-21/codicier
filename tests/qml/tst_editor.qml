@@ -1550,10 +1550,6 @@ TestCase {
         mouseClick(motionOff);
         verify(Theme.motion.reduced);
         compare(Theme.motion.fast, 0);
-        const autosave = findChild(dialog.contentItem, "autosave-2000") as Item;
-        reveal(autosave);
-        mouseClick(autosave);
-        compare(Settings.autosaveDelay, 2000);
 
         // The font picker lists the font of the app first and sets a font.
         const fontButton = findChild(dialog.contentItem, "readingFontButton") as Item;
@@ -1574,7 +1570,6 @@ TestCase {
         Settings.readingSize = size;
         Settings.measure = measure;
         Settings.reducedMotion = false;
-        Settings.autosaveDelay = 1000;
         Settings.readingFont = "";
         compare(Theme.type.reading, Theme.readingFont.font.family);
     }

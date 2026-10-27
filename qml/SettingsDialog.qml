@@ -498,23 +498,6 @@ T.Dialog {
                 }
 
                 Setting {
-                    label: "Save the text after a pause of"
-
-                    Repeater {
-                        model: [[500, "0.5 s"], [1000, "1 s"], [2000, "2 s"], [5000, "5 s"]]
-
-                        Choice {
-                            required property var modelData
-
-                            objectName: "autosave-" + modelData[0]
-                            label: modelData[1]
-                            chosen: Settings.autosaveDelay === modelData[0]
-                            onClicked: Settings.autosaveDelay = modelData[0]
-                        }
-                    }
-                }
-
-                Setting {
                     label: "Spelling"
 
                     Choice {

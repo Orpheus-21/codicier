@@ -1,6 +1,5 @@
 #include "Settings.h"
 
-#include "Document.h"
 #include "SpellChecker.h"
 #include "Workspaces.h"
 
@@ -58,7 +57,6 @@ Settings::Settings(QObject *parent) : QObject(parent)
     size = std::clamp(settings.value("view/readingSize", size).toInt(), 14, 28);
     scale = std::clamp(settings.value("view/uiScale", scale).toInt(), 100, 130);
     columns = std::clamp(settings.value("view/measure", columns).toInt(), 45, 90);
-    delay = std::clamp(settings.value("edit/autosaveDelay", delay).toInt(), 250, 10000);
     lessMotion = settings.value("view/reducedMotion", false).toBool();
     calm = settings.value("view/calmFocus", true).toBool();
     essayTools = settings.value("view/essayTools", false).toBool();
@@ -84,7 +82,6 @@ Settings::Settings(QObject *parent) : QObject(parent)
     style = std::clamp(settings.value("edit/styleChecks", 0).toInt(), 0, 255) % 16;
     smart = std::clamp(settings.value("edit/typography", smart).toInt(), 0, 7);
     closeVersion = settings.value("versions/onClose", true).toBool();
-    Document::saveDelayMs = delay;
 }
 
 void Settings::setTheme(const QString &value)
@@ -122,12 +119,6 @@ void Settings::setUiScale(int value)
 void Settings::setMeasure(int value)
 {
     change(columns, std::clamp(value, 45, 90), "view/measure");
-}
-
-void Settings::setAutosaveDelay(int value)
-{
-    change(delay, std::clamp(value, 250, 10000), "edit/autosaveDelay");
-    Document::saveDelayMs = delay;
 }
 
 QString Settings::defaultBackupFolder()
