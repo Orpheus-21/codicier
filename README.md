@@ -126,6 +126,7 @@ These are the default keys. The key map file can change each key. See "Configura
 | Ctrl+Shift+Del | Move the item to the trash. |
 | Ctrl+Shift+S | Take a snapshot of the open text. |
 | Ctrl+Shift+C | Open the codex. |
+| Ctrl+Shift+A | Add a quick idea to the Ideas note. |
 | Ctrl+, | Open the settings. |
 | Ctrl+Shift+K | Show or hide the corkboard. |
 | Ctrl+Shift+O | Show or hide the outliner. |
@@ -164,7 +165,7 @@ In the binder, Ctrl+click adds an item to the selection, and Shift+click selects
 
 On the page, the names and aliases of the codex have a quiet underline. A pause over a name shows the start of its entry, and Ctrl+click opens it. The corkboard can colour each card by its point of view character, and the inspector of a scene has optional fields for its goal, conflict, and outcome.
 
-The corkboard and the outliner show the open chapter, or every scene of the book with "Whole book". The project keeps the choice. The corkboard shows the cards in a grid or free. On the free board, drag a card anywhere; a card dropped on another one forms a stack. The board keeps the place of each card.
+The corkboard and the outliner show the open chapter, or every scene of the book with "Whole book". The project keeps the choice. The corkboard shows the cards in a grid. Older projects can hold card places from the free board of earlier versions. The app keeps them in `binder.toml` and does not show them.
 
 "New idea canvas" in the add menu of the binder makes a canvas with the notes. Double-click the canvas for a note, add cards of the texts of the manuscript, and drag from the dot on the right of a node to another node to draw a line. Click a node and press Delete to remove it. The canvas saves to a file in `canvases/`.
 
@@ -182,7 +183,15 @@ The project menu, under the title of the project, chooses the spelling language 
 
 Right-click an item in the binder and choose "Open beside" to show it on a second page next to the main page. Each page saves its own text.
 
-In focus mode, the paragraph with the cursor stays bright and the other paragraphs are dim. The settings choose the sentence in place of the paragraph, or no dimming.
+In focus mode, the paragraph with the cursor stays bright and the other paragraphs are dim. The settings choose the sentence in place of the paragraph, the words between double quotes only, or no dimming. With the dialogue choice, the narration is dim and the dialogue stays bright.
+
+An edit that removes 600 characters or more at once (about 100 words) takes a snapshot first. The snapshot has the title "Before large deletion" and holds the text as it was before the edit.
+
+Copy and cut put plain text and rich text on the clipboard. Both have no Markdown marks.
+
+Press Ctrl+Shift+A to add a quick idea. Type one line and press Enter. The app adds the line with the date to the end of the note "Ideas", and makes the note if the project has none. The open item and the focus stay where they are.
+
+The command "Leave a note for next time" in the command palette keeps one line in the project. The project shows the line at the top when it opens, until you click "Done".
 
 Undo works across a restart: each save keeps the last 20 saved states of a text in `.codicier/undo/` in the project folder, and Ctrl+Z steps back through them when the text opens again. A change from another program starts a new history.
 
@@ -205,7 +214,7 @@ Drag the line between two panes to change the width of a pane. The buttons at th
 
 ### The inspector
 
-The inspector shows the data of the selected item: synopsis, status, point of view, place, time, word target, tags, and notes. The "Manuscript" choice leaves an item out of the word count of the book. The inspector also lists the snapshots of a scene. Click "Compare" to see the differences, or "Restore" to go back to a snapshot.
+The inspector shows the data of the selected item: synopsis, status, point of view, place, time, word target, tags, and notes. A scene can also have a tension rating from 1 to 5. The "Manuscript" choice leaves an item out of the word count of the book. The inspector also lists the snapshots of a scene. Click "Compare" to see the differences, or "Restore" to go back to a snapshot.
 
 ### Views of the work
 
@@ -216,9 +225,8 @@ The buttons at the top right of the page, and the keys in the table above, chang
 - Beat board: choose a plot framework (three acts, Save the Cat, the Hero's Journey, Kishōtenketsu, or Snowflake), then drag scenes onto its beats.
 - Plot grid: the scenes against the plotlines. Click a cell to put a scene on a plotline, or drag a mark to another plotline. Add plotlines in the inspector of a scene.
 - Timeline: the scenes and entities with a date in the story, on a track for each POV character or each plotline.
-- Relationship graph: the characters, and the other entities with a relation, with an arrow for each relation.
-- Family tree: the people with a parent link, one row for each generation.
-- Insights: charts of the manuscript. They show the words of each chapter and scene, the share of each POV and of dialogue in each chapter, the 30 most used words without common English words, and how often each character of the codex is named in each chapter.
+- Relationship graph: the characters, and the other entities with a relation, with an arrow for each relation. The choice "Family" at the top shows the family tree instead: the people with a parent link, one row for each generation. The command "Show or hide the family tree" opens that layout.
+- Insights: charts of the manuscript. They show the words of each chapter and scene, the share of each POV and of dialogue in each chapter, the 30 most used words without common English words, and how often each character of the codex is named in each chapter. They also list the scenes with no POV, date, or synopsis, and the scenes still in draft in a chapter that is marked final. When you rate scenes, they draw one tension line across the book. Click a scene in a list to open it.
 
 Give a scene or an entity a date in its inspector, as year-month-day, such as `1847-03-04`. To use your own months, choose "Edit the calendar of the story" in the command palette and write one month on each line with its number of days, such as `Frostmonth 40`.
 
@@ -235,6 +243,8 @@ The inspector of an entity shows these parts:
 - Aliases: other names of the entity, split by commas.
 - A field for each field of its type.
 - Mentions: each text of the manuscript that names the entity by its title or an alias, with the count of mentions. Click a line to open the text.
+
+The codex list shows the first scene in which each entity appears. Below the list, the panel offers names that come back four times or more inside a sentence and have no entry. Click a name to add it as a character.
 
 To add fields to a type, or to make a new type such as "Ships", choose "Types and fields" in the + menu of the codex panel. The app saves the types and their fields in `project.toml`.
 
@@ -281,11 +291,11 @@ Choose "Track the submissions" in the command palette to record a submission: th
 
 ### Print
 
-Press Ctrl+P. Choose "This chapter" or "The whole manuscript", and choose a printer or "Save as PDF". The print uses the font and the size of the page. Each chapter starts on a new page with its title, the scene break mark of the project comes between scenes, and each page has a number at the foot. Scenes that are left out of the manuscript stay out. The paper is Letter in the United States and A4 in other places, with margins of 25 mm.
+Press Ctrl+P. Choose "This chapter" or "The whole manuscript", and choose a printer or "Save as PDF". The print uses the font and the size of the page. Each chapter starts on a new page with its title, the scene break mark of the project comes between scenes, and each page has a number at the foot. Scenes that are left out of the manuscript stay out. A project with two or more books (folders or parts at the top of the manuscript) also offers each book as a choice. The paper is Letter in the United States and A4 in other places, with margins of 25 mm.
 
 ### Export
 
-Press Ctrl+E, choose a format, and click "Export". The file holds every chapter in reading order, without the scenes that are left out of the manuscript.
+Press Ctrl+E, choose a format, and click "Export". The file holds every chapter in reading order, without the scenes that are left out of the manuscript. A project with two or more books (folders or parts at the top of the manuscript) also offers each book. The export then holds that book only and uses its title.
 
 | Format | What you get |
 |---|---|
@@ -333,7 +343,7 @@ Press Ctrl+H to replace. Type the old words, press Tab, and type the new words. 
 
 ## Configuration
 
-Press Ctrl+, or click the settings button on the workspace screen to change these settings. Each change applies at once.
+Press Ctrl+, or click the settings button on the workspace screen to change these settings. Each change applies at once. The settings with the labels on the top buttons and the animations are in the Accessibility part. The app saves the text 1 second after the last edit.
 
 | Setting | Default | What it does |
 |---|---|---|
@@ -348,14 +358,14 @@ Press Ctrl+, or click the settings button on the workspace screen to change thes
 | Markdown marks | Hide outside the cursor | "Show" shows the marks in every paragraph. |
 | Line spacing | Normal | Close, Normal, or Wide: 1.3, 1.5, or 1.8 lines. |
 | Space between paragraphs | One line | Half a line, one line, or none with a first-line indent, as in a printed book. The file does not change. |
-| Focus mode dims | Other paragraphs | Nothing, other paragraphs, or other sentences. |
+| Focus mode dims | Other paragraphs | Nothing, other paragraphs, other sentences, or everything but dialogue. |
+| When the app starts | Show the home screen | "Open the last project" opens the project that was open at the last quit. |
 | Focus mode shows | Only the page | "The page and the bars" keeps the top bar and the status bar in focus mode. |
 | Tools for essays | In essays and non-fiction | "In every project" also shows the argument map, the sources, and the quote bank in fiction. |
 | Daily reminder to write | Off | A time such as 09:30. Once a day at that time, while the app runs, a desktop notification reminds you to write. |
 | Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
 | First-run hints | On | The hints show once. "Show them again" shows them on the next project that opens. |
-| Save the text after a pause of | 1 s | The wait after the last edit before the app saves: 0.5 s, 1 s, 2 s, or 5 s. |
 | Backup folder | `~/.local/share/codicier/backups` | The folder for the zip backups. Each project has its own folder in it. |
 | Backups to keep for each project | 10 | The number of zip backups to keep. The app deletes older backups. The value is from 1 to 1000. |
 
