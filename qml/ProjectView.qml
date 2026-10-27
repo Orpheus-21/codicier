@@ -140,7 +140,7 @@ Item {
     // a view hides.
     onViewModeChanged: {
         const shown = ({ "board": boardView, "checklist": checklistArea, "insights": insightsArea,
-                         "family": familyArea, "relations": relationsArea, "timeline": timelineArea,
+                         "family": relationsArea, "relations": relationsArea, "timeline": timelineArea,
                          "grid": gridArea, "beats": beatsArea, "outline": outlineArea,
                          "argument": argumentArea })[viewMode];
         if (shown)
@@ -1160,24 +1160,13 @@ Item {
                 onOpened: id => view.openText(id)
             }
 
-            FamilyTree {
-                id: familyArea
-
-                objectName: "familyTree"
-                visible: view.viewMode === "family"
-                anchors.top: editorBar.bottom
-                anchors.bottom: parent.bottom
-                width: parent.width
-                z: 4
-                session: view.session
-                onOpened: id => view.openText(id)
-            }
-
             RelationGraph {
                 id: relationsArea
 
                 objectName: "relationGraph"
-                visible: view.viewMode === "relations"
+                visible: view.viewMode === "relations" || view.viewMode === "family"
+                layout: view.viewMode === "family" ? "family" : "circle"
+                onLayoutRequested: layout => view.viewMode = layout === "family" ? "family" : "relations"
                 anchors.top: editorBar.bottom
                 anchors.bottom: parent.bottom
                 width: parent.width

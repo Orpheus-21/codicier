@@ -4,8 +4,8 @@ import QtQuick
 import QtQuick.Shapes
 
 // The characters, and the other entities with a relation, on a circle, with
-// a line for each relation and its name in the middle. A click on a name
-// opens the entity.
+// a line for each relation and its name in the middle, or the family tree as
+// a second layout. A click on a name opens the entity.
 Item {
     id: graph
 
@@ -16,6 +16,9 @@ Item {
 
     // A click on an entity asks to open it.
     signal opened(id: string)
+    // "circle" or "family". The view sets it, and a choice here asks for the other.
+    property string layout: "circle"
+    signal layoutRequested(layout: string)
 
     property var nodes: []
     property var links: []
@@ -53,134 +56,173 @@ Item {
         }
     }
 
-    Rectangle {
+    // The circle layout. Its parts hide with it in the family layout.
+    Item {
+        id: circleLayout
+
         anchors.fill: parent
-        color: Theme.color.paper
-    }
+        visible: graph.layout === "circle"
 
-    Text {
-        objectName: "graphHint"
-        visible: text !== ""
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: graph.nodes.length === 0 ? (parent.height - height) / 2 : Theme.space.xl
-        text: graph.nodes.length === 0 ? "Add characters to the codex, and link them in the inspector."
-            : graph.links.length === 0 ? "No relations yet. Open a character, and under Relations in the inspector, link it to another."
-            : ""
-        font.family: Theme.type.ui
-        font.pixelSize: Theme.type.body
-        color: Theme.color.inkMuted
-    }
-
-    Repeater {
-        model: graph.links
-
-        Item {
-            id: link
-
-            required property var modelData
-
-            readonly property point a: graph.placeOf(modelData.from)
-            readonly property point b: graph.placeOf(modelData.to)
-            // The arrow points to the second entity, and stops before its name.
-            readonly property real angle: Math.atan2(b.y - a.y, b.x - a.x)
-            readonly property point tip: Qt.point(b.x - 22 * Math.cos(angle), b.y - 22 * Math.sin(angle))
-
+        Rectangle {
             anchors.fill: parent
+            color: Theme.color.paper
+        }
 
-            Shape {
+        Text {
+            objectName: "graphHint"
+            visible: text !== ""
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: graph.nodes.length === 0 ? (parent.height - height) / 2 : Theme.space.xl
+            text: graph.nodes.length === 0 ? "Add characters to the codex, and link them in the inspector."
+                : graph.links.length === 0 ? "No relations yet. Open a character, and under Relations in the inspector, link it to another."
+                : ""
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.body
+            color: Theme.color.inkMuted
+        }
+
+        Repeater {
+            model: graph.links
+
+            Item {
+                id: link
+
+                required property var modelData
+
+                readonly property point a: graph.placeOf(modelData.from)
+                readonly property point b: graph.placeOf(modelData.to)
+                // The arrow points to the second entity, and stops before its name.
+                readonly property real angle: Math.atan2(b.y - a.y, b.x - a.x)
+                readonly property point tip: Qt.point(b.x - 22 * Math.cos(angle), b.y - 22 * Math.sin(angle))
+
                 anchors.fill: parent
-                preferredRendererType: Shape.CurveRenderer
 
-                ShapePath {
-                    strokeColor: link.modelData.parent ? Theme.color.accent : Theme.color.inkMuted
-                    strokeWidth: 1.5
-                    fillColor: "transparent"
-                    startX: link.a.x
-                    startY: link.a.y
+                Shape {
+                    anchors.fill: parent
+                    preferredRendererType: Shape.CurveRenderer
 
-                    PathLine {
-                        x: link.tip.x
-                        y: link.tip.y
+                    ShapePath {
+                        strokeColor: link.modelData.parent ? Theme.color.accent : Theme.color.inkMuted
+                        strokeWidth: 1.5
+                        fillColor: "transparent"
+                        startX: link.a.x
+                        startY: link.a.y
+
+                        PathLine {
+                            x: link.tip.x
+                            y: link.tip.y
+                        }
+
+                        PathLine {
+                            x: link.tip.x - 9 * Math.cos(link.angle - 0.45)
+                            y: link.tip.y - 9 * Math.sin(link.angle - 0.45)
+                        }
+
+                        PathMove {
+                            x: link.tip.x
+                            y: link.tip.y
+                        }
+
+                        PathLine {
+                            x: link.tip.x - 9 * Math.cos(link.angle + 0.45)
+                            y: link.tip.y - 9 * Math.sin(link.angle + 0.45)
+                        }
                     }
+                }
 
-                    PathLine {
-                        x: link.tip.x - 9 * Math.cos(link.angle - 0.45)
-                        y: link.tip.y - 9 * Math.sin(link.angle - 0.45)
-                    }
+                Text {
+                    x: (link.a.x + link.b.x) / 2 - width / 2
+                    y: (link.a.y + link.b.y) / 2 - height / 2
+                    padding: 2
+                    text: link.modelData.name
+                    font.family: Theme.type.ui
+                    font.pixelSize: Theme.type.small
+                    color: Theme.color.inkMuted
 
-                    PathMove {
-                        x: link.tip.x
-                        y: link.tip.y
-                    }
-
-                    PathLine {
-                        x: link.tip.x - 9 * Math.cos(link.angle + 0.45)
-                        y: link.tip.y - 9 * Math.sin(link.angle + 0.45)
+                    Rectangle {
+                        anchors.fill: parent
+                        z: -1
+                        radius: Theme.radius.small
+                        color: Theme.color.paper
                     }
                 }
             }
+        }
 
-            Text {
-                x: (link.a.x + link.b.x) / 2 - width / 2
-                y: (link.a.y + link.b.y) / 2 - height / 2
-                padding: 2
-                text: link.modelData.name
-                font.family: Theme.type.ui
-                font.pixelSize: Theme.type.small
-                color: Theme.color.inkMuted
+        Repeater {
+            model: graph.nodes
 
-                Rectangle {
-                    anchors.fill: parent
-                    z: -1
-                    radius: Theme.radius.small
-                    color: Theme.color.paper
+            Rectangle {
+                id: node
+
+                required property var modelData
+
+                readonly property point place: graph.placeOf(modelData.id)
+
+                objectName: "graphNode"
+                x: place.x - width / 2
+                y: place.y - height / 2
+                width: Math.min(160, name.implicitWidth + 2 * Theme.space.m)
+                height: 34
+                radius: 17
+                color: modelData.id === graph.session.currentId ? Theme.color.selection : Theme.color.surface
+                border.width: 1
+                border.color: Theme.color.rule
+                Accessible.role: Accessible.Button
+                Accessible.name: modelData.title
+
+                Text {
+                    id: name
+
+                    anchors.centerIn: parent
+                    width: Math.min(implicitWidth, 160 - 2 * Theme.space.m)
+                    text: node.modelData.title
+                    elide: Text.ElideRight
+                    font.family: Theme.type.reading
+                    font.pixelSize: Theme.type.body + 1
+                    color: Theme.color.ink
+                }
+
+                TapHandler {
+                    onTapped: graph.opened(node.modelData.id)
+                }
+
+                Activator {
+                    name: "Open " + node.modelData.title
+                    onActivated: graph.opened(node.modelData.id)
                 }
             }
         }
     }
 
-    Repeater {
-        model: graph.nodes
+    // The family layout: the parent links as a tree.
+    FamilyTree {
+        objectName: "familyTree"
+        anchors.fill: parent
+        visible: graph.layout === "family"
+        session: graph.session
+        onOpened: id => graph.opened(id)
+    }
 
-        Rectangle {
-            id: node
+    // The two layouts of the graph. A choice asks the view to switch.
+    Row {
+        x: Theme.space.xl
+        y: Theme.space.l
+        z: 5
+        spacing: Theme.space.xs
 
-            required property var modelData
+        Choice {
+            objectName: "layoutCircle"
+            label: "Relations"
+            chosen: graph.layout === "circle"
+            onClicked: graph.layoutRequested("circle")
+        }
 
-            readonly property point place: graph.placeOf(modelData.id)
-
-            objectName: "graphNode"
-            x: place.x - width / 2
-            y: place.y - height / 2
-            width: Math.min(160, name.implicitWidth + 2 * Theme.space.m)
-            height: 34
-            radius: 17
-            color: modelData.id === graph.session.currentId ? Theme.color.selection : Theme.color.surface
-            border.width: 1
-            border.color: Theme.color.rule
-            Accessible.role: Accessible.Button
-            Accessible.name: modelData.title
-
-            Text {
-                id: name
-
-                anchors.centerIn: parent
-                width: Math.min(implicitWidth, 160 - 2 * Theme.space.m)
-                text: node.modelData.title
-                elide: Text.ElideRight
-                font.family: Theme.type.reading
-                font.pixelSize: Theme.type.body + 1
-                color: Theme.color.ink
-            }
-
-            TapHandler {
-                onTapped: graph.opened(node.modelData.id)
-            }
-
-            Activator {
-                name: "Open " + node.modelData.title
-                onActivated: graph.opened(node.modelData.id)
-            }
+        Choice {
+            objectName: "layoutFamily"
+            label: "Family"
+            chosen: graph.layout === "family"
+            onClicked: graph.layoutRequested("family")
         }
     }
 }

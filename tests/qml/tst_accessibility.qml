@@ -1216,6 +1216,23 @@ TestCase {
         compare(view.viewMode, "page");
     }
 
+    function test_relationshipGraphSwitchesToTheFamilyLayout() {
+        const view = makeView();
+        view.forceActiveFocus();
+        view.commands.find(command => command.id === "relations").run();
+        compare(view.viewMode, "relations");
+        const graph = findChild(view, "relationGraph") as RelationGraph;
+        compare(graph.layout, "circle");
+        verify(!(findChild(graph, "familyTree") as FamilyTree).visible);
+        waitForRendering(view);
+        mouseClick(findChild(graph, "layoutFamily") as Choice);
+        compare(view.viewMode, "family");
+        compare(graph.layout, "family");
+        verify((findChild(graph, "familyTree") as FamilyTree).visible);
+        mouseClick(findChild(graph, "layoutCircle") as Choice);
+        compare(view.viewMode, "relations");
+    }
+
     function test_mapShowsItsImage() {
         const view = makeView();
         compare(view.session.addMap("file:///no/such/map.png"), "");
