@@ -148,6 +148,7 @@ Do not say so yet."""
 | `plotlines` | array of strings | scenes | The ids of the plotlines of the scene. |
 | `beat` | string | scenes | The id of the beat of the framework that the scene is on. |
 | `synopsis` | string | text items | A short summary. |
+| `tension` | integer | scenes | The tension of the scene, from 1 to 5. No key means no rating. |
 | `goal` | string | scenes | What the point of view character wants in the scene. |
 | `conflict` | string | scenes | What stands in the way of the goal. |
 | `outcome` | string | scenes | How the scene ends for the goal, such as "yes, but" or "no, and". |
@@ -292,6 +293,7 @@ Snapshots are not in `.codicier/`, because the app cannot build them again. Git 
 | `binder-width` | integer | The width of the binder pane, in pixels. |
 | `inspector` | boolean | True if the inspector pane is open. The default is false. |
 | `inspector-width` | integer | The width of the inspector pane, in pixels. |
+| `places` | string | JSON text. It maps an item id to the cursor position and the scroll of that text, such as `{"abc":[120,0]}`. |
 
 The author can delete `.codicier/` at any time. The app then builds the index again and opens with the default window state.
 

@@ -10,7 +10,7 @@ The app also does these things:
 
 - It counts the words of the scene, the chapter, and the book. It shows the count against the word goal of the project.
 - It keeps snapshots of a scene. It shows the differences between a snapshot and the current text, and it restores a snapshot.
-- It writes a zip backup of a project when the project closes. The home screen shows the date of the last backup.
+- It writes a zip backup of a project when the project closes, and every hour while you write. The home screen shows the date of the last backup, and restores a backup as a new project.
 - It searches the full text of the project, also with regular expressions. It replaces words across the manuscript.
 - It has a focus mode with typewriter scroll.
 - It shows the work as index cards, an outline table, a beat board, a plot grid, and a timeline in story time.
@@ -84,9 +84,21 @@ ctest --test-dir build
 
 At the first start, choose a folder for your writing. This folder is a workspace. Each project in it is a folder. Click "New project" to make a project. Choose one of these kinds: blank, short story, novella, novel, series, essay, essay collection, or non-fiction book. Each kind starts with its own structure of items, and the dialog shows that structure before you create the project. A blank project has one scene and no word goal. "Create" opens the new project on its first scene.
 
-In an empty workspace, click "Open a sample" to copy a short sample novel into the workspace. The sample has chapters, scenes, codex entries, plotlines, and dates in the story. Delete it like any other project.
+In an empty workspace, click "Open a sample" to open a short sample novel. The sample has chapters, scenes, codex entries, relations, plotlines, beats, tension ratings, and dates in the story. The app opens the sample from a temporary folder, outside the workspace. It does not show in the list of projects, and it has no backup. A banner says so. When you close the sample, the app deletes it.
 
 The home screen shows each project with its author, its kind, its words, and the date of the last edit.
+
+Type in the search field at the top of the home screen to search the text of every project in the workspace. The search needs two letters or more. It ignores case. Each result shows the project, the scene, and the words near the match. The first 50 results show. Click a result to open the project at that scene. The trash and the saved searches stay out.
+
+Each project row has a restore button and a menu button:
+
+- The restore button lists the zip backups of the project. Choose one to unpack it as a new project. The new folder has " (restored)" after the name, and so has the new title. The old project does not change.
+- "Rename…" gives the project a new title and a new folder name. The app refuses if another window has the project open. The backups of the project keep their link to it.
+- "Make a copy" makes a project with " (copy)" after its title. The copy has no `.codicier` folder.
+- "Export as a zip…" writes the project to one zip file that you choose.
+- "Move to the archive" moves the project to the `archive` folder in the workspace. The app does not bring a project back from the archive. Move the folder by hand to bring it back.
+
+Every scene opens at the cursor and the scroll place where you left it. The project keeps these places when it closes.
 
 The first time you open a project, three hints point at the binder, the page, and the command palette. Press Escape or click a hint to see the next one.
 
@@ -314,6 +326,7 @@ On the home screen, click "Import" and choose what to import. The app makes a ne
 |---|---|
 | A Scrivener project | See "Import from Scrivener" below. |
 | A folder of Markdown files | Each `.md` file becomes a scene, in the natural order of the file names, so `2` comes before `10`. Each subfolder with `.md` files becomes a chapter. A first line `# Title` becomes the title of the scene; else the file name does. |
+| A project zip | A zip that "Export as a zip…" or a backup wrote. The new project has the name of the zip file and keeps its title. |
 | A Word file (DOCX) | The headings of the highest level start the chapters. A paragraph of `***`, `* * *`, or `#` starts a new scene. Bold, italic, and line breaks carry over, and the title page stays out. |
 
 ### Import from Scrivener
@@ -366,6 +379,7 @@ Press Ctrl+, or click the settings button on the workspace screen to change thes
 | Change as you type | All on | Curly quotes, `--` to an em dash, and `...` to an ellipsis. Click a choice to turn it on or off. |
 | Labels on the top buttons | Icons only | Show puts the name of each button next to its icon. |
 | First-run hints | On | The hints show once. "Show them again" shows them on the next project that opens. |
+| Backup while you write | On | Writes a zip backup of the open project every hour, if it changed. |
 | Backup folder | `~/.local/share/codicier/backups` | The folder for the zip backups. Each project has its own folder in it. |
 | Backups to keep for each project | 10 | The number of zip backups to keep. The app deletes older backups. The value is from 1 to 1000. |
 
