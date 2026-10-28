@@ -66,6 +66,7 @@ No rule is planned now.
 | E10 | assertion-removed | tests/tst_settings.cpp | The focus scope gets a fourth value (dialogue only), so the largest allowed value is 3 and the clamp test expects 3 in place of 2. T275 removes the free board setting and T277 the autosave delay setting, with their asserts. | Orpheus-21 | 2026-11-06 |
 | E11 | test-deleted | tests/qml/tst_editor.qml | T275 removes the free corkboard, so its test goes. The idea canvas does that job and has its own test. | Orpheus-21 | 2026-11-06 |
 | E12 | assertion-removed | tests/qml/tst_accessibility.qml | T211 adds "A project zip…" to the import menu, so the menu list grows from three entries to four. | Orpheus-21 | 2026-11-11 |
+| E13 | assertion-removed | tests/tst_projectlist.cpp | T280 moves the sample to a temporary folder outside the workspace. The sample test no longer needs a workspace, no longer counts two sample projects in the list, and counts four codex entries in place of three. The test still loads the sample and checks its words. | Orpheus-21 | 2026-11-11 |
 
 An exception lasts 90 days at most.
 

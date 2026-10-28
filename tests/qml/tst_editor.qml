@@ -229,6 +229,20 @@ TestCase {
         verify(first !== second);
     }
 
+    function test_sampleShowsTheBannerAndMakesNoBackup() {
+        const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
+        workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+        compare(workspace.createSample(), "");
+        const keep = Settings.backupFolder;
+        Settings.backupFolder = temp + "/codicier-sample-backups-" + Date.now();
+        const view = createTemporaryObject(viewComponent, testCase, { folder: workspace.sampleFolder(), sample: true }) as ProjectView;
+        verify((findChild(view, "sampleBar") as Rectangle).visible);
+        compare(view.session.backup(), "");
+        const plain = createTemporaryObject(viewComponent, testCase, { folder: workspace.sampleFolder() }) as ProjectView;
+        verify(!(findChild(plain, "sampleBar") as Rectangle).visible);
+        Settings.backupFolder = keep;
+    }
+
     function test_quickCaptureKeepsTheFocusOnThePage() {
         const view = makeView();
         const text = findChild(view, "editor") as TextEdit;
@@ -1229,7 +1243,7 @@ TestCase {
         const temp = StandardPaths.writableLocation(StandardPaths.TempLocation).toString().replace("file://", "");
         workspace.folder = temp + "/codicier-qml-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
         compare(workspace.createSample(), "");
-        let view = createTemporaryObject(viewComponent, testCase, { folder: workspace.get(0).folder }) as ProjectView;
+        let view = createTemporaryObject(viewComponent, testCase, { folder: workspace.sampleFolder() }) as ProjectView;
         const folder = view.folder;
         view.session.currentId = view.session.items().find(item => item.kind === "scene").id;
         view.toggleViewMode("board");

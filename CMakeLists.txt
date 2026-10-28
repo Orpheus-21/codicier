@@ -34,7 +34,7 @@ target_include_directories(codicier_core PUBLIC src/model src/index)
 # The plot frameworks of the beat board.
 # The sample project that the empty home screen offers.
 qt_add_resources(codicier_core "data" PREFIX "/" FILES data/frameworks.toml data/names.tsv
-    data/sample/binder.toml data/sample/codex/elin.md data/sample/codex/the-lighthouse.md data/sample/codex/tomas.md data/sample/manuscript/a-storm.md data/sample/manuscript/arrival.md data/sample/manuscript/the-log.md data/sample/manuscript/the-stairs.md data/sample/notes/about-this-sample.md data/sample/project.toml)
+    data/sample/binder.toml data/sample/codex/anders.md data/sample/codex/elin.md data/sample/codex/the-lighthouse.md data/sample/codex/tomas.md data/sample/manuscript/a-storm.md data/sample/manuscript/arrival.md data/sample/manuscript/the-log.md data/sample/manuscript/the-stairs.md data/sample/notes/about-this-sample.md data/sample/project.toml)
 target_compile_options(codicier_core PRIVATE -Wall -Wextra)
 target_link_libraries(codicier_core PUBLIC Qt6::Core Qt6::Sql PRIVATE Qt6::CorePrivate)
 # Arch builds toml++ as a shared library. Use only its headers, in header-only

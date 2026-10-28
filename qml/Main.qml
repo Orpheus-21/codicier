@@ -9,8 +9,18 @@ Window {
 
     // The project that was open at the last quit comes back, if the author
     // chose that. The home screen clears the folder, so it starts on home.
-    onProjectFolderChanged: Settings.lastProject = projectFolder
+    onProjectFolderChanged: {
+        if (!sampleList.isSample(projectFolder))
+            Settings.lastProject = projectFolder;
+    }
+
+    // Only for the static functions that find and delete the sample.
+    ProjectList {
+        id: sampleList
+    }
     Component.onCompleted: {
+        // A sample that a crash left goes at the start.
+        sampleList.discardSample(sampleList.sampleFolder());
         if (Settings.openLast && Workspaces.current !== "")
             projectFolder = Settings.lastProject;
     }
@@ -82,10 +92,14 @@ Window {
         ProjectView {
             folder: window.projectFolder
             startItem: window.openItem
+            sample: sampleList.isSample(window.projectFolder)
             workspaceName: Workspaces.currentName
             onCloseRequested: {
+                const closed = window.projectFolder;
                 window.projectFolder = "";
                 window.openItem = "";
+                // The project closes first, so nothing holds the folder.
+                Qt.callLater(() => sampleList.discardSample(closed));
             }
             onSettingsRequested: settingsDialog.open()
             Component.onCompleted: window.projectTitle = Qt.binding(() => session.title)

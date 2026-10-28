@@ -15,13 +15,15 @@ Item {
     property string folder: ""
     readonly property ProjectSession session: ProjectSession {
         folder: view.folder
-        backupFolder: Settings.backupFolder
+        backupFolder: view.sample ? "" : Settings.backupFolder
         backupsToKeep: Settings.backupsToKeep
-        hourlyBackup: Settings.hourlyBackup
+        hourlyBackup: !view.sample && Settings.hourlyBackup
         spellCheck: Settings.spellCheck
         styleChecks: Settings.styleChecks
         hideMarks: Settings.hideMarks
     }
+    // The sample: no backup, and closing it deletes it.
+    property bool sample: false
     // The name of the workspace, for the way back.
     property string workspaceName: ""
 
@@ -731,6 +733,37 @@ Item {
         objectName: "firstRunHint"
         view: view
         binderWidth: view.binderOpen ? binderPane.width : 0
+    }
+
+    // The sample goes when the author closes it.
+    Rectangle {
+        objectName: "sampleBar"
+        visible: view.sample && !view.focusMode
+        z: 20
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Theme.space.xxxl
+        width: Math.min(560, parent.width - 2 * Theme.space.xl)
+        height: sampleText.implicitHeight + 2 * Theme.space.m
+        radius: Theme.radius.medium
+        color: Theme.color.surface
+        border.width: 1
+        border.color: Theme.color.accent
+        Accessible.role: Accessible.StaticText
+        Accessible.name: sampleText.text
+
+        Text {
+            id: sampleText
+
+            x: Theme.space.m
+            y: Theme.space.m
+            width: parent.width - 2 * Theme.space.m
+            text: "This is a sample. Closing it deletes it."
+            wrapMode: Text.Wrap
+            font.family: Theme.type.ui
+            font.pixelSize: Theme.type.body
+            color: Theme.color.ink
+        }
     }
 
     // The line for this visit stays until the author marks it done.

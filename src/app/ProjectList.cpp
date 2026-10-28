@@ -16,6 +16,7 @@
 #include <QLockFile>
 #include <QRegularExpression>
 #include <QSet>
+#include <QStandardPaths>
 
 #include <algorithm>
 #include <functional>
@@ -492,17 +493,30 @@ template <typename Import> QString ProjectList::importInto(const QString &title,
     return { };
 }
 
+QString ProjectList::sampleFolder()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+        + QStringLiteral("/codicier-sample");
+}
+
+bool ProjectList::isSample(const QString &folder)
+{
+    return !folder.isEmpty() && QDir::cleanPath(folder) == sampleFolder();
+}
+
+void ProjectList::discardSample(const QString &folder)
+{
+    // Only the temporary sample folder goes, never a project of the author.
+    if (isSample(folder))
+        QDir(folder).removeRecursively();
+}
+
 QString ProjectList::createSample()
 {
-    if (workspace.isEmpty())
-        return QStringLiteral("Choose a workspace first.");
-    const QDir dir(workspace);
-    QSet<QString> taken;
-    for (const QString &entry : dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot))
-        taken.insert(entry + QStringLiteral(".md"));
-    QString folderName = Naming::fileNameFor(QStringLiteral("The Lighthouse Keeper"), taken);
-    folderName.chop(3);
-    const QString target = dir.filePath(folderName);
+    // The sample lives outside the workspace, so it never shows in the list
+    // and nobody has to delete it. A sample that a crash left goes first.
+    const QString target = sampleFolder();
+    discardSample(target);
     const QString source = QStringLiteral(":/data/sample/");
     QDirIterator it(source, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -514,7 +528,6 @@ QString ProjectList::createSample()
                 to, QFile::ReadOwner | QFile::WriteOwner | QFile::ReadGroup | QFile::ReadOther))
             return QStringLiteral("Cannot copy the sample to %1.").arg(to);
     }
-    refresh();
     emit created(target);
     return { };
 }

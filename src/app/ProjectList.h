@@ -70,8 +70,16 @@ public:
     Q_INVOKABLE void refresh();
     // Makes a new project from a template. Returns an error text, or "".
     Q_INVOKABLE QString create(const QString &title, const QString &kind, const QString &author);
-    // Copies the sample project into this workspace. Returns an error text, or "".
+    // Copies the sample project to a temporary folder outside the workspace
+    // and emits created. The sample never shows in the list. Returns an
+    // error text, or "".
     Q_INVOKABLE QString createSample();
+    // The temporary folder of the sample, outside the workspace.
+    Q_INVOKABLE static QString sampleFolder();
+    // True for the folder of the sample.
+    Q_INVOKABLE static bool isSample(const QString &folder);
+    // Deletes the folder if it is the sample, else does nothing.
+    Q_INVOKABLE static void discardSample(const QString &folder);
     // Makes a new project in the workspace from a Scrivener project folder
     // (.scriv), named after it, and opens it. The .scriv folder stays as it
     // is. Returns an error text, or "".

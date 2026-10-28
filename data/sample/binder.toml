@@ -18,6 +18,11 @@ place = "The lighthouse"
 date = "1912-11-02"
 synopsis = "Elin climbs to the lamp, as her father did, and counts every step."
 plotlines = ["lamp"]
+beat = "setup"
+tension = 2
+goal = "Reach the lamp room"
+conflict = "Her knees, and the dark"
+outcome = "Yes, but"
 
 [[item]]
 id = "s1a2m3p4k7"
@@ -30,6 +35,11 @@ place = "The lighthouse"
 date = "1912-11-02"
 synopsis = "The radio brings a ship's name that Elin knows."
 plotlines = ["lamp", "return"]
+beat = "midpoint"
+tension = 4
+goal = "Keep the lamp lit"
+conflict = "The storm and a name on the radio"
+outcome = "No, and"
 
 [[item]]
 id = "s1a2m3p4k8"
@@ -48,6 +58,11 @@ place = "The pier"
 date = "1912-11-03"
 synopsis = "Tomas comes in on the tide and does not look at the lamp."
 plotlines = ["return"]
+beat = "inciting-incident"
+tension = 3
+goal = "Reach the island unseen"
+conflict = "The tide and his own doubt"
+outcome = "Yes, but"
 
 [[item]]
 id = "s1a2m3p4m1"
@@ -60,6 +75,11 @@ place = "The lighthouse"
 date = "1912-11-03"
 synopsis = "Elin reads her father's last entry and finds Tomas's name in it."
 plotlines = ["lamp", "return"]
+beat = "first-turn"
+tension = 5
+goal = "Learn why her father wrote the name"
+conflict = "The log is torn at the last page"
+outcome = "No, but"
 
 [[item]]
 id = "s1a2m3p4m2"
@@ -89,3 +109,27 @@ kind = "note"
 section = "notes"
 title = "About this sample"
 file = "notes/about-this-sample.md"
+
+[[item]]
+id = "s1a2m3p4m6"
+kind = "character"
+section = "codex"
+title = "Anders"
+file = "codex/anders.md"
+aliases = ["the old keeper"]
+
+[[relation]]
+from = "s1a2m3p4m6"
+to = "s1a2m3p4m2"
+name = "father of"
+parent = true
+
+[[relation]]
+from = "s1a2m3p4m6"
+to = "s1a2m3p4m3"
+name = "taught"
+
+[[relation]]
+from = "s1a2m3p4m2"
+to = "s1a2m3p4m3"
+name = "waits for"

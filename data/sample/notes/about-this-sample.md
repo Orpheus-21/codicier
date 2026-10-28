@@ -1,1 +1,1 @@
-This sample shows what a Codicier project can hold. Open the corkboard, the outliner, the timeline, and the codex to see the same story from other sides. Change anything you like. Delete the project from the home screen when you are done.
+This sample shows what a Codicier project can hold. Open the corkboard, the outliner, the plot grid, the timeline, the beat board, the relationship graph, the family tree, the insights, and the codex to see the same story from other sides. Change anything you like. Closing the sample deletes it.

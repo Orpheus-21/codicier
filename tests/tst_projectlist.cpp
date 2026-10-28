@@ -275,23 +275,30 @@ private slots:
     {
         QTemporaryDir dir;
         ProjectList list;
-        QCOMPARE(list.createSample(), QStringLiteral("Choose a workspace first."));
         list.setFolder(dir.path());
         QSignalSpy created(&list, &ProjectList::created);
         QCOMPARE(list.createSample(), QString());
+        // A second sample replaces the first, and neither shows in the list.
         QCOMPARE(list.createSample(), QString());
         QCOMPARE(created.size(), 2);
-        QCOMPARE(list.count(), 2);
-        const QVariantMap sample = list.get(0);
-        QCOMPARE(sample.value("error").toString(), QString());
-        QVERIFY(sample.value("words").toInt() > 300);
-        const LoadResult result = ProjectStore::load(dir.filePath("the-lighthouse-keeper"));
+        QCOMPARE(list.count(), 0);
+        const QString folder = created.last().first().toString();
+        QVERIFY(ProjectList::isSample(folder));
+        QVERIFY(!folder.startsWith(dir.path()));
+        const LoadResult result = ProjectStore::load(folder);
         QVERIFY2(result.ok(), qPrintable(result.ok() ? QString() : result.errors.first().text()));
         int entities = 0;
         for (const ProjectItem &item : result.project.items)
             entities += item.section == QLatin1String("codex") ? 1 : 0;
-        QCOMPARE(entities, 3);
-        QVERIFY(QFileInfo(dir.filePath("the-lighthouse-keeper-2/binder.toml")).isWritable());
+        QCOMPARE(entities, 4);
+        QVERIFY(ProjectList::read(folder).words > 300);
+        QVERIFY(QFileInfo(folder + "/binder.toml").isWritable());
+        // Closing the sample deletes it. A folder of the author stays.
+        ProjectList::discardSample(dir.path());
+        QVERIFY(QDir(dir.path()).exists());
+        QVERIFY(!ProjectList::isSample(dir.path()));
+        ProjectList::discardSample(folder);
+        QVERIFY(!QDir(folder).exists());
     }
 
     void lastBackupNamesTheNewestZip()

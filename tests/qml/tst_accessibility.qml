@@ -245,6 +245,7 @@ TestCase {
         const folder = temp + "/codicier-home-" + Date.now();
         workspace.folder = folder;
         compare(workspace.createSample(), "");
+        compare(workspace.create("Harbour", "novel", ""), "");
         const win = Qt.createComponent("Codicier", "Main").createObject(null, { visible: true, width: 1200, height: 800 });
         Workspaces.open(folder);
         waitForRendering(win.contentItem);
@@ -268,6 +269,7 @@ TestCase {
         const folder = temp + "/codicier-path-" + Date.now();
         workspace.folder = folder;
         compare(workspace.createSample(), "");
+        compare(workspace.create("Harbour", "novel", ""), "");
         const keep = Settings.backupFolder;
         Settings.backupFolder = temp + "/" + "a-very-long-folder-name-for-backups/".repeat(8);
         // One backup, so the line names the folder.
