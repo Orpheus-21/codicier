@@ -19,6 +19,8 @@ Window {
     property string error: ""
     // The folder of the open project, or "" for the workspace home.
     property string projectFolder: ""
+    // The item to open first in the project, from a search result, or "".
+    property string openItem: ""
     // The title of the open project, for the window title.
     property string projectTitle: ""
 
@@ -79,8 +81,12 @@ Window {
 
         ProjectView {
             folder: window.projectFolder
+            startItem: window.openItem
             workspaceName: Workspaces.currentName
-            onCloseRequested: window.projectFolder = ""
+            onCloseRequested: {
+                window.projectFolder = "";
+                window.openItem = "";
+            }
             onSettingsRequested: settingsDialog.open()
             Component.onCompleted: window.projectTitle = Qt.binding(() => session.title)
             Component.onDestruction: window.projectTitle = ""
@@ -222,6 +228,10 @@ Window {
                 width: parent.width
                 folder: Workspaces.current
                 onProjectActivated: folder => window.projectFolder = folder
+                onMatchActivated: (folder, id) => {
+                    window.openItem = id;
+                    window.projectFolder = folder;
+                }
             }
 
             Text {

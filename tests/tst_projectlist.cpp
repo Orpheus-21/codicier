@@ -382,6 +382,42 @@ private slots:
         QCOMPARE(list.rowCount(list.index(0)), 0);
     }
 
+    void searchFindsWordsInEveryProject()
+    {
+        QTemporaryDir dir;
+        QVERIFY(Templates::create(dir.filePath("ledger"), "novel", "Ledger", "A").isEmpty());
+        QVERIFY(Templates::create(dir.filePath("harbour"), "novel", "Harbour", "A").isEmpty());
+        const auto write = [&dir](const QString &project, const QString &text) -> QString {
+            const LoadResult loaded = ProjectStore::load(dir.filePath(project));
+            for (const ProjectItem &item : loaded.project.items) {
+                if (item.kind == "scene" && !item.file.isEmpty()) {
+                    QFile file(dir.filePath(project) + "/" + item.file);
+                    if (!file.open(QIODevice::WriteOnly))
+                        return { };
+                    file.write(text.toUtf8());
+                    return item.id;
+                }
+            }
+            return { };
+        };
+        QVERIFY(!write("ledger", "The *Lighthouse* keeper wrote [^1] the salt ledger.").isEmpty());
+        const QString hit = write("harbour", "A lighthouse <b> stood alone.");
+        ProjectList list;
+        list.setFolder(dir.path());
+        const QVariantList found = list.searchAll("LIGHTHOUSE");
+        QCOMPARE(found.size(), 2);
+        // The snippet marks the match and cannot carry markup of the text.
+        const QStringList snippets { found.at(0).toMap().value("snippet").toString(),
+                                     found.at(1).toMap().value("snippet").toString() };
+        QVERIFY(snippets.join("|").contains("<b>Lighthouse</b> keeper wrote the salt"));
+        QVERIFY(snippets.join("|").contains("&lt;b&gt; stood"));
+        QCOMPARE(list.searchAll("stood alone").size(), 1);
+        QCOMPARE(list.searchAll("stood alone").first().toMap().value("id").toString(), hit);
+        QCOMPARE(list.searchAll("nothing here").size(), 0);
+        // One letter is too short to search.
+        QCOMPARE(list.searchAll("l").size(), 0);
+    }
+
     void removeDeletesTheFolderAndItsBackups()
     {
         QTemporaryDir dir;

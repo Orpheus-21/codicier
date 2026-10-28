@@ -139,6 +139,51 @@ QHash<int, QByteArray> ProjectList::roleNames() const
     };
 }
 
+QVariantList ProjectList::searchAll(const QString &query) const
+{
+    QVariantList list;
+    const QString needle = query.trimmed();
+    if (needle.size() < 2)
+        return list;
+    // ponytail: reads every text file of every project on each search; an
+    // index per project if a workspace grows past a few hundred scenes.
+    for (const Entry &entry : entries) {
+        const LoadResult loaded = ProjectStore::load(entry.folder);
+        if (!loaded.ok())
+            continue;
+        for (const ProjectItem &item : loaded.project.items) {
+            if (item.file.isEmpty() || holdsNoText(item.kind) || item.section == u"trash"
+                || item.kind == u"search")
+                continue;
+            QFile file(QDir(entry.folder).filePath(item.file));
+            if (!file.open(QIODevice::ReadOnly))
+                continue;
+            const QString body = QString::fromUtf8(file.readAll());
+            const qsizetype at = body.indexOf(needle, 0, Qt::CaseInsensitive);
+            if (at < 0)
+                continue;
+            // About ten words on each side of the match, with it in bold.
+            const qsizetype from = std::max<qsizetype>(0, at - 60);
+            const qsizetype to = std::min(body.size(), at + needle.size() + 80);
+            // Two control marks hold the match through the clean-up of the text.
+            QString snippet = body.mid(from, at - from) + QChar(0x2) + body.mid(at, needle.size())
+                + QChar(0x3) + body.mid(at + needle.size(), to - at - needle.size());
+            snippet.remove(QRegularExpression(QStringLiteral("\\[\\^[^\\]]*\\]|\\*")));
+            snippet = (from > 0 ? QStringLiteral("...") : QString())
+                + snippet.simplified().toHtmlEscaped()
+                + (to < body.size() ? QStringLiteral("...") : QString());
+            snippet.replace(QChar(0x2), QStringLiteral("<b>"))
+                .replace(QChar(0x3), QStringLiteral("</b>"));
+            list.append(QVariantMap { { QStringLiteral("folder"), entry.folder },
+                                      { QStringLiteral("project"), entry.title },
+                                      { QStringLiteral("id"), item.id },
+                                      { QStringLiteral("title"), item.title },
+                                      { QStringLiteral("snippet"), snippet } });
+        }
+    }
+    return list;
+}
+
 QVariantMap ProjectList::get(int row) const
 {
     QVariantMap map;

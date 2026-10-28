@@ -16,6 +16,12 @@ Item {
 
     // A click on a project. T28 opens it.
     signal projectActivated(string folder)
+    // A click on a search result: the scene or note in the project.
+    signal matchActivated(string folder, string id)
+
+    // The results of the search across all projects, and whether it runs.
+    property var found: []
+    readonly property bool searching: projectSearch.text.trim().length >= 2
 
     // Why the last import failed, or "".
     property string importError: ""
@@ -342,7 +348,7 @@ Item {
         required property int count
 
         width: parent.width
-        visible: count > 0
+        visible: count > 0 && !home.searching
 
         Caps {
             text: section.heading
@@ -402,13 +408,67 @@ Item {
                 color: Theme.color.accent
             }
 
+            TextField {
+                id: projectSearch
+
+                objectName: "projectSearch"
+                visible: projectList.count > 0
+                width: parent.width
+                iconName: "search"
+                placeholderText: "Search the text of all projects"
+                onTextChanged: home.found = home.searching ? projectList.searchAll(text) : []
+            }
+
+            Column {
+                objectName: "searchResults"
+                visible: home.searching
+                width: parent.width
+                spacing: Theme.space.s
+
+                Muted {
+                    visible: home.found.length === 0
+                    text: "No project has these words."
+                }
+
+                Repeater {
+                    // ponytail: the first 50 matches; a narrower query shows the rest.
+                    model: home.found.slice(0, 50)
+
+                    Column {
+                        id: hit
+
+                        required property var modelData
+
+                        width: parent.width
+
+                        ListItem {
+                            objectName: "searchResult"
+                            width: parent.width
+                            text: hit.modelData.project + " / " + hit.modelData.title
+                            onClicked: home.matchActivated(hit.modelData.folder, hit.modelData.id)
+                        }
+
+                        Text {
+                            x: Theme.space.s
+                            width: parent.width - 2 * Theme.space.s
+                            textFormat: Text.RichText
+                            wrapMode: Text.Wrap
+                            text: hit.modelData.snippet
+                            font.family: Theme.type.reading
+                            font.pixelSize: Theme.type.body
+                            color: Theme.color.inkMuted
+                        }
+                    }
+                }
+            }
+
             // The project with the newest edit.
             Column {
                 id: continueBlock
 
                 readonly property var latest: projectList.count > 0 ? projectList.get(0) : ({})
 
-                visible: projectList.count > 0 && latest.error === ""
+                visible: projectList.count > 0 && latest.error === "" && !home.searching
                 width: parent.width
                 spacing: Theme.space.m
 

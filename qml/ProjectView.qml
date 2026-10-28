@@ -47,6 +47,9 @@ Item {
     property bool binderOpen: true
     property bool inspectorOpen: false
 
+    // The item to open first, from a search of all projects, or "".
+    property string startItem: ""
+
     // The layout and the open item come back from .codicier/state.toml.
     function restoreState() {
         const state = session.viewState();
@@ -82,6 +85,8 @@ Item {
             if (state.item === session.currentId && state.cursor > 0)
                 Qt.callLater(editor.restorePlace, state.cursor, state.scroll ?? 0);
         }
+        if (startItem !== "" && session.fields(startItem).title !== undefined)
+            session.currentId = startItem;
     }
 
     // The cursor and the scroll of every text, as JSON for the state file.

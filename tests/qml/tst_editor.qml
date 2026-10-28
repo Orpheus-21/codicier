@@ -216,6 +216,19 @@ TestCase {
         tryCompare(againText, "cursorPosition", 9);
     }
 
+    function test_startItemOpensThatScene() {
+        const view = makeView();
+        const first = view.session.currentId;
+        const second = view.session.add("scene");
+        view.saveState();
+        const folder = view.folder;
+        view.destroy();
+        wait(50);
+        const again = createTemporaryObject(viewComponent, testCase, { folder: folder, startItem: second }) as ProjectView;
+        compare(again.session.currentId, second);
+        verify(first !== second);
+    }
+
     function test_quickCaptureKeepsTheFocusOnThePage() {
         const view = makeView();
         const text = findChild(view, "editor") as TextEdit;

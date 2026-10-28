@@ -120,6 +120,11 @@ public:
     // directly in the workspace. Returns an error text, or "".
     Q_INVOKABLE QString remove(const QString &projectFolder, const QString &backupFolder);
     // The values of row as a map, for the Continue block.
+    // The scenes and notes of every project in the workspace whose text has
+    // the words (any case), as maps with folder, project, id, title, and a
+    // snippet in rich text. The trash and the saved searches stay out. A
+    // query of fewer than two letters gives no result.
+    Q_INVOKABLE QVariantList searchAll(const QString &query) const;
     Q_INVOKABLE QVariantMap get(int row) const;
 
     static QString kindLabel(const QString &kind);

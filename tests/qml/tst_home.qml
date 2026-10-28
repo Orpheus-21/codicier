@@ -64,4 +64,36 @@ TestCase {
         compare(home.projectError, "");
         compare(home.projects.count, 1);
     }
+
+    SignalSpy {
+        id: matchSpy
+
+        signalName: "matchActivated"
+    }
+
+    function test_searchShowsMatchesAndOpensOne() {
+        const home = makeHome();
+        waitForRendering(home);
+        matchSpy.target = home;
+        matchSpy.clear();
+        const field = findChild(home, "projectSearch") as TextField;
+        field.text = "zzzq";
+        verify(home.searching);
+        verify(findChild(home, "searchResults").visible);
+        compare(findChild(home, "searchResult"), null);
+        // A found scene shows as a row, and a click opens it.
+        home.found = [{ folder: "/x/harbour", project: "Harbour", id: "s1", title: "Dusk", snippet: "a <b>zzzq</b> b" }];
+        const row = findChild(home, "searchResult") as T.ItemDelegate;
+        tryVerify(() => row !== null);
+        waitForRendering(home);
+        compare(row.text, "Harbour / Dusk");
+        mouseClick(row);
+        compare(matchSpy.count, 1);
+        compare(matchSpy.signalArguments[0][0], "/x/harbour");
+        compare(matchSpy.signalArguments[0][1], "s1");
+        // One letter ends the search and the projects come back.
+        field.text = "z";
+        verify(!home.searching);
+        compare(home.found.length, 0);
+    }
 }
