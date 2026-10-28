@@ -188,6 +188,34 @@ TestCase {
         verify(!(findChild(again, "nextTimeBar") as Rectangle).visible);
     }
 
+    function test_eachSceneOpensAtItsOwnPlace() {
+        const view = makeView();
+        const text = findChild(view, "editor") as TextEdit;
+        const first = view.session.currentId;
+        wait(0);
+        text.text = "The lamp burned all night.";
+        text.cursorPosition = 9;
+        const second = view.session.add("scene");
+        view.session.currentId = second;
+        wait(0);
+        text.text = "The tide came in at dawn.";
+        text.cursorPosition = 4;
+        // A scene opened from the binder comes back at its own cursor.
+        view.session.currentId = first;
+        tryCompare(text, "cursorPosition", 9);
+        view.session.currentId = second;
+        tryCompare(text, "cursorPosition", 4);
+        // The places stay after the project closes.
+        view.saveState();
+        const folder = view.folder;
+        view.destroy();
+        wait(50);
+        const again = createTemporaryObject(viewComponent, testCase, { folder: folder }) as ProjectView;
+        const againText = findChild(again, "editor") as TextEdit;
+        again.session.currentId = first;
+        tryCompare(againText, "cursorPosition", 9);
+    }
+
     function test_quickCaptureKeepsTheFocusOnThePage() {
         const view = makeView();
         const text = findChild(view, "editor") as TextEdit;

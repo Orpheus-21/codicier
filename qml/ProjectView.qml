@@ -62,6 +62,15 @@ Item {
             wholeBook = state["whole-book"];
         if (typeof state["next-time"] === "string")
             nextTime = state["next-time"];
+        // The cursor and the scroll of every text that the writer left.
+        try {
+            for (const [id, place] of Object.entries(JSON.parse(state.places ?? "{}"))) {
+                cursors[id] = place[0];
+                scrolls[id] = place[1];
+            }
+        } catch (e) {
+            // The app can lose this file with no harm, so a bad value is no place.
+        }
         if (state.item && session.fields(state.item).title !== undefined)
             session.currentId = state.item;
         else
@@ -75,6 +84,14 @@ Item {
         }
     }
 
+    // The cursor and the scroll of every text, as JSON for the state file.
+    function places(): string {
+        const all = {};
+        for (const id of Object.keys(cursors))
+            all[id] = [cursors[id], scrolls[id] ?? 0];
+        return JSON.stringify(all);
+    }
+
     function saveState() {
         stateTimer.stop();
         session.saveViewState({
@@ -86,7 +103,8 @@ Item {
             "inspector": inspectorOpen,
             "inspector-width": Math.round(inspectorPane.T.SplitView.preferredWidth),
             "whole-book": wholeBook,
-            "next-time": nextTime
+            "next-time": nextTime,
+            "places": places()
         });
     }
 
@@ -113,6 +131,10 @@ Item {
             view.comparePath = "";
             stateTimer.restart();
             view.noteVisit();
+            // A text opens at the place where the writer left it.
+            const id = view.session.currentId;
+            if (!view.walking && view.cursors[id] !== undefined)
+                Qt.callLater(editor.restorePlace, view.cursors[id], view.scrolls[id] ?? 0);
             // A saved search opens its results.
             const fields = view.session.fields(view.session.currentId);
             if (fields.kind === "search") {
@@ -180,6 +202,7 @@ Item {
     property var trail: []
     property int trailAt: -1
     property var cursors: ({})
+    property var scrolls: ({})
     property bool walking: false
 
     // The item on the second page, or "".
@@ -1262,6 +1285,10 @@ Item {
                     // A load moves the cursor too. Keep only the moves of the author.
                     if (!view.session.document.isLoading() && view.session.currentId !== "")
                         view.cursors[view.session.currentId] = cursorPosition;
+                }
+                onScrollChanged: {
+                    if (!view.session.document.isLoading() && view.session.currentId !== "")
+                        view.scrolls[view.session.currentId] = Math.round(scroll);
                 }
             }
 
