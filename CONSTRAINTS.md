@@ -59,13 +59,13 @@ No rule is planned now.
 
 | ID | Rule | Path | Reason | Owner | Expires |
 |---|---|---|---|---|---|
-| E5 | assertion-removed | tests/tst_projectlist.cpp | The project list gets an author role, so the role count goes from 11 to 12. | Orpheus-21 | 2026-10-28 |
 | E6 | assertion-removed | tests/qml/tst_theme.qml | Three new themes (night, mist, contrast), so the list of theme names grows from three to six. | Orpheus-21 | 2026-10-29 |
 | E7 | assertion-removed | tests/tst_scrivener.cpp | The import adds the note "Imported from Scrivener" before the research notes, so the indices of the research items in the test move up by one. | Orpheus-21 | 2026-10-30 |
 | E8 | assertion-removed | tests/qml/tst_editor.qml | Rarely used commands have no default key now (the keys clashed with input methods and desktops), so "every command has a key" is no longer the rule; a new test checks that no key clashes. | Orpheus-21 | 2026-11-06 |
 | E9 | assertion-removed | tests/qml/tst_editor.qml | The status bar counts now end in "words" (local #41), so the selection count reads "Selection 4 words". | Orpheus-21 | 2026-11-06 |
 | E10 | assertion-removed | tests/tst_settings.cpp | The focus scope gets a fourth value (dialogue only), so the largest allowed value is 3 and the clamp test expects 3 in place of 2. T275 removes the free board setting and T277 the autosave delay setting, with their asserts. | Orpheus-21 | 2026-11-06 |
 | E11 | test-deleted | tests/qml/tst_editor.qml | T275 removes the free corkboard, so its test goes. The idea canvas does that job and has its own test. | Orpheus-21 | 2026-11-06 |
+| E12 | assertion-removed | tests/qml/tst_accessibility.qml | T211 adds "A project zip…" to the import menu, so the menu list grows from three entries to four. | Orpheus-21 | 2026-11-11 |
 
 An exception lasts 90 days at most.
 

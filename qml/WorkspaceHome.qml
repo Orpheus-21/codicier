@@ -53,6 +53,11 @@ Item {
         }
 
         T.Action {
+            text: "Export as a zip…"
+            onTriggered: zipSaveDialog.open()
+        }
+
+        T.Action {
             text: "Move to the archive"
             onTriggered: home.projectError = projectList.archive(home.menuFolder)
         }
@@ -79,6 +84,7 @@ Item {
         T.Action { text: "A Scrivener project…"; onTriggered: home.importScrivener() }
         T.Action { text: "A folder of Markdown files…"; onTriggered: home.importMarkdown() }
         T.Action { text: "A Word file (DOCX)…"; onTriggered: home.importDocx() }
+        T.Action { text: "A project zip…"; onTriggered: { home.importError = ""; zipDialog.open() } }
     }
 
     // Asks for a folder of Markdown files and makes a new project from it.
@@ -91,6 +97,24 @@ Item {
     function importDocx() {
         importError = "";
         docxDialog.open();
+    }
+
+    FileDialog {
+        id: zipDialog
+
+        title: "Choose a project zip"
+        nameFilters: ["Zip files (*.zip)"]
+        onAccepted: home.importError = projectList.importZip(selectedFile)
+    }
+
+    FileDialog {
+        id: zipSaveDialog
+
+        title: "Export the project as a zip"
+        fileMode: FileDialog.SaveFile
+        nameFilters: ["Zip files (*.zip)"]
+        defaultSuffix: "zip"
+        onAccepted: home.projectError = projectList.exportZip(home.menuFolder, selectedFile)
     }
 
     FileDialog {

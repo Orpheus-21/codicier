@@ -79,6 +79,41 @@ QList<std::pair<QString, QDateTime>> zipsOf(const QDir &target, const QString &c
     return found;
 }
 
+// The zip of the project folder, without .codicier/, with every path under
+// <name>/. Empty with the reason in error when it fails.
+QByteArray zipBytes(const QDir &project, const QString &name, QString *error)
+{
+    QByteArray bytes;
+    {
+        QBuffer buffer(&bytes);
+        buffer.open(QIODevice::WriteOnly);
+        QZipWriter zip(&buffer);
+        zip.setCompressionPolicy(QZipWriter::AutoCompress);
+        QDirIterator it(project.path(), QDir::Files | QDir::Hidden, QDirIterator::Subdirectories);
+        QStringList files;
+        while (it.hasNext())
+            files.append(project.relativeFilePath(it.next()));
+        std::ranges::sort(files);
+        for (const QString &file : std::as_const(files)) {
+            // .codicier/ holds only what the app can build again or lose.
+            if (file.startsWith(QStringLiteral(".codicier/")))
+                continue;
+            QFile in(project.filePath(file));
+            if (!in.open(QIODevice::ReadOnly)) {
+                fail(error, QStringLiteral("Cannot read %1.").arg(file));
+                return { };
+            }
+            zip.addFile(name + u'/' + file, in.readAll());
+        }
+        zip.close();
+        if (zip.status() != QZipWriter::NoError) {
+            fail(error, QStringLiteral("Cannot write the zip."));
+            return { };
+        }
+    }
+    return bytes;
+}
+
 } // namespace
 
 namespace Backup {
@@ -109,34 +144,9 @@ QString write(const QString &projectFolder, const QString &backupFolder, int kee
     while (QFileInfo::exists(target.filePath(nameAt(time))))
         time = time.addMSecs(1);
     const QString zipName = nameAt(time);
-    QByteArray bytes;
-    {
-        QBuffer buffer(&bytes);
-        buffer.open(QIODevice::WriteOnly);
-        QZipWriter zip(&buffer);
-        zip.setCompressionPolicy(QZipWriter::AutoCompress);
-        QDirIterator it(project.path(), QDir::Files | QDir::Hidden, QDirIterator::Subdirectories);
-        QStringList files;
-        while (it.hasNext())
-            files.append(project.relativeFilePath(it.next()));
-        std::ranges::sort(files);
-        for (const QString &file : std::as_const(files)) {
-            // .codicier/ holds only what the app can build again or lose.
-            if (file.startsWith(QStringLiteral(".codicier/")))
-                continue;
-            QFile in(project.filePath(file));
-            if (!in.open(QIODevice::ReadOnly)) {
-                fail(error, QStringLiteral("Cannot read %1.").arg(file));
-                return { };
-            }
-            zip.addFile(name + u'/' + file, in.readAll());
-        }
-        zip.close();
-        if (zip.status() != QZipWriter::NoError) {
-            fail(error, QStringLiteral("Cannot write the zip."));
-            return { };
-        }
-    }
+    const QByteArray bytes = zipBytes(project, name, error);
+    if (bytes.isEmpty())
+        return { };
     QSaveFile out(target.filePath(zipName));
     if (!out.open(QIODevice::WriteOnly) || out.write(bytes) != bytes.size() || !out.commit()) {
         fail(error, out.errorString());
@@ -170,6 +180,20 @@ QList<Entry> list(const QString &projectFolder, const QString &backupFolder)
     for (const auto &[path, time] : zipsOf(target, created))
         entries.append({ path, time });
     return entries;
+}
+
+bool exportTo(const QString &projectFolder, const QString &zipFile, QString *error)
+{
+    const QDir project(projectFolder);
+    if (!project.exists())
+        return fail(error, QStringLiteral("No project."));
+    const QByteArray bytes = zipBytes(project, QFileInfo(project.absolutePath()).fileName(), error);
+    if (bytes.isEmpty())
+        return false;
+    QSaveFile out(zipFile);
+    if (!out.open(QIODevice::WriteOnly) || out.write(bytes) != bytes.size() || !out.commit())
+        return fail(error, out.errorString());
+    return true;
 }
 
 bool restore(const QString &zipPath, const QString &targetFolder, QString *error)

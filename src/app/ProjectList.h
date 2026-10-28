@@ -82,6 +82,12 @@ public:
     // Makes a new project from a DOCX file, named after the file, and opens
     // it. Returns an error text, or "".
     Q_INVOKABLE QString importDocx(const QUrl &file);
+    // Makes a new project from a project zip (see exportZip or a backup),
+    // named after the file, and opens it. Returns an error text, or "".
+    Q_INVOKABLE QString importZip(const QUrl &file);
+    // Writes the project as one zip, without .codicier/, to the file. Returns
+    // an error text, or "".
+    Q_INVOKABLE static QString exportZip(const QString &projectFolder, const QUrl &file);
     // The binder of a new project of the kind: title, kind, section, and
     // depth for each item, in binder order.
     Q_INVOKABLE static QVariantList templateOutline(const QString &kind);

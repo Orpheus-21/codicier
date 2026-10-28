@@ -41,7 +41,7 @@ TestCase {
         mouseClick(findChild(home, "moreProject") as Item);
         const menu = findChild(home, "rowMenu") as T.Menu;
         tryVerify(() => menu.opened);
-        compare(menu.count, 3);
+        compare(menu.count, 4);
         // Make a copy.
         menu.actionAt(1).trigger();
         compare(home.projects.count, 2);
@@ -60,7 +60,7 @@ TestCase {
         menu.close();
         mouseClick(findChild(home, "moreProject") as Item);
         tryVerify(() => menu.opened);
-        menu.actionAt(2).trigger();
+        menu.actionAt(3).trigger();
         compare(home.projectError, "");
         compare(home.projects.count, 1);
     }

@@ -324,12 +324,12 @@ TestCase {
         waitForRendering(win.contentItem);
         mouseClick(findChild(win.contentItem, "emptyImport") as Item);
         tryVerify(() => openMenu() !== undefined);
-        compare(entries(openMenu()), ["A Scrivener project…", "A folder of Markdown files…", "A Word file (DOCX)…"]);
+        compare(entries(openMenu()), ["A Scrivener project…", "A folder of Markdown files…", "A Word file (DOCX)…", "A project zip…"]);
         keyClick(Qt.Key_Escape);
         tryVerify(() => openMenu() === undefined);
         mouseClick(findChild(win.contentItem, "importButton") as Item);
         tryVerify(() => openMenu() !== undefined);
-        compare(entries(openMenu()).length, 3);
+        compare(entries(openMenu()).length, 4);
         keyClick(Qt.Key_Escape);
         win.close();
         win.destroy();

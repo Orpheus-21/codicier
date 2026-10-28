@@ -400,6 +400,28 @@ QString ProjectList::importDocx(const QUrl &file)
     });
 }
 
+QString ProjectList::importZip(const QUrl &file)
+{
+    if (workspace.isEmpty())
+        return QStringLiteral("Choose a workspace first.");
+    const QFileInfo source(file.isLocalFile() ? file.toLocalFile() : file.toString());
+    if (!source.isFile())
+        return QStringLiteral("Choose a project zip.");
+    return importInto(source.completeBaseName(), [&source](const QString &target) {
+        QString error;
+        if (!Backup::restore(source.absoluteFilePath(), target, &error))
+            return QList<LoadError> { { source.fileName(), 0, error } };
+        return ProjectStore::load(target).errors;
+    });
+}
+
+QString ProjectList::exportZip(const QString &projectFolder, const QUrl &file)
+{
+    QString error;
+    const QString path = file.isLocalFile() ? file.toLocalFile() : file.toString();
+    return Backup::exportTo(projectFolder, path, &error) ? QString() : error;
+}
+
 QString ProjectList::newFolderFor(const QString &title) const
 {
     const QDir dir(workspace);

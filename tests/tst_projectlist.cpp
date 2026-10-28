@@ -68,6 +68,35 @@ private slots:
         QVERIFY(!list.restoreBackup(dir.filePath("none.zip")).isEmpty());
     }
 
+    void aProjectExportsToOneZipAndImportsBack()
+    {
+        QTemporaryDir dir;
+        QTemporaryDir out;
+        const QString folder = dir.filePath("ledger");
+        QVERIFY(Templates::create(folder, "novel", "The Salt Ledger", "A").isEmpty());
+        ProjectList list;
+        list.setFolder(dir.path());
+        const QString zip = out.filePath("My Ledger.zip");
+        QCOMPARE(ProjectList::exportZip(folder, QUrl::fromLocalFile(zip)), QString());
+        QVERIFY(QFileInfo(zip).size() > 0);
+        QVERIFY(!ProjectList::exportZip(dir.filePath("none"), QUrl::fromLocalFile(zip)).isEmpty());
+        QSignalSpy created(&list, &ProjectList::created);
+        QCOMPARE(list.importZip(QUrl::fromLocalFile(zip)), QString());
+        QCOMPARE(created.size(), 1);
+        // The title stays, and the folder is named after the zip.
+        QCOMPARE(list.count(), 2);
+        QVERIFY(created.first().first().toString().contains("my-ledger"));
+        QVERIFY(QFile::exists(created.first().first().toString() + "/binder.toml"));
+        QVERIFY(!list.importZip(QUrl::fromLocalFile(out.filePath("none.zip"))).isEmpty());
+        // A file that is no zip leaves no folder behind.
+        QFile bad(out.filePath("bad.zip"));
+        QVERIFY(bad.open(QIODevice::WriteOnly));
+        bad.write("no zip");
+        bad.close();
+        QVERIFY(!list.importZip(QUrl::fromLocalFile(bad.fileName())).isEmpty());
+        QCOMPARE(list.count(), 2);
+    }
+
     void aZipWithAPathOutsideTheFolderIsRefused()
     {
         QTemporaryDir dir;
